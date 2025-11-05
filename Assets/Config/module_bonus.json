@@ -1,0 +1,47 @@
+[
+  {
+    "module_weapon_id": "Shield_extended_t1small",
+    "slot_type": "mid_slot",
+    "name": "Расширитель щитов",
+    "descr": "Малый расширитель щитов",
+    "icon": "i_Shield_extended_t1small",
+    "cost": 1200,
+    "in_cargo_size": 5,
+    "installed_stats_int": "shield_hp:200,cpu:-15,power:-5",
+    "installed_stats_mult": "shield_hp:1.02",
+    "active": 0,
+    "active_need": "",
+    "active_give": "",
+    "active_cd": ""
+  },
+  {
+    "module_weapon_id": "Shield_pumping_t1small",
+    "slot_type": "mid_slot",
+    "name": "Усилитель щита",
+    "descr": "Восстаналивает запас щита",
+    "icon": "i_Shield_pumping_t1small",
+    "cost": 1300,
+    "in_cargo_size": 5,
+    "installed_stats_int": "cpu:-15,power:-10",
+    "installed_stats_mult": "",
+    "active": 1,
+    "active_need": "capasitor_current:50",
+    "active_give": "shield_hp_current:50,heat_current:30",
+    "active_cd": 5
+  },
+  {
+    "module_weapon_id": "Mining_damage_t1small",
+    "slot_type": "low_slot",
+    "name": "Усилитель бурового луча",
+    "descr": "Увелличивает скорость бурения добывающих лазеров",
+    "icon": "i_Mining_damage_t1small",
+    "cost": 2000,
+    "in_cargo_size": 5,
+    "installed_stats_int": "cpu:-5,power:-20",
+    "installed_stats_mult": "mining_damage:1.1",
+    "active": 0,
+    "active_need": "",
+    "active_give": "",
+    "active_cd": ""
+  }
+]
