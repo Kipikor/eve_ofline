@@ -1,0 +1,146 @@
+[
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 1,
+    "name": "Дробление руды: Пепельный камень",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Пепельный_камень:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Сподит:38,Титанит:12"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 2,
+    "name": "Дробление руды: Космический керн",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Космический_керн:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Сподит:15,Титанит:14,Онит:12"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 3,
+    "name": "Дробление руды: Тусклый эолит",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Тусклый_эолит:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Сподит:5,Титанит:22,Иганат:8"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 4,
+    "name": "Дробление руды: Загоризонтный вилокцит",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Загоризонтный_вилокцит:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Сподит:25,Онит:17,Декесат:2"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 5,
+    "name": "Дробление руды: Микроструктурный импаксит",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Микроструктурный_импаксит:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Сподит:10,Иганат:14,Цибелит:9"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 6,
+    "name": "Дробление руды: Океанический флюидит",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Океанический_флюидит:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Титанит:71,Онит:22"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 7,
+    "name": "Дробление руды: Сверкающий фиссурит",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Сверкающий_фиссурит:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Онит:34,Цибелит:16,Нобелит:1"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 8,
+    "name": "Дробление руды: Сверхновый пегмасил",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Сверхновый_пегмасил:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Сподит:51,Иганат:28,Луракит:7"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 9,
+    "name": "Дробление руды: Прочный синтар",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Прочный_синтар:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Титанит:82,Декесат:5"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 10,
+    "name": "Дробление руды: Пластинчатый фотарид",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Пластинчатый_фотарид:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Онит:38,Иганат:78,Декесат:8"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 11,
+    "name": "Дробление руды: Кристаллический сферид",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Кристаллический_сферид:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Сподит:150,Цибелит:58,Декесат:7"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 12,
+    "name": "Дробление руды: Концентрированный борксал",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Концентрированный_борксал:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Титанит:152,Онит:224,Луракит:13"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 13,
+    "name": "Дробление руды: Смертоносный авид",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Смертоносный_авид:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Декесат:31,Нобелит:15"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 14,
+    "name": "Дробление руды: Ужасный моргелит",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Ужасный_моргелит:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Сподит:220,Титанит:365,Иганат:248"
+  },
+  {
+    "module_production_id": "ore_crusher_t1",
+    "sort_order": 15,
+    "name": "Дробление руды: Предельный таласонит",
+    "descr": "Процесс грубого дробления и сепарации руды. Процесс простой но низкоэфективный, вызывает значительный перерасход сырья.",
+    "in_production": "Предельный_таласонит:300,Current_capasitor:-30,Current_heat:+20",
+    "timer_production": 10,
+    "production_out": "Онит:270,Цибелит:72,Луракит:44"
+  },
+  {
+    "module_production_id": "analog_drone_condor_factory",
+    "sort_order": 1,
+    "name": "Собрать аналогового дрона.",
+    "descr": "Из забортового вещества, которое постоянно собирается модулем на микросборщике собирается простейший аналоговый дрон.",
+    "in_production": "",
+    "timer_production": 10,
+    "production_out": "analog_drone:1"
+  }
+]

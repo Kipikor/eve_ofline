@@ -1,0 +1,26 @@
+[
+  {
+    "module_production_id": "ore_crusher_t1",
+    "slot_type": "low_slot",
+    "name": "Дробилка для руды",
+    "descr": "Дробилка низкотехноллогичное оборудоание для переработки руды. Имеет большой перерасход сырья но компактная, не требует навыков и проста в обращении.",
+    "icon": "i_ore_crusher_t1",
+    "cost": 0,
+    "in_cargo_size": 5,
+    "active_cd": 2.5,
+    "installed_stats_int": "cpu:-15,power:-50",
+    "installed_stats_mult": ""
+  },
+  {
+    "module_production_id": "analog_drone_condor_factory",
+    "slot_type": "free_slot",
+    "name": "Сборщик дронов",
+    "descr": "Интегрированный в кондор сборщик аналоговых дронов",
+    "icon": "i_analog_drone_condor_factory",
+    "cost": 0,
+    "in_cargo_size": 0,
+    "active_cd": 8,
+    "installed_stats_int": "",
+    "installed_stats_mult": ""
+  }
+]
