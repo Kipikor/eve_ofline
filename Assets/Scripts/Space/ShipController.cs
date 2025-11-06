@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace EveOffline.Space
 {
@@ -18,6 +19,9 @@ namespace EveOffline.Space
 		private float maxLinearSpeedMetersPerSecond = 6f;
 		private float rotationSpeedDegreesPerSecond = 90f;
 		private bool isAlignToMouseEnabled;
+
+		[Header("UI")]
+		[SerializeField] private Toggle modeMouseOrientationToggle;
 
 		[Serializable]
 		private class ShipRecord
@@ -45,6 +49,29 @@ namespace EveOffline.Space
 			shipBody.freezeRotation = true; // поворачиваем вручную
 
 			LoadShipConfig();
+
+			// Инициализация/поиск галочки режима, если не назначена в инспекторе
+			if (modeMouseOrientationToggle == null)
+			{
+				var go = GameObject.Find("mode_mouse_orientatioon");
+				if (go != null)
+				{
+					modeMouseOrientationToggle = go.GetComponent<Toggle>();
+				}
+			}
+			if (modeMouseOrientationToggle != null)
+			{
+				modeMouseOrientationToggle.SetIsOnWithoutNotify(isAlignToMouseEnabled);
+				modeMouseOrientationToggle.onValueChanged.AddListener(OnModeMouseOrientationToggleChanged);
+			}
+		}
+
+		private void OnDestroy()
+		{
+			if (modeMouseOrientationToggle != null)
+			{
+				modeMouseOrientationToggle.onValueChanged.RemoveListener(OnModeMouseOrientationToggleChanged);
+			}
 		}
 
 		private void LoadShipConfig()
@@ -78,6 +105,10 @@ namespace EveOffline.Space
 				if (keyboard.leftCtrlKey.wasPressedThisFrame || keyboard.rightCtrlKey.wasPressedThisFrame)
 				{
 					isAlignToMouseEnabled = !isAlignToMouseEnabled;
+					if (modeMouseOrientationToggle != null)
+					{
+						modeMouseOrientationToggle.SetIsOnWithoutNotify(isAlignToMouseEnabled);
+					}
 				}
 			}
 		}
@@ -128,6 +159,8 @@ namespace EveOffline.Space
 			}
 
 			Vector3 mouseScreen = mouse.position.ReadValue();
+			// Конвертируем координаты мыши на ту же глубину, что и корабль
+			mouseScreen.z = mainCamera.WorldToScreenPoint(transform.position).z;
 			Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(mouseScreen);
 			Vector2 toMouse = (Vector2)(mouseWorld - transform.position);
 
@@ -139,6 +172,11 @@ namespace EveOffline.Space
 			float targetAngle = Mathf.Atan2(toMouse.y, toMouse.x) * Mathf.Rad2Deg - 90f; // нос корабля вверх
 			float newAngle = Mathf.MoveTowardsAngle(shipBody.rotation, targetAngle, rotationSpeedDegreesPerSecond * Time.fixedDeltaTime);
 			shipBody.MoveRotation(newAngle);
+		}
+
+		private void OnModeMouseOrientationToggleChanged(bool isOn)
+		{
+			isAlignToMouseEnabled = isOn;
 		}
 	}
 

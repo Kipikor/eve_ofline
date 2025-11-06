@@ -12,7 +12,7 @@
     "structure_hp": 250,
     "power": 120,
     "cpu": 80,
-    "speed": 8,
+    "speed": 80,
     "rotation": 60,
     "capasitor_max": 150,
     "capasitor_regen": 5,
