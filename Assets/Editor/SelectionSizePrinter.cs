@@ -13,7 +13,7 @@ public static class SelectionSizePrinter
 			return;
 		}
 
-		if (TryGetRenderersBounds(go, out var bounds) || TryGetCollider2DBounds(go, out bounds))
+		if (TryGetCollider2DBounds(go, out var bounds) || TryGetCollider3DBounds(go, out bounds) || TryGetRenderersBounds(go, out bounds))
 		{
 			float width = bounds.size.x;
 			float height = bounds.size.y;
@@ -27,7 +27,7 @@ public static class SelectionSizePrinter
 			return;
 		}
 
-		Debug.LogWarning($"Не удалось определить размеры для '{go.name}'. Нет Renderer/Collider2D/RectTransform.");
+		Debug.LogWarning($"Не удалось определить размеры для '{go.name}'. Нет Collider/Collider2D/Renderer/RectTransform.");
 	}
 
 	private static bool TryGetRenderersBounds(GameObject go, out Bounds combined)
@@ -62,6 +62,22 @@ public static class SelectionSizePrinter
 		return false;
 	}
 
+	private static bool TryGetCollider3DBounds(GameObject go, out Bounds combined)
+	{
+		var colliders = go.GetComponentsInChildren<Collider>();
+		if (colliders != null && colliders.Length > 0)
+		{
+			combined = colliders[0].bounds;
+			for (int i = 1; i < colliders.Length; i++)
+			{
+				combined.Encapsulate(colliders[i].bounds);
+			}
+			return true;
+		}
+		combined = default;
+		return false;
+	}
+
 	private static bool TryGetRectTransformSizeWorld(GameObject go, out float width, out float height)
 	{
 		var rt = go.GetComponent<RectTransform>();
@@ -77,5 +93,7 @@ public static class SelectionSizePrinter
 		return true;
 	}
 }
+
+
 
 
