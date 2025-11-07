@@ -9,9 +9,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 10,
     "asteroid_hp_max": 800,
-    "asteroid_size_to_ore": 1500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Космический_керн_1",
@@ -23,9 +22,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 15,
     "asteroid_hp_max": 1200,
-    "asteroid_size_to_ore": 2250,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Тусклый_эолит_1",
@@ -37,9 +35,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 20,
     "asteroid_hp_max": 1600,
-    "asteroid_size_to_ore": 3000,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Загоризонтный_вилокцит_1",
@@ -51,9 +48,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 30,
     "asteroid_hp_max": 2400,
-    "asteroid_size_to_ore": 4500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Микроструктурный_импаксит_1",
@@ -65,9 +61,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 40,
     "asteroid_hp_max": 3200,
-    "asteroid_size_to_ore": 6000,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Океанический_флюидит_1",
@@ -79,9 +74,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 50,
     "asteroid_hp_max": 4000,
-    "asteroid_size_to_ore": 7500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Сверкающий_фиссурит_1",
@@ -93,9 +87,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 70,
     "asteroid_hp_max": 5600,
-    "asteroid_size_to_ore": 10500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Сверхновый_пегмасил_1",
@@ -107,9 +100,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 90,
     "asteroid_hp_max": 7200,
-    "asteroid_size_to_ore": 13500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Прочный_синтар_1",
@@ -121,9 +113,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 110,
     "asteroid_hp_max": 8800,
-    "asteroid_size_to_ore": 16500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Пластинчатый_фотарид_1",
@@ -135,9 +126,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 150,
     "asteroid_hp_max": 12000,
-    "asteroid_size_to_ore": 22500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Кристаллический_сферид_1",
@@ -149,9 +139,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 170,
     "asteroid_hp_max": 13600,
-    "asteroid_size_to_ore": 25500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Концентрированный_борксал_1",
@@ -163,9 +152,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 190,
     "asteroid_hp_max": 15200,
-    "asteroid_size_to_ore": 28500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Смертоносный_авид_1",
@@ -177,9 +165,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 350,
     "asteroid_hp_max": 28000,
-    "asteroid_size_to_ore": 52500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Ужасный_моргелит_1",
@@ -191,9 +178,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 400,
     "asteroid_hp_max": 32000,
-    "asteroid_size_to_ore": 60000,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Предельный_таласонит_1",
@@ -205,9 +191,8 @@
     "ore_sum_max": 150,
     "asteroid_hp_min": 450,
     "asteroid_hp_max": 36000,
-    "asteroid_size_to_ore": 67500,
-    "asteroid_radius_min": 0.9,
-    "asteroid_radius_max": 1.2000000000000002
+    "asteroid_radius_min": 8.9,
+    "asteroid_radius_max": 12.200000000000001
   },
   {
     "asteroid_id": "Пепельный_камень_2",
@@ -219,9 +204,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 10,
     "asteroid_hp_max": 2500,
-    "asteroid_size_to_ore": 5000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Космический_керн_2",
@@ -233,9 +217,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 15,
     "asteroid_hp_max": 3750,
-    "asteroid_size_to_ore": 7500,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Тусклый_эолит_2",
@@ -247,9 +230,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 20,
     "asteroid_hp_max": 5000,
-    "asteroid_size_to_ore": 10000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Загоризонтный_вилокцит_2",
@@ -261,9 +243,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 30,
     "asteroid_hp_max": 7500,
-    "asteroid_size_to_ore": 15000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Микроструктурный_импаксит_2",
@@ -275,9 +256,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 40,
     "asteroid_hp_max": 10000,
-    "asteroid_size_to_ore": 20000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Океанический_флюидит_2",
@@ -289,9 +269,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 50,
     "asteroid_hp_max": 12500,
-    "asteroid_size_to_ore": 25000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Сверкающий_фиссурит_2",
@@ -303,9 +282,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 70,
     "asteroid_hp_max": 17500,
-    "asteroid_size_to_ore": 35000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Сверхновый_пегмасил_2",
@@ -317,9 +295,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 90,
     "asteroid_hp_max": 22500,
-    "asteroid_size_to_ore": 45000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Прочный_синтар_2",
@@ -331,9 +308,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 110,
     "asteroid_hp_max": 27500,
-    "asteroid_size_to_ore": 55000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Пластинчатый_фотарид_2",
@@ -345,9 +321,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 150,
     "asteroid_hp_max": 37500,
-    "asteroid_size_to_ore": 75000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Кристаллический_сферид_2",
@@ -359,9 +334,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 170,
     "asteroid_hp_max": 42500,
-    "asteroid_size_to_ore": 85000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Концентрированный_борксал_2",
@@ -373,9 +347,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 190,
     "asteroid_hp_max": 47500,
-    "asteroid_size_to_ore": 95000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Смертоносный_авид_2",
@@ -387,9 +360,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 350,
     "asteroid_hp_max": 87500,
-    "asteroid_size_to_ore": 175000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Ужасный_моргелит_2",
@@ -401,9 +373,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 400,
     "asteroid_hp_max": 100000,
-    "asteroid_size_to_ore": 200000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Предельный_таласонит_2",
@@ -415,9 +386,8 @@
     "ore_sum_max": 500,
     "asteroid_hp_min": 450,
     "asteroid_hp_max": 112500,
-    "asteroid_size_to_ore": 225000,
-    "asteroid_radius_min": 1.6,
-    "asteroid_radius_max": 2.2
+    "asteroid_radius_min": 15.8,
+    "asteroid_radius_max": 22.400000000000002
   },
   {
     "asteroid_id": "Пепельный_камень_3",
@@ -429,9 +399,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 10,
     "asteroid_hp_max": 8000,
-    "asteroid_size_to_ore": 15000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Космический_керн_3",
@@ -443,9 +412,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 15,
     "asteroid_hp_max": 12000,
-    "asteroid_size_to_ore": 22500,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Тусклый_эолит_3",
@@ -457,9 +425,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 20,
     "asteroid_hp_max": 16000,
-    "asteroid_size_to_ore": 30000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Загоризонтный_вилокцит_3",
@@ -471,9 +438,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 30,
     "asteroid_hp_max": 24000,
-    "asteroid_size_to_ore": 45000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Микроструктурный_импаксит_3",
@@ -485,9 +451,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 40,
     "asteroid_hp_max": 32000,
-    "asteroid_size_to_ore": 60000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Океанический_флюидит_3",
@@ -499,9 +464,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 50,
     "asteroid_hp_max": 40000,
-    "asteroid_size_to_ore": 75000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Сверкающий_фиссурит_3",
@@ -513,9 +477,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 70,
     "asteroid_hp_max": 56000,
-    "asteroid_size_to_ore": 105000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Сверхновый_пегмасил_3",
@@ -527,9 +490,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 90,
     "asteroid_hp_max": 72000,
-    "asteroid_size_to_ore": 135000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Прочный_синтар_3",
@@ -541,9 +503,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 110,
     "asteroid_hp_max": 88000,
-    "asteroid_size_to_ore": 165000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Пластинчатый_фотарид_3",
@@ -555,9 +516,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 150,
     "asteroid_hp_max": 120000,
-    "asteroid_size_to_ore": 225000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Кристаллический_сферид_3",
@@ -569,9 +529,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 170,
     "asteroid_hp_max": 136000,
-    "asteroid_size_to_ore": 255000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Концентрированный_борксал_3",
@@ -583,9 +542,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 190,
     "asteroid_hp_max": 152000,
-    "asteroid_size_to_ore": 285000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Смертоносный_авид_3",
@@ -597,9 +555,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 350,
     "asteroid_hp_max": 280000,
-    "asteroid_size_to_ore": 525000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Ужасный_моргелит_3",
@@ -611,9 +568,8 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 400,
     "asteroid_hp_max": 320000,
-    "asteroid_size_to_ore": 600000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   },
   {
     "asteroid_id": "Предельный_таласонит_3",
@@ -625,8 +581,7 @@
     "ore_sum_max": 1500,
     "asteroid_hp_min": 450,
     "asteroid_hp_max": 360000,
-    "asteroid_size_to_ore": 675000,
-    "asteroid_radius_min": 2.8000000000000003,
-    "asteroid_radius_max": 3.9000000000000004
+    "asteroid_radius_min": 28.3,
+    "asteroid_radius_max": 38.7
   }
 ]

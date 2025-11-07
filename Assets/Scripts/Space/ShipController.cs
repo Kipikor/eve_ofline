@@ -1,27 +1,34 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine.UI;
 
 namespace EveOffline.Space
 {
 	[DisallowMultipleComponent]
 	[RequireComponent(typeof(Rigidbody2D))]
+	[RequireComponent(typeof(BoxCollider2D))]
 	public class ShipController : MonoBehaviour
 	{
-		[Header("Config Source")]
-		[SerializeField] private TextAsset shipConfigJson;
+		[Header("Config")]
+		[SerializeField] private string shipId;
 
-		[Header("Tuning")]
-		[SerializeField] private float acceleration = 25f; // м/с^2 для плавного разгона/торможения
+		private float acceleration = 25f; // из JSON (значение по умолчанию)
+		private float shipWidthMeters = 1f;  // из JSON
+		private float shipHeightMeters = 1f; // из JSON
+		private string spriteKey;            // из JSON
+		private float spriteScale = 1f;      // из JSON
+		private float shipOffsetX;           // из JSON
+		private float shipOffsetY;           // из JSON
 
 		private Rigidbody2D shipBody;
 		private float maxLinearSpeedMetersPerSecond = 6f;
 		private float rotationSpeedDegreesPerSecond = 90f;
 		private bool isAlignToMouseEnabled;
-
-		[Header("UI")]
-		[SerializeField] private Toggle modeMouseOrientationToggle;
+		private Toggle modeMouseToggle;
 
 		[Serializable]
 		private class ShipRecord
@@ -30,6 +37,7 @@ namespace EveOffline.Space
 			public string name;
 			public string descr;
 			public string sprite;
+			public string Sprite_ship;   // альтернативный ключ для спрайта
 			public float cost;
 			public float shield_hp;
 			public float shield_regen;
@@ -40,6 +48,17 @@ namespace EveOffline.Space
 			public float cpu;
 			public float speed;      // м/с
 			public float rotation;   // градусы/сек
+			public float acceleration; // м/с^2
+			public float accel;        // альтернативное имя
+			public float width;        // м
+			public float height;       // м
+			public float size_x;       // альтернативное имя ширины
+			public float size_y;       // альтернативное имя высоты
+			public float offset_x;     // смещение коллайдера X (м)
+			public float offset_y;     // смещение коллайдера Y (м)
+			public float offsetX;      // альтернативное имя
+			public float offsetY;      // альтернативное имя
+			public float sprite_scale; // масштаб спрайта
 		}
 
 		private void Awake()
@@ -49,52 +68,166 @@ namespace EveOffline.Space
 			shipBody.freezeRotation = true; // поворачиваем вручную
 
 			LoadShipConfig();
+			ApplySizeAndVisuals();
 
-			// Инициализация/поиск галочки режима, если не назначена в инспекторе
-			if (modeMouseOrientationToggle == null)
+			// Ищем чекбокс режима по имени
+			var go = GameObject.Find("mode_mouse_orientatioon");
+			if (go != null)
 			{
-				var go = GameObject.Find("mode_mouse_orientatioon");
-				if (go != null)
+				modeMouseToggle = go.GetComponent<Toggle>();
+				if (modeMouseToggle != null)
 				{
-					modeMouseOrientationToggle = go.GetComponent<Toggle>();
+					modeMouseToggle.SetIsOnWithoutNotify(isAlignToMouseEnabled);
+					modeMouseToggle.onValueChanged.AddListener(OnModeMouseToggleChanged);
 				}
 			}
-			if (modeMouseOrientationToggle != null)
-			{
-				modeMouseOrientationToggle.SetIsOnWithoutNotify(isAlignToMouseEnabled);
-				modeMouseOrientationToggle.onValueChanged.AddListener(OnModeMouseOrientationToggleChanged);
-			}
 		}
 
-		private void OnDestroy()
+#if UNITY_EDITOR
+		private void OnValidate()
 		{
-			if (modeMouseOrientationToggle != null)
-			{
-				modeMouseOrientationToggle.onValueChanged.RemoveListener(OnModeMouseOrientationToggleChanged);
-			}
+			// В редакторе не меняем сам sprite, чтобы не ловить SendMessage в OnValidate
+			LoadShipConfig();
+			ApplySizeAndVisuals(changeSprite: false);
 		}
+#endif
 
 		private void LoadShipConfig()
 		{
-			if (shipConfigJson == null || string.IsNullOrWhiteSpace(shipConfigJson.text))
-			{
-				return;
-			}
+			string shipConfigText = TryLoadShipConfigText();
+			if (string.IsNullOrWhiteSpace(shipConfigText)) return;
 
 			try
 			{
-				var records = JsonArrayHelper.FromJson<ShipRecord>(shipConfigJson.text);
+				var records = JsonArrayHelper.FromJson<ShipRecord>(shipConfigText);
 				if (records != null && records.Length > 0)
 				{
-					// Берем первую запись (по умолчанию "condor")
-					maxLinearSpeedMetersPerSecond = Mathf.Max(0f, records[0].speed);
-					rotationSpeedDegreesPerSecond = Mathf.Max(0f, records[0].rotation);
+					int index = 0;
+					if (!string.IsNullOrWhiteSpace(shipId))
+					{
+						for (int i = 0; i < records.Length; i++)
+						{
+							if (string.Equals(records[i].id, shipId, StringComparison.OrdinalIgnoreCase))
+							{
+								index = i;
+								break;
+							}
+						}
+					}
+
+					maxLinearSpeedMetersPerSecond = Mathf.Max(0f, records[index].speed);
+					rotationSpeedDegreesPerSecond = Mathf.Max(0f, records[index].rotation);
+					acceleration = records[index].acceleration != 0f ? records[index].acceleration : (records[index].accel != 0f ? records[index].accel : acceleration);
+					shipWidthMeters = records[index].width != 0f ? records[index].width : (records[index].size_x != 0f ? records[index].size_x : shipWidthMeters);
+					shipHeightMeters = records[index].height != 0f ? records[index].height : (records[index].size_y != 0f ? records[index].size_y : shipHeightMeters);
+					shipOffsetX = records[index].offset_x != 0f ? records[index].offset_x : (records[index].offsetX != 0f ? records[index].offsetX : 0f);
+					shipOffsetY = records[index].offset_y != 0f ? records[index].offset_y : (records[index].offsetY != 0f ? records[index].offsetY : 0f);
+					spriteKey = !string.IsNullOrWhiteSpace(records[index].Sprite_ship) ? records[index].Sprite_ship : records[index].sprite;
+					spriteScale = records[index].sprite_scale != 0f ? records[index].sprite_scale : 1f;
 				}
 			}
 			catch (Exception)
 			{
 				// Если парсинг не удался — оставим значения по умолчанию
 			}
+		}
+
+		private void ApplySizeAndVisuals(bool changeSprite = true)
+		{
+			// Коллайдер
+			var box = GetComponent<BoxCollider2D>();
+			if (box != null)
+			{
+				box.size = new Vector2(Mathf.Max(0.01f, shipWidthMeters), Mathf.Max(0.01f, shipHeightMeters));
+				box.offset = new Vector2(shipOffsetX, shipOffsetY);
+			}
+
+			// Спрайт: берём дочерний объект "sprite" если есть; иначе первый SpriteRenderer в детях
+			SpriteRenderer spriteRenderer = null;
+			var spriteChild = transform.Find("sprite");
+			if (spriteChild != null) spriteRenderer = spriteChild.GetComponent<SpriteRenderer>();
+			if (spriteRenderer == null) spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+			if (spriteRenderer != null)
+			{
+				// Назначаем спрайт только не в OnValidate
+				if (changeSprite && !string.IsNullOrWhiteSpace(spriteKey))
+				{
+					var loaded = TryLoadSprite(spriteKey);
+					if (loaded != null)
+					{
+						spriteRenderer.sprite = loaded;
+					}
+				}
+
+				// Масштабирование спрайта по значению из JSON
+				float scale = spriteScale <= 0f ? 1f : spriteScale;
+				spriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+			}
+		}
+
+		private static Sprite TryLoadSprite(string key)
+		{
+			// Пробуем из Resources по имени и с префиксом Sprites/
+			Sprite s = Resources.Load<Sprite>(key);
+			if (s == null) s = Resources.Load<Sprite>("Sprites/" + key);
+			if (s != null) return s;
+
+#if UNITY_EDITOR
+			// Сначала пробуем по ожидаемому пути
+			string basePath = "Assets/Sprites/ship/" + key;
+			string[] exts = new[] { ".png", ".psb", ".jpg", ".jpeg" };
+			for (int ei = 0; ei < exts.Length; ei++)
+			{
+				var p = basePath + exts[ei];
+				var byPath = AssetDatabase.LoadAssetAtPath<Sprite>(p);
+				if (byPath != null) return byPath;
+			}
+
+			// Если не нашли — ищем по имени во всём проекте
+			string[] guids = AssetDatabase.FindAssets(key + " t:Sprite");
+			for (int gi = 0; gi < guids.Length; gi++)
+			{
+				string path = AssetDatabase.GUIDToAssetPath(guids[gi]);
+				var asset = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+				if (asset != null && string.Equals(asset.name, key, StringComparison.OrdinalIgnoreCase))
+				{
+					return asset;
+				}
+			}
+#endif
+
+			return null;
+		}
+
+#if UNITY_EDITOR
+		public void EditorReloadConfig()
+		{
+			LoadShipConfig();
+			// В редакторе не меняем спрайт, чтобы избегать SendMessage в неподходящие моменты
+			ApplySizeAndVisuals(changeSprite: false);
+		}
+#endif
+
+		private static string TryLoadShipConfigText()
+		{
+			// 1) Resources (если файл находится в Assets/Resources/Config/ship.json или Assets/Resources/ship.json)
+			TextAsset ta = Resources.Load<TextAsset>("Config/ship");
+			if (ta == null) ta = Resources.Load<TextAsset>("ship");
+			if (ta != null && !string.IsNullOrWhiteSpace(ta.text)) return ta.text;
+
+#if UNITY_EDITOR
+			// 2) В редакторе ищем ship.json по проекту
+			string[] guids = AssetDatabase.FindAssets("ship t:TextAsset");
+			for (int gi = 0; gi < guids.Length; gi++)
+			{
+				string path = AssetDatabase.GUIDToAssetPath(guids[gi]);
+				if (!path.EndsWith("ship.json", StringComparison.OrdinalIgnoreCase)) continue;
+				var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+				if (asset != null && !string.IsNullOrWhiteSpace(asset.text)) return asset.text;
+			}
+#endif
+
+			return null;
 		}
 
 		private void Update()
@@ -105,9 +238,9 @@ namespace EveOffline.Space
 				if (keyboard.leftCtrlKey.wasPressedThisFrame || keyboard.rightCtrlKey.wasPressedThisFrame)
 				{
 					isAlignToMouseEnabled = !isAlignToMouseEnabled;
-					if (modeMouseOrientationToggle != null)
+					if (modeMouseToggle != null)
 					{
-						modeMouseOrientationToggle.SetIsOnWithoutNotify(isAlignToMouseEnabled);
+						modeMouseToggle.SetIsOnWithoutNotify(isAlignToMouseEnabled);
 					}
 				}
 			}
@@ -174,10 +307,19 @@ namespace EveOffline.Space
 			shipBody.MoveRotation(newAngle);
 		}
 
-		private void OnModeMouseOrientationToggleChanged(bool isOn)
+		private void OnDestroy()
+		{
+			if (modeMouseToggle != null)
+			{
+				modeMouseToggle.onValueChanged.RemoveListener(OnModeMouseToggleChanged);
+			}
+		}
+
+		private void OnModeMouseToggleChanged(bool isOn)
 		{
 			isAlignToMouseEnabled = isOn;
 		}
+
 	}
 
 	internal static class JsonArrayHelper
@@ -197,3 +339,4 @@ namespace EveOffline.Space
 		}
 	}
 }
+
