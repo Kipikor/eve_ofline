@@ -45,6 +45,43 @@ namespace EditorTools
 			Debug.Log($"[TurretRegistry] Собрано записей: {entries.Count}");
 		}
 	}
+
+	// Автосборка при изменениях в папке с турелями
+	public class TurretRegistryPostprocessor : AssetPostprocessor
+	{
+		private static readonly string WatchFolder = "Assets/Prefab/turret";
+
+		static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+		{
+			bool needRebuild = false;
+			for (int i = 0; i < importedAssets.Length; i++)
+			{
+				var p = importedAssets[i];
+				if (p.StartsWith(WatchFolder) && p.EndsWith(".prefab")) { needRebuild = true; break; }
+			}
+			if (!needRebuild)
+			{
+				for (int i = 0; i < movedAssets.Length; i++)
+				{
+					var p = movedAssets[i];
+					if (p.StartsWith(WatchFolder) && p.EndsWith(".prefab")) { needRebuild = true; break; }
+				}
+			}
+			if (!needRebuild)
+			{
+				for (int i = 0; i < movedFromAssetPaths.Length; i++)
+				{
+					var p = movedFromAssetPaths[i];
+					if (p.StartsWith(WatchFolder) && p.EndsWith(".prefab")) { needRebuild = true; break; }
+				}
+			}
+
+			if (needRebuild)
+			{
+				TurretRegistryBuilder.Rebuild();
+			}
+		}
+	}
 }
 
 

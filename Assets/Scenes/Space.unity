@@ -2650,6 +2650,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4752379064503420438, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
+      propertyPath: defaultTurretId
+      value: mining_laser_t1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

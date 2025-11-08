@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: TurretPrefabRegistry
   m_EditorClassIdentifier: 
   entries:
+  - turretId: mining_laser_t1
+    prefab: {fileID: 7730277962212170997, guid: ff0599930c107ef44a62c264708ca2ba, type: 3}
   - turretId: mining_turret_t1
     prefab: {fileID: 7730277962212170997, guid: 591167e944dba4d4dbcabf6de90eca3c, type: 3}
