@@ -281,7 +281,11 @@ namespace EveOffline.Space
 		private void UpdateMovement()
 		{
 			Vector2 inputDirection = ReadWasdDirection();
-			Vector2 desiredVelocity = inputDirection * maxLinearSpeedMetersPerSecond;
+			// Переводим локальное направление ввода в мировое через ориентацию корабля
+			Vector2 worldDirection =
+				(Vector2)transform.right * inputDirection.x +
+				(Vector2)transform.up * inputDirection.y;
+			Vector2 desiredVelocity = worldDirection * maxLinearSpeedMetersPerSecond;
 
 			float maxDelta = Mathf.Max(0f, acceleration) * Time.fixedDeltaTime;
 			shipBody.linearVelocity = Vector2.MoveTowards(shipBody.linearVelocity, desiredVelocity, maxDelta);
