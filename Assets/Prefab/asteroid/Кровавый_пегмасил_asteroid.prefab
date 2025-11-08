@@ -96,7 +96,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5554108237049955526}
-  - component: {fileID: 1254195591204572174}
   - component: {fileID: 2928589550615009352}
   - component: {fileID: 4502790799576377309}
   - component: {fileID: 1229347626385168662}
@@ -124,33 +123,6 @@ Transform:
   - {fileID: 3458852239044148409}
   m_Father: {fileID: 3303984148264763469}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &1254195591204572174
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2872980854756961520}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
 --- !u!70 &2928589550615009352
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -505,7 +477,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3247125505562823933}
-  - component: {fileID: 8281842726447869705}
   - component: {fileID: 1077947563429515166}
   - component: {fileID: 1077385849041385928}
   - component: {fileID: 1256061736752421618}
@@ -532,33 +503,6 @@ Transform:
   - {fileID: 5173480871803299440}
   m_Father: {fileID: 3303984148264763469}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &8281842726447869705
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5406757050298996888}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
 --- !u!70 &1077947563429515166
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -692,7 +636,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2671173739390545335}
-  - component: {fileID: 8407883303541325362}
   - component: {fileID: 9146236888438881154}
   - component: {fileID: 4341379098295919058}
   - component: {fileID: 6658756310331994801}
@@ -720,33 +663,6 @@ Transform:
   - {fileID: 367820635093926266}
   m_Father: {fileID: 3303984148264763469}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &8407883303541325362
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6815352917792817025}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
 --- !u!70 &9146236888438881154
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1015,7 +931,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2041635856156075665}
-  - component: {fileID: 5378240933346488975}
   - component: {fileID: 770413829896562210}
   - component: {fileID: 3834354834558025739}
   - component: {fileID: 2480243160680551194}
@@ -1025,7 +940,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2041635856156075665
 Transform:
   m_ObjectHideFlags: 0
@@ -1042,33 +957,6 @@ Transform:
   - {fileID: 5578222932995842695}
   m_Father: {fileID: 3303984148264763469}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &5378240933346488975
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7411330604086786651}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
 --- !u!70 &770413829896562210
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1202,6 +1090,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3303984148264763469}
+  - component: {fileID: 3560972845807898123}
+  - component: {fileID: 4702767396632855897}
   m_Layer: 0
   m_Name: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0439_\u043F\u0435\u0433\u043C\u0430\u0441\u0438\u043B_asteroid"
   m_TagString: Untagged
@@ -1219,7 +1109,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 20.27467, y: 21.07649, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2041635856156075665}
@@ -1228,3 +1118,45 @@ Transform:
   - {fileID: 2671173739390545335}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3560972845807898123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7420693604800875670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63146075186653641b5768695995bfb0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  diameter: 2
+  generateMinDiameter: 2
+  generateMaxDiameter: 250
+--- !u!50 &4702767396632855897
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7420693604800875670}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
