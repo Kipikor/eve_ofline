@@ -461,6 +461,8 @@ namespace Space
 			}
 		}
 
+		public float CameraSpawnMargin => cameraSpawnMargin;
+
 		private void OnDrawGizmosSelected()
 		{
 			var center = cameraTransform != null ? cameraTransform.position : (shipTransform != null ? shipTransform.position : (Vector3?)null);

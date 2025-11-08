@@ -2230,6 +2230,11 @@ MonoBehaviour:
   shipId: condor
   attachCameraToShip: 1
   cameraLocalOffset: {x: 0, y: 0, z: -10}
+  enableZoom: 1
+  minOrthoSize: 10
+  maxOrthoSize: 500
+  zoomSpeed: 500
+  clampZoomToSpawnBounds: 1
 --- !u!50 &1667731880
 Rigidbody2D:
   serializedVersion: 5
@@ -2266,9 +2271,9 @@ Transform:
   m_GameObject: {fileID: 1667731878}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -138.4, y: 101.6, z: 0}
+  m_LocalPosition: {x: -115, y: -3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 154861267}
   m_Father: {fileID: 0}

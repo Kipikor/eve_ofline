@@ -19,6 +19,13 @@ namespace EveOffline.Space
 		[Header("Camera")]
 		[SerializeField] private bool attachCameraToShip = true;
 		[SerializeField] private Vector3 cameraLocalOffset = new Vector3(0f, 0f, -10f);
+		[SerializeField] private bool enableZoom = true;
+		[SerializeField] private float minOrthoSize = 2f;
+		[SerializeField] private float maxOrthoSize = 30f;
+		[SerializeField] private float zoomSpeed = 5f;
+		[SerializeField] private bool clampZoomToSpawnBounds = true;
+		private float baseOrthoSize;
+		private float baseHalfWidth;
 
 		private float acceleration = 25f; // из JSON (значение по умолчанию)
 		private float shipWidthMeters = 1f;  // из JSON
@@ -87,6 +94,7 @@ namespace EveOffline.Space
 			}
 
 			AttachCameraIfConfigured();
+			CacheCameraBaseSize();
 		}
 
 #if UNITY_EDITOR
@@ -106,6 +114,7 @@ namespace EveOffline.Space
 					cam.transform.localRotation = Quaternion.identity;
 				}
 			}
+			CacheCameraBaseSize();
 		}
 #endif
 
@@ -358,6 +367,11 @@ namespace EveOffline.Space
 			var cam = Camera.main;
 			if (cam == null) return;
 			SetCameraWorldTransform(cam);
+
+			if (enableZoom)
+			{
+				HandleZoom(cam);
+			}
 		}
 
 		private void SetCameraWorldTransform(Camera cam)
@@ -368,6 +382,49 @@ namespace EveOffline.Space
 			var camTr = cam.transform;
 			camTr.position = worldPos;
 			camTr.rotation = Quaternion.identity;
+		}
+
+		private void HandleZoom(Camera cam)
+		{
+			float scroll = 0f;
+#if ENABLE_INPUT_SYSTEM
+			var mouse = UnityEngine.InputSystem.Mouse.current;
+			if (mouse != null) scroll = mouse.scroll.ReadValue().y * 0.01f;
+#endif
+
+			if (!Mathf.Approximately(scroll, 0f))
+			{
+				float target = cam.orthographicSize - scroll * zoomSpeed;
+				float maxAllowed = ComputeMaxOrthoAllowed(cam);
+				cam.orthographicSize = Mathf.Clamp(target, Mathf.Max(0.01f, minOrthoSize), maxAllowed);
+			}
+		}
+
+		private void CacheCameraBaseSize()
+		{
+			var cam = Camera.main;
+			if (cam == null) return;
+			baseOrthoSize = cam.orthographicSize <= 0f ? 5f : cam.orthographicSize;
+			baseHalfWidth = baseOrthoSize * (cam.orthographic ? cam.aspect : (16f / 9f));
+		}
+
+		private float ComputeMaxOrthoAllowed(Camera cam)
+		{
+			float maxAllowed = maxOrthoSize;
+			if (clampZoomToSpawnBounds)
+			{
+				var am = UnityEngine.Object.FindFirstObjectByType<global::Space.AsteroidManager>();
+				if (am == null) am = UnityEngine.Object.FindAnyObjectByType<global::Space.AsteroidManager>();
+				if (am != null)
+				{
+					// Базовый прямоугольник base → синий = base + margin. Камера не должна превышать по высоте H0 + margin и по ширине W0 + margin.
+					float margin = am.CameraSpawnMargin;
+					float byHeight = baseOrthoSize + margin;
+					float byWidth = (baseHalfWidth + margin) / Mathf.Max(0.01f, (cam.orthographic ? cam.aspect : (16f / 9f)));
+					maxAllowed = Mathf.Min(maxAllowed, Mathf.Min(byHeight, byWidth));
+				}
+			}
+			return Mathf.Max(minOrthoSize, maxAllowed);
 		}
 
 	}
