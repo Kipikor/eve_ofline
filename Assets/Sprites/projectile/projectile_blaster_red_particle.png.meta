@@ -1,0 +1,1402 @@
+fileFormatVersion: 2
+guid: d3c17a41732671e49a3ae57833e3f0b0
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4629400564724389996
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_0"
+  - first:
+      213: 8740948195883722970
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_1"
+  - first:
+      213: -2687340563326628411
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_2"
+  - first:
+      213: -6422191048941389966
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_3"
+  - first:
+      213: 5961199112842142759
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_4"
+  - first:
+      213: -1344924368555107795
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_5"
+  - first:
+      213: -3527964203077360725
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_6"
+  - first:
+      213: 3256244452313408477
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_7"
+  - first:
+      213: 3301738117157064221
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_8"
+  - first:
+      213: -6989979067846037438
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_9"
+  - first:
+      213: 3469152336486167821
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_10"
+  - first:
+      213: -8455722186399562757
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_11"
+  - first:
+      213: 8890938350773268000
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_12"
+  - first:
+      213: 2814435384281810191
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_13"
+  - first:
+      213: 8876314215340152487
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_14"
+  - first:
+      213: -5291402064065013202
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_15"
+  - first:
+      213: -5778487016760660654
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_16"
+  - first:
+      213: -8793594309978426242
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_17"
+  - first:
+      213: -1024896771522217246
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_18"
+  - first:
+      213: 1594915476992325556
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_19"
+  - first:
+      213: -1855767942256437770
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_20"
+  - first:
+      213: 6747576618615885255
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_21"
+  - first:
+      213: -1077426802098577348
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_22"
+  - first:
+      213: -8069239448629531514
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_23"
+  - first:
+      213: -7355031940260506533
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_24"
+  - first:
+      213: 1149712539569642342
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_25"
+  - first:
+      213: 3284709765445253248
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_26"
+  - first:
+      213: -42569565286888693
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_27"
+  - first:
+      213: 6710782942499855166
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_28"
+  - first:
+      213: 667159776890936183
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_29"
+  - first:
+      213: 4096157016559251604
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_30"
+  - first:
+      213: -4652762864350815125
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_31"
+  - first:
+      213: 2579046369169564463
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_32"
+  - first:
+      213: 4843204090640000813
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_33"
+  - first:
+      213: 7361617615557271741
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_34"
+  - first:
+      213: -8553615699117717778
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_35"
+  - first:
+      213: -7636234442433841500
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_36"
+  - first:
+      213: 1885679958707586828
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_37"
+  - first:
+      213: -4942830038670682452
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_38"
+  - first:
+      213: -8280187922198566043
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_39"
+  - first:
+      213: -7529460095819192589
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_40"
+  - first:
+      213: 6787707406671739652
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_41"
+  - first:
+      213: -9203811222918041187
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_42"
+  - first:
+      213: 3647449055826240739
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_43"
+  - first:
+      213: -7264615641581986415
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_44"
+  - first:
+      213: 8024021255414865884
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_45"
+  - first:
+      213: 6590567918552989926
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_46"
+  - first:
+      213: 4530865789046245452
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_47"
+  - first:
+      213: -6802320397874410247
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_48"
+  - first:
+      213: 7302284334650282277
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_49"
+  - first:
+      213: -6862195540754313012
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_50"
+  - first:
+      213: 5784174784594934333
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_51"
+  - first:
+      213: 8659071388485364776
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_52"
+  - first:
+      213: 7215505563896500715
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_53"
+  - first:
+      213: 5870009044474741898
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_54"
+  - first:
+      213: -3584367289202300257
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_55"
+  - first:
+      213: -4843182448647940905
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_56"
+  - first:
+      213: -6627095682303620548
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_57"
+  - first:
+      213: -5767806519351716832
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_58"
+  - first:
+      213: -2385285251427073666
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_59"
+  - first:
+      213: 7384523546021952986
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_60"
+  - first:
+      213: -168755004602970281
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_61"
+  - first:
+      213: 5714610715840124289
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_62"
+  - first:
+      213: 6960493282278066546
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_63"
+  - first:
+      213: -5836959277113307281
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_64"
+  - first:
+      213: 3656499833207424773
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_65"
+  - first:
+      213: 6361914948694112307
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_66"
+  - first:
+      213: 6657482381915239472
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_67"
+  - first:
+      213: 2922266334911575040
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_68"
+  - first:
+      213: -7681609846778172889
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_69"
+  - first:
+      213: -8369361354352516796
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_70"
+  - first:
+      213: 7983026181858553536
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_71"
+  - first:
+      213: 6870887603470090457
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_72"
+  - first:
+      213: 5261790385776601375
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_73"
+  - first:
+      213: -5312098776964822160
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_74"
+  - first:
+      213: -1239044992344046075
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_75"
+  - first:
+      213: 4643495776508253904
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_76"
+  - first:
+      213: 3016251174965011906
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_77"
+  - first:
+      213: 6630692306523112105
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_78"
+  - first:
+      213: -2738779836508304834
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_79"
+  - first:
+      213: -5235195282398509591
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_80"
+  - first:
+      213: 8306681055640858707
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_81"
+  - first:
+      213: -3798637356781327633
+    second: "ChatGPT Image 8 \u043D\u043E\u044F\u0431. 2025 \u0433., 16_20_19_82"
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 1
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 0
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_0
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 826
+        width: 150
+        height: 150
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 116556d8057ddae41b161372e17f3acd
+      internalID: 371588774
+      vertices:
+      - {x: 81.568, y: 88.43}
+      - {x: 75.802, y: 86.802}
+      - {x: 74.895996, y: 75.47}
+      - {x: 79, y: 75}
+      - {x: 57.188, y: 12.653}
+      - {x: 65.918, y: 15.335999}
+      - {x: 77.813, y: 28.474}
+      - {x: 83.329, y: 40.841}
+      - {x: 86.965, y: 54.035}
+      - {x: 78.770996, y: 65.712}
+      - {x: 70.217, y: 74.781}
+      - {x: 55.279, y: 73.55}
+      - {x: 47.822, y: 71.82}
+      - {x: 39.68, y: 57.915}
+      - {x: 33.98, y: 45.045998}
+      - {x: 31.739, y: 32.598}
+      - {x: 40.906998, y: 16.5}
+      - {x: 55.362, y: 11.3619995}
+      indices: 000000000300000001000000010000000300000002000000040000000e00000005000000040000000f0000000e00000004000000100000000f000000040000001100000010000000050000000e00000006000000060000000d00000007000000060000000e0000000d000000070000000900000008000000070000000d00000009000000090000000b0000000a000000090000000d0000000b0000000b0000000d0000000c000000
+      edges:
+      - {x: 0, y: 1}
+      - {x: 0, y: 3}
+      - {x: 1, y: 2}
+      - {x: 2, y: 3}
+      - {x: 4, y: 5}
+      - {x: 4, y: 17}
+      - {x: 5, y: 6}
+      - {x: 6, y: 7}
+      - {x: 7, y: 8}
+      - {x: 8, y: 9}
+      - {x: 9, y: 10}
+      - {x: 10, y: 11}
+      - {x: 11, y: 12}
+      - {x: 12, y: 13}
+      - {x: 13, y: 14}
+      - {x: 14, y: 15}
+      - {x: 15, y: 16}
+      - {x: 16, y: 17}
+      weights:
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+      - 'weight[0]': 0
+        'weight[1]': 0
+        'weight[2]': 0
+        'weight[3]': 0
+        'boneIndex[0]': 0
+        'boneIndex[1]': 0
+        'boneIndex[2]': 0
+        'boneIndex[3]': 0
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_1
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 826
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 28040dd6d56650e43b0fd3c6669bf7c4
+      internalID: -359563154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_2
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 826
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cddabdd1bcd5af042873974743f01d0b
+      internalID: -1439047727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_3
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 826
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 584b1671f9d6e6048b306f8c23608d0b
+      internalID: 60053460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_4
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 826
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e1286a789384db74ebb2d4b1422c97fa
+      internalID: 1274659725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_5
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 826
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec441453f4f80fa438b70da6a52ddf63
+      internalID: -154884620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_6
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 676
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4738586b26c8f1c4d9b7aa4413d5c1a8
+      internalID: -680754298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_7
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 676
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 96d024184c3002e4ba95279a10492d62
+      internalID: 623102079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_8
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 676
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a2120629c7eecde46897ca811aaee304
+      internalID: 1290879457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_9
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 676
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6967775671f38434e9c789ce1e284f95
+      internalID: -2139271282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_10
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 676
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1587b0324dbc08b418e78f10577f0083
+      internalID: -1893352623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_11
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 676
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 316bb70ca1355df4e9d125a8c2b5425f
+      internalID: 410443015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_12
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 526
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60a37ed174fb40844879b6e58c219b1b
+      internalID: -1200234507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_13
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 526
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6923169187bcc53408a1d5fb7d367de7
+      internalID: -686187135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_14
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 526
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a8d8a6ddd5f0ad84fba38efebfec7802
+      internalID: -775037945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_15
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 526
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bbba7e15945182e489c5da0596834e31
+      internalID: -578608121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_16
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 526
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 26f8a94a505977e4a98718d32cdfb2d7
+      internalID: 1778457239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_17
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 526
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6fe2e53ec30de5746a7924d5cba502e1
+      internalID: 83559024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_18
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 376
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ccc60e3ae3edb041a6f8ccfdf1a5ae1
+      internalID: -1118050592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_19
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 376
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da793382ecc31fa41a0ffe1621a60e12
+      internalID: -1877657184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_20
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 376
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3443bfa616c3b024fa9d9a0278450279
+      internalID: 2126162410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_21
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 376
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f7f2b9b9229aceb45875a987d7e961a9
+      internalID: -1597265211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_22
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 376
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f73f00d373675ba4b91892672edba9ff
+      internalID: -1646220095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_23
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 376
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 40128c224bdd2384a8e8b211efb9efdf
+      internalID: -814308740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_24
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 226
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4061269aa61083249a2608bcdbf17e31
+      internalID: -1200626786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_25
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 226
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d8b7e71bf99c6ef4387ccfa9cd6f1f52
+      internalID: -1293925307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_26
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 226
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 80fe1921ce0d6d449a239ec153ca8023
+      internalID: -1863747124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_27
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 226
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71d4ddbc53a7eae4b864049d204bf83d
+      internalID: -1194803285
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_28
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 226
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bae9a2d440eb9c5419c8a0b91119e05d
+      internalID: 750708279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_29
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 226
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: afdea18a59da9074bb85958695069ba8
+      internalID: -1548433767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_30
+      rect:
+        serializedVersion: 2
+        x: 62
+        y: 76
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a7adf1eebc01f824a832c92fd7cf9a48
+      internalID: 1238167838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_31
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 76
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1911da62b5108d745b94b87ab48bae3d
+      internalID: 607621364
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_32
+      rect:
+        serializedVersion: 2
+        x: 362
+        y: 76
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 69201c7e0d601a24fbb7d2ab5f33ff92
+      internalID: 1557393344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_33
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 76
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bf4a28c6cb43a7c4c85f5d95bc9dd331
+      internalID: 2097770468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_34
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 76
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4df277e4f15397d4b8fcaa6370ddf751
+      internalID: -896475133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: projectile_blaster_red_particle_35
+      rect:
+        serializedVersion: 2
+        x: 812
+        y: 76
+        width: 150
+        height: 150
+      alignment: 2
+      pivot: {x: 0.5, y: 1}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3213a720c5016c488a5c5353f2e3771
+      internalID: -200980937
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 9582adb7bcaabd94fbd197e1d0028648
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":6.0,"y":6.0},"gridSpriteSize":{"x":150.0,"y":150.0},"gridSpriteOffset":{"x":62.0,"y":48.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":1.0},"autoSlicingMethod":0,"spriteAlignment":2,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      projectile_blaster_red_particle_0: 371588774
+      projectile_blaster_red_particle_1: -359563154
+      projectile_blaster_red_particle_10: -1893352623
+      projectile_blaster_red_particle_11: 410443015
+      projectile_blaster_red_particle_12: -1200234507
+      projectile_blaster_red_particle_13: -686187135
+      projectile_blaster_red_particle_14: -775037945
+      projectile_blaster_red_particle_15: -578608121
+      projectile_blaster_red_particle_16: 1778457239
+      projectile_blaster_red_particle_17: 83559024
+      projectile_blaster_red_particle_18: -1118050592
+      projectile_blaster_red_particle_19: -1877657184
+      projectile_blaster_red_particle_2: -1439047727
+      projectile_blaster_red_particle_20: 2126162410
+      projectile_blaster_red_particle_21: -1597265211
+      projectile_blaster_red_particle_22: -1646220095
+      projectile_blaster_red_particle_23: -814308740
+      projectile_blaster_red_particle_24: -1200626786
+      projectile_blaster_red_particle_25: -1293925307
+      projectile_blaster_red_particle_26: -1863747124
+      projectile_blaster_red_particle_27: -1194803285
+      projectile_blaster_red_particle_28: 750708279
+      projectile_blaster_red_particle_29: -1548433767
+      projectile_blaster_red_particle_3: 60053460
+      projectile_blaster_red_particle_30: 1238167838
+      projectile_blaster_red_particle_31: 607621364
+      projectile_blaster_red_particle_32: 1557393344
+      projectile_blaster_red_particle_33: 2097770468
+      projectile_blaster_red_particle_34: -896475133
+      projectile_blaster_red_particle_35: -200980937
+      projectile_blaster_red_particle_4: 1274659725
+      projectile_blaster_red_particle_5: -154884620
+      projectile_blaster_red_particle_6: -680754298
+      projectile_blaster_red_particle_7: 623102079
+      projectile_blaster_red_particle_8: 1290879457
+      projectile_blaster_red_particle_9: -2139271282
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
