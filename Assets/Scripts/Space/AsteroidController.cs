@@ -22,6 +22,7 @@ namespace Space
 
 		private const string SizeChildPrefix = "size_";
 		private const string ConfigRelativePath = "Config/asteroid.json";
+		private const string OreConfigRelativePath = "Config/ore.json";
 
 		[Serializable]
 		private class AsteroidConfigEntry
@@ -49,13 +50,39 @@ namespace Space
 
 		private static Dictionary<string, AsteroidConfigEntry> asteroidIdToConfig;
 		private static bool configLoadTried;
+		
+		[Serializable]
+		private class OreConfigEntry
+		{
+			public string ore_id;
+			public string ore_name;
+			public string ore_icon;
+			public string ore_descr;
+			public float cost;
+			public float cagro;
+			public float density;
+		}
+		
+		[Serializable]
+		private class OreConfigContainer
+		{
+			public List<OreConfigEntry> items;
+		}
+		
+		private static Dictionary<string, OreConfigEntry> oreIdToConfig;
+		private static bool oreConfigLoadTried;
+		
+		[Header("Состояние (боевое)")]
+		[SerializeField] private int currentHitPoints;
 
 		private void Awake()
 		{
 			EnsureConfigLoaded();
+			EnsureOreConfigLoaded();
 			EnsureRootRigidbody();
 			// В Awake не трогаем активность детей, чтобы избежать SendMessage во время инициализации
 			ApplyDiameter(diameter, autoPickSize: false);
+			UpdateDerivedStatsAndApplyPhysics();
 		}
 
 		private void Start()
@@ -67,9 +94,13 @@ namespace Space
 		private void Reset()
 		{
 			EnsureConfigLoaded();
+			EnsureOreConfigLoaded();
 			InitializeGeneratorBoundsFromConfigIfPossible();
 			ApplyDiameter(diameter, autoPickSize: false);
 			ScheduleEditorActivationPreview();
+			UpdateDerivedStatsAndApplyPhysics();
+			// При первом добавлении выставим текущее HP в максимум
+			currentHitPoints = GetMaxHitPoints();
 		}
 
 		private void OnValidate()
@@ -80,6 +111,7 @@ namespace Space
 			}
 
 			EnsureConfigLoaded();
+			EnsureOreConfigLoaded();
 			if (generateMinDiameter <= 0f && generateMaxDiameter <= 0f)
 			{
 				InitializeGeneratorBoundsFromConfigIfPossible();
@@ -88,6 +120,8 @@ namespace Space
 			// Обновляем масштаб, но не меняем активность детей прямо в OnValidate
 			ApplyDiameter(diameter, autoPickSize: false);
 			ScheduleEditorActivationPreview();
+			UpdateDerivedStatsAndApplyPhysics();
+			currentHitPoints = Mathf.Clamp(currentHitPoints, 0, GetMaxHitPoints());
 		}
 
 		public void SetDiameter(float newDiameter)
@@ -105,6 +139,8 @@ namespace Space
 			// Случайный поворот вокруг оси Z (2D)
 			var randomAngle = UnityEngine.Random.Range(0f, 360f);
 			transform.rotation = Quaternion.Euler(0f, 0f, randomAngle);
+			UpdateDerivedStatsAndApplyPhysics();
+			currentHitPoints = Mathf.Clamp(currentHitPoints, 0, GetMaxHitPoints());
 		}
 
 		private void EnsureValidGeneratorBounds()
@@ -130,6 +166,10 @@ namespace Space
 			{
 				ActivateSizeChildForDiameter(diameter);
 			}
+			
+			// При смене диаметра обновляем массу/HP
+			UpdateDerivedStatsAndApplyPhysics();
+			currentHitPoints = Mathf.Clamp(currentHitPoints, 0, GetMaxHitPoints());
 		}
 
 		private void ActivateSizeChildForDiameter(float currentDiameter)
@@ -242,6 +282,17 @@ namespace Space
 				#else
 				Destroy(rb);
 				#endif
+			}
+		}
+
+		private void UpdateDerivedStatsAndApplyPhysics()
+		{
+			// Масса из площади круга и плотности
+			var mass = GetMassRounded();
+			var rb = GetComponent<Rigidbody2D>();
+			if (rb != null)
+			{
+				rb.mass = Mathf.Max(0, mass);
 			}
 		}
 
@@ -374,8 +425,133 @@ namespace Space
 			}
 		}
 
+		private static void EnsureOreConfigLoaded()
+		{
+			if (oreIdToConfig != null) return;
+			if (oreConfigLoadTried) return;
+			oreConfigLoadTried = true;
+			try
+			{
+				var fullPath = Path.Combine(Application.dataPath, OreConfigRelativePath);
+				if (!File.Exists(fullPath))
+				{
+					Debug.LogWarning($"[AsteroidController] Ore конфиг не найден: {fullPath}");
+					return;
+				}
+				var json = File.ReadAllText(fullPath);
+				if (string.IsNullOrWhiteSpace(json))
+				{
+					Debug.LogWarning("[AsteroidController] Ore конфиг пустой: ore.json");
+					return;
+				}
+				var wrapped = "{ \"items\": " + json + " }";
+				var container = JsonUtility.FromJson<OreConfigContainer>(wrapped);
+				if (container == null || container.items == null || container.items.Count == 0)
+				{
+					Debug.LogWarning("[AsteroidController] Не удалось распарсить ore.json");
+					return;
+				}
+				oreIdToConfig = new Dictionary<string, OreConfigEntry>(StringComparer.Ordinal);
+				foreach (var item in container.items)
+				{
+					if (item != null && !string.IsNullOrEmpty(item.ore_id))
+					{
+						if (!oreIdToConfig.ContainsKey(item.ore_id))
+						{
+							oreIdToConfig.Add(item.ore_id, item);
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning($"[AsteroidController] Ошибка загрузки ore конфига: {e.Message}");
+			}
+		}
+
 		// Публичные геттеры для инспектора/кнопки
 		public float Diameter => diameter;
+		public string AsteroidId => gameObject.name;
+		public string OreId
+		{
+			get
+			{
+				if (TryGetConfigFor(gameObject.name, out var cfg) && cfg != null)
+				{
+					return cfg.ore_id;
+				}
+				return string.Empty;
+			}
+		}
+		public float OreDensity
+		{
+			get
+			{
+				// Костыль для реголита: у него нет руды, плотность фиксируем = 1
+				if (TryGetConfigFor(gameObject.name, out var asteroidCfg) && asteroidCfg != null)
+				{
+					if (!string.IsNullOrEmpty(asteroidCfg.asteroid_id) &&
+						asteroidCfg.asteroid_id.IndexOf("Реголит", StringComparison.Ordinal) >= 0)
+					{
+						return 1f;
+					}
+					if (!string.IsNullOrEmpty(asteroidCfg.ore_id) &&
+						string.Equals(asteroidCfg.ore_id, "none", StringComparison.Ordinal))
+					{
+						return 1f;
+					}
+				}
+				
+				var oreId = OreId;
+				if (!string.IsNullOrEmpty(oreId) && oreIdToConfig != null && oreIdToConfig.TryGetValue(oreId, out var ore))
+				{
+					return ore.density;
+				}
+				return 0f;
+			}
+		}
+		public float HpFromM3
+		{
+			get
+			{
+				if (TryGetConfigFor(gameObject.name, out var cfg) && cfg != null)
+				{
+					return cfg.hp_from_m3;
+				}
+				return 0f;
+			}
+		}
+		public int GetAreaRounded()
+		{
+			var r = diameter * 0.5f;
+			var area = Mathf.PI * r * r;
+			return Mathf.RoundToInt(area);
+		}
+		public int GetVolumeRounded()
+		{
+			var r = diameter * 0.5f;
+			var vol = (4f / 3f) * Mathf.PI * r * r * r;
+			return Mathf.RoundToInt(vol);
+		}
+		public int GetMassRounded()
+		{
+			var area = GetAreaRounded();
+			var density = OreDensity;
+			var mass = area * density;
+			return Mathf.RoundToInt(mass);
+		}
+		public int GetMaxHitPoints()
+		{
+			var vol = GetVolumeRounded();
+			var k = HpFromM3;
+			var hp = vol * k;
+			return Mathf.RoundToInt(hp);
+		}
+		public int CurrentHitPoints
+		{
+			get => currentHitPoints;
+			set => currentHitPoints = Mathf.Clamp(value, 0, GetMaxHitPoints());
+		}
 		public float GenerateMinDiameter
 		{
 			get => generateMinDiameter;

@@ -11,14 +11,35 @@ namespace EditorTools
 		{
 			serializedObject.Update();
 
-			// Поле диаметра
-			var diameterProp = serializedObject.FindProperty("diameter");
-			if (diameterProp != null)
-			{
-				EditorGUILayout.PropertyField(diameterProp, new GUIContent("Диаметр"));
-			}
-
 			var controller = (AsteroidController)target;
+
+			// Статистика (только чтение, кроме текущего HP)
+			EditorGUILayout.Space(6);
+			EditorGUILayout.LabelField("Статистика", EditorStyles.boldLabel);
+			EditorGUI.BeginDisabledGroup(true);
+			EditorGUILayout.FloatField("Диаметр (м)", controller.Diameter);
+			EditorGUILayout.IntField("Площадь сечения (м²)", controller.GetAreaRounded());
+			EditorGUILayout.IntField("Объём (м³)", controller.GetVolumeRounded());
+			EditorGUILayout.FloatField("Плотность (из ore)", controller.OreDensity);
+			EditorGUILayout.FloatField("HP/м³ (из asteroid)", controller.HpFromM3);
+			EditorGUILayout.IntField("Масса (кг)", controller.GetMassRounded());
+			EditorGUILayout.IntField("HP максимум", controller.GetMaxHitPoints());
+			EditorGUI.EndDisabledGroup();
+
+			// Текущее HP (редактируемое)
+			EditorGUILayout.Space(2);
+			var currentHpProp = serializedObject.FindProperty("currentHitPoints");
+			if (currentHpProp != null)
+			{
+				int newHp = EditorGUILayout.IntField("HP текущее", currentHpProp.intValue);
+				newHp = Mathf.Clamp(newHp, 0, controller.GetMaxHitPoints());
+				if (newHp != currentHpProp.intValue)
+				{
+					Undo.RecordObject(controller, "Изменение текущего HP");
+					currentHpProp.intValue = newHp;
+					EditorUtility.SetDirty(controller);
+				}
+			}
 
 			EditorGUILayout.Space(8);
 			EditorGUILayout.LabelField("Генерация диаметра", EditorStyles.boldLabel);
