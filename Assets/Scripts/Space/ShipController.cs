@@ -37,9 +37,10 @@ namespace EveOffline.Space
 
 		private Rigidbody2D shipBody;
 		private float maxLinearSpeedMetersPerSecond = 6f;
-		private float rotationSpeedDegreesPerSecond = 90f;
+		private float rotationTorqueKiloNewtonMeters = 2500f; // момент, кН·м
 		private bool isAlignToMouseEnabled;
 		private Toggle modeMouseToggle;
+		// режим поворота к мыши контролируется чекбоксом в сцене (mode_mouse_orientatioon)
 
 		[Serializable]
 		private class ShipRecord
@@ -47,6 +48,7 @@ namespace EveOffline.Space
 			public string id;
 			public string name;
 			public string descr;
+			public float mass;           // тонны
 			public string sprite;
 			public string Sprite_ship;   // альтернативный ключ для спрайта
 			public float cost;
@@ -57,9 +59,9 @@ namespace EveOffline.Space
 			public float structure_hp;
 			public float power;
 			public float cpu;
-			public float speed;      // м/с
-			public float rotation;   // градусы/сек
-			public float acceleration; // м/с^2
+			public float speed;      // м/с (максимальная скорость)
+			public float rotation;   // кН·м (момент)
+			public float acceleration; // кН (тяга)
 			public float accel;        // альтернативное имя
 			public float width;        // м
 			public float height;       // м
@@ -76,7 +78,7 @@ namespace EveOffline.Space
 		{
 			shipBody = GetComponent<Rigidbody2D>();
 			shipBody.gravityScale = 0f;
-			shipBody.freezeRotation = true; // поворачиваем вручную
+			shipBody.freezeRotation = false; // вращение физикой
 
 			LoadShipConfig();
 			ApplySizeAndVisuals();
@@ -88,7 +90,8 @@ namespace EveOffline.Space
 				modeMouseToggle = go.GetComponent<Toggle>();
 				if (modeMouseToggle != null)
 				{
-					modeMouseToggle.SetIsOnWithoutNotify(isAlignToMouseEnabled);
+					// Берём начальное значение из UI и далее слушаем изменения
+					isAlignToMouseEnabled = modeMouseToggle.isOn;
 					modeMouseToggle.onValueChanged.AddListener(OnModeMouseToggleChanged);
 				}
 			}
@@ -142,14 +145,20 @@ namespace EveOffline.Space
 					}
 
 					maxLinearSpeedMetersPerSecond = Mathf.Max(0f, records[index].speed);
-					rotationSpeedDegreesPerSecond = Mathf.Max(0f, records[index].rotation);
-					acceleration = records[index].acceleration != 0f ? records[index].acceleration : (records[index].accel != 0f ? records[index].accel : acceleration);
+					rotationTorqueKiloNewtonMeters = Mathf.Max(0f, records[index].rotation);
+					acceleration = records[index].acceleration != 0f ? records[index].acceleration : (records[index].accel != 0f ? records[index].accel : acceleration); // кН
 					shipWidthMeters = records[index].width != 0f ? records[index].width : (records[index].size_x != 0f ? records[index].size_x : shipWidthMeters);
 					shipHeightMeters = records[index].height != 0f ? records[index].height : (records[index].size_y != 0f ? records[index].size_y : shipHeightMeters);
 					shipOffsetX = records[index].offset_x != 0f ? records[index].offset_x : (records[index].offsetX != 0f ? records[index].offsetX : 0f);
 					shipOffsetY = records[index].offset_y != 0f ? records[index].offset_y : (records[index].offsetY != 0f ? records[index].offsetY : 0f);
 					spriteKey = !string.IsNullOrWhiteSpace(records[index].Sprite_ship) ? records[index].Sprite_ship : records[index].sprite;
 					spriteScale = records[index].sprite_scale != 0f ? records[index].sprite_scale : 1f;
+					// Масса: в проекте трактуем напрямую как ТОННЫ, без пересчёта
+					if (records[index].mass > 0f)
+					{
+						if (shipBody == null) shipBody = GetComponent<Rigidbody2D>();
+						if (shipBody != null) shipBody.mass = records[index].mass;
+					}
 				}
 			}
 			catch (Exception)
@@ -285,10 +294,35 @@ namespace EveOffline.Space
 			Vector2 worldDirection =
 				(Vector2)transform.right * inputDirection.x +
 				(Vector2)transform.up * inputDirection.y;
-			Vector2 desiredVelocity = worldDirection * maxLinearSpeedMetersPerSecond;
+			// Тяга: используем кН напрямую (масса в тоннах), без пересчёта единиц
+			float thrustUnits = Mathf.Max(0f, acceleration); // кН
 
-			float maxDelta = Mathf.Max(0f, acceleration) * Time.fixedDeltaTime;
-			shipBody.linearVelocity = Vector2.MoveTowards(shipBody.linearVelocity, desiredVelocity, maxDelta);
+			if (worldDirection.sqrMagnitude > 0.0001f)
+			{
+				worldDirection.Normalize();
+				shipBody.AddForce(worldDirection * thrustUnits, ForceMode2D.Force);
+			}
+			else
+			{
+				// Автоторможение: прикладываем силу против скорости
+				Vector2 v = shipBody.linearVelocity;
+				if (v.sqrMagnitude > 0.0004f)
+				{
+					Vector2 brakeDir = -v.normalized;
+					shipBody.AddForce(brakeDir * thrustUnits, ForceMode2D.Force);
+				}
+				else
+				{
+					shipBody.linearVelocity = Vector2.zero;
+				}
+			}
+
+			// Ограничение максимальной скорости
+			float speed = shipBody.linearVelocity.magnitude;
+			if (speed > maxLinearSpeedMetersPerSecond && maxLinearSpeedMetersPerSecond > 0f)
+			{
+				shipBody.linearVelocity = shipBody.linearVelocity.normalized * maxLinearSpeedMetersPerSecond;
+			}
 		}
 
 		private static Vector2 ReadWasdDirection()
@@ -309,8 +343,21 @@ namespace EveOffline.Space
 
 		private void UpdateRotationToMouseIfEnabled()
 		{
+			// Если режим ориентации выключен — не целимся на мышь, а демпфируем вращение
 			if (!isAlignToMouseEnabled)
 			{
+				// Автодемпфирование вращения при отсутствии управления (кН·м напрямую)
+				float torqueUnits = Mathf.Max(0f, rotationTorqueKiloNewtonMeters);
+				float av = shipBody.angularVelocity; // град/с
+				if (Mathf.Abs(av) > 0.1f)
+				{
+					float sign = av > 0f ? -1f : 1f;
+					shipBody.AddTorque(sign * torqueUnits, ForceMode2D.Force);
+				}
+				else
+				{
+					shipBody.angularVelocity = 0f;
+				}
 				return;
 			}
 
@@ -333,8 +380,18 @@ namespace EveOffline.Space
 			}
 
 			float targetAngle = Mathf.Atan2(toMouse.y, toMouse.x) * Mathf.Rad2Deg - 90f; // нос корабля вверх
-			float newAngle = Mathf.MoveTowardsAngle(shipBody.rotation, targetAngle, rotationSpeedDegreesPerSecond * Time.fixedDeltaTime);
-			shipBody.MoveRotation(newAngle);
+			float currentAngle = shipBody.rotation;
+			float delta = Mathf.DeltaAngle(currentAngle, targetAngle);
+			float torqueUnits2 = Mathf.Max(0f, rotationTorqueKiloNewtonMeters);
+			float signTorque = Mathf.Sign(delta);
+			if (Mathf.Abs(delta) > 0.5f)
+			{
+				shipBody.AddTorque(signTorque * torqueUnits2, ForceMode2D.Force);
+			}
+			else
+			{
+				shipBody.angularVelocity = 0f;
+			}
 		}
 
 		private void OnDestroy()
