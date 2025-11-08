@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dbdbf1fed002b14cb7e05c36dc1b398, type: 3}
+  m_Name: AsteroidPrefabRegistry
+  m_EditorClassIdentifier: 
+  entries:
+  - asteroidId: "\u0411\u043B\u0435\u0441\u0442\u044F\u0449\u0438\u0439_\u0430\u043C\u0443\u0440\u0438\u043B_asteroid"
+    prefab: {fileID: 8719955880576673748, guid: d7a8dca5d788a884db862dfab2e21994, type: 3}
+  - asteroidId: "\u0413\u0440\u0430\u043D\u0443\u043B\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0439_\u0444\u043E\u0442\u0430\u0440\u0438\u0434_asteroid"
+    prefab: {fileID: 1418219816830006614, guid: 54d8e92c0d337e24d82d7c429673cf90, type: 3}
+  - asteroidId: "\u0417\u0430\u0433\u043E\u0440\u0438\u0437\u043E\u043D\u0442\u043D\u044B\u0439_\u0432\u0438\u043B\u043E\u043A\u0446\u0438\u0442_asteroid"
+    prefab: {fileID: 6367372445526333480, guid: 96953fd9a04485349b62dab4944132be, type: 3}
+  - asteroidId: "\u041A\u043E\u043D\u0446\u0435\u043D\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0439_\u0431\u043E\u0440\u043A\u0441\u0430\u043B_asteroid"
+    prefab: {fileID: 5963274609352400836, guid: 75640330edd0db547a357fdeb6fec563, type: 3}
+  - asteroidId: "\u041A\u0440\u043E\u0432\u0430\u0432\u044B\u0439_\u043F\u0435\u0433\u043C\u0430\u0441\u0438\u043B_asteroid"
+    prefab: {fileID: 7420693604800875670, guid: 6f66683f2dd439243a4bed47eab74541, type: 3}
+  - asteroidId: "\u041C\u0438\u043A\u0440\u043E\u0441\u0442\u0440\u0443\u043A\u0442\u0443\u0440\u043D\u044B\u0439_\u0438\u043C\u043F\u0430\u043A\u0441\u0438\u0442_asteroid"
+    prefab: {fileID: 8816504198894687462, guid: e8186e8c0f00b7841a6be5a8ff869326, type: 3}
+  - asteroidId: "\u041E\u043A\u0435\u0430\u043D\u0438\u0447\u0435\u0441\u043A\u0438\u0439_\u0444\u043B\u044E\u0438\u0434\u0438\u0442_asteroid"
+    prefab: {fileID: 3323076102991625766, guid: 5643a78064935254ca8632907bd12102, type: 3}
+  - asteroidId: "\u041F\u0440\u0435\u0434\u0435\u043B\u044C\u043D\u044B\u0439_\u0442\u0430\u043B\u0430\u0441\u043E\u043D\u0438\u0442_asteroid"
+    prefab: {fileID: 6525571840017839361, guid: 3b5bb2d0090ccc244a5341ca71898607, type: 3}
+  - asteroidId: "\u041F\u0440\u043E\u0447\u043D\u044B\u0439_\u0441\u0438\u043D\u0442\u0430\u0440_asteroid"
+    prefab: {fileID: 474806867704096255, guid: 29fecba7c36b38c44a7766310a184a61, type: 3}
+  - asteroidId: "\u041F\u044F\u0442\u043D\u0438\u0441\u0442\u044B\u0439_\u044D\u043E\u043B\u0438\u0442_asteroid"
+    prefab: {fileID: 3997064606787555682, guid: d074f3a73edab4248abc4b5af9790d89, type: 3}
+  - asteroidId: "\u0420\u0430\u0441\u0441\u0435\u0438\u0432\u0430\u044E\u0449\u0438\u0439_\u041D\u0435\u043F\u0442\u0443\u0440_asteroid"
+    prefab: {fileID: 6331231945507314674, guid: ba940c44e8746f34d9d12049f5d38060, type: 3}
+  - asteroidId: "\u0420\u0435\u0433\u043E\u043B\u0438\u0442_asteroid"
+    prefab: {fileID: 7087337731832298490, guid: a3930e5cbb39ab6499d52b46bdaa6ddb, type: 3}
+  - asteroidId: "\u0420\u0436\u0430\u0432\u044B\u0439_\u043F\u0438\u0440\u0443\u043B\u0438\u0442_asteroid"
+    prefab: {fileID: 8163099105684363969, guid: e540d757df0d2614cafd92ad785cd81d, type: 3}
+  - asteroidId: "\u0421\u0432\u0435\u0440\u043A\u0430\u044E\u0449\u0438\u0439_\u0444\u0438\u0441\u0441\u0443\u0440\u0438\u0442_asteroid"
+    prefab: {fileID: 6972934518714368027, guid: b0db002160796f942b9e77e201870691, type: 3}
+  - asteroidId: "\u0421\u043C\u0435\u0440\u0442\u043E\u043D\u043E\u0441\u043D\u044B\u0439_\u0430\u0432\u0438\u0434_asteroid"
+    prefab: {fileID: 2823872095533477043, guid: 9fbc7be1d01a6fd4ebd9ff0765c1831e, type: 3}
+  - asteroidId: "\u0423\u0436\u0430\u0441\u043D\u044B\u0439_\u043C\u043E\u0440\u0433\u0435\u043B\u0438\u0442_asteroid"
+    prefab: {fileID: 7343943109025867333, guid: c0642858853d4cc4d9909730aa7f4674, type: 3}

@@ -2,26 +2,61 @@
   {
     "sector_id": "Солнечная_система",
     "sector_name": "Солнечная система",
-    "cost_start": 0
+    "cost_start": 0,
+    "asteroid_id": "Реголит_asteroid,Ржавый_пирулит_asteroid,Блестящий_амурил_asteroid,Пятнистый_эолит_asteroid,Загоризонтный_вилокцит_asteroid,Микроструктурный_импаксит_asteroid,Океанический_флюидит_asteroid,Сверкающий_фиссурит_asteroid,Кровавый_пегмасил_asteroid,Прочный_синтар_asteroid,Гранулированный_фотарид_asteroid,Рассеивающий_Нептур_asteroid,Концентрированный_борксал_asteroid,Смертоносный_авид_asteroid,Ужасный_моргелит_asteroid,Предельный_таласонит_asteroid",
+    "asteroid_count": "80,20,20,20,0,0,0,0,0,0,0,0,0,0,0,0",
+    "rarefaction_asteroid": 4,
+    "speed_asteroid_min": 2.1,
+    "speed_asteroid_max": 7,
+    "asteroid_diameter_min": 2,
+    "asteroid_diameter_max": 80
   },
   {
     "sector_id": "Предел_гелиосферы",
     "sector_name": "Предел гелиосферы",
-    "cost_start": 1000
+    "cost_start": 1000,
+    "asteroid_id": "Реголит_asteroid,Ржавый_пирулит_asteroid,Блестящий_амурил_asteroid,Пятнистый_эолит_asteroid,Загоризонтный_вилокцит_asteroid,Микроструктурный_импаксит_asteroid,Океанический_флюидит_asteroid,Сверкающий_фиссурит_asteroid,Кровавый_пегмасил_asteroid,Прочный_синтар_asteroid,Гранулированный_фотарид_asteroid,Рассеивающий_Нептур_asteroid,Концентрированный_борксал_asteroid,Смертоносный_авид_asteroid,Ужасный_моргелит_asteroid,Предельный_таласонит_asteroid",
+    "asteroid_count": "50,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0",
+    "rarefaction_asteroid": 1.2,
+    "speed_asteroid_min": 1.1,
+    "speed_asteroid_max": 1.9,
+    "asteroid_diameter_min": 2,
+    "asteroid_diameter_max": 80
   },
   {
     "sector_id": "Межзвёздное_пространство",
     "sector_name": "Межзвёздное пространство",
-    "cost_start": 10000
+    "cost_start": 10000,
+    "asteroid_id": "Реголит_asteroid,Ржавый_пирулит_asteroid,Блестящий_амурил_asteroid,Пятнистый_эолит_asteroid,Загоризонтный_вилокцит_asteroid,Микроструктурный_импаксит_asteroid,Океанический_флюидит_asteroid,Сверкающий_фиссурит_asteroid,Кровавый_пегмасил_asteroid,Прочный_синтар_asteroid,Гранулированный_фотарид_asteroid,Рассеивающий_Нептур_asteroid,Концентрированный_борксал_asteroid,Смертоносный_авид_asteroid,Ужасный_моргелит_asteroid,Предельный_таласонит_asteroid",
+    "asteroid_count": "50,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0",
+    "rarefaction_asteroid": 1.2,
+    "speed_asteroid_min": 1.1,
+    "speed_asteroid_max": 1.9,
+    "asteroid_diameter_min": 2,
+    "asteroid_diameter_max": 80
   },
   {
     "sector_id": "Окраины_чёрной_дыры",
     "sector_name": "Окраины чёрной дыры",
-    "cost_start": 100000
+    "cost_start": 100000,
+    "asteroid_id": "Реголит_asteroid,Ржавый_пирулит_asteroid,Блестящий_амурил_asteroid,Пятнистый_эолит_asteroid,Загоризонтный_вилокцит_asteroid,Микроструктурный_импаксит_asteroid,Океанический_флюидит_asteroid,Сверкающий_фиссурит_asteroid,Кровавый_пегмасил_asteroid,Прочный_синтар_asteroid,Гранулированный_фотарид_asteroid,Рассеивающий_Нептур_asteroid,Концентрированный_борксал_asteroid,Смертоносный_авид_asteroid,Ужасный_моргелит_asteroid,Предельный_таласонит_asteroid",
+    "asteroid_count": "50,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0",
+    "rarefaction_asteroid": 1.2,
+    "speed_asteroid_min": 1.1,
+    "speed_asteroid_max": 1.9,
+    "asteroid_diameter_min": 2,
+    "asteroid_diameter_max": 80
   },
   {
     "sector_id": "Космический_воид",
     "sector_name": "Космический воид",
-    "cost_start": 1000000
+    "cost_start": 1000000,
+    "asteroid_id": "Реголит_asteroid,Ржавый_пирулит_asteroid,Блестящий_амурил_asteroid,Пятнистый_эолит_asteroid,Загоризонтный_вилокцит_asteroid,Микроструктурный_импаксит_asteroid,Океанический_флюидит_asteroid,Сверкающий_фиссурит_asteroid,Кровавый_пегмасил_asteroid,Прочный_синтар_asteroid,Гранулированный_фотарид_asteroid,Рассеивающий_Нептур_asteroid,Концентрированный_борксал_asteroid,Смертоносный_авид_asteroid,Ужасный_моргелит_asteroid,Предельный_таласонит_asteroid",
+    "asteroid_count": "50,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0",
+    "rarefaction_asteroid": 1.2,
+    "speed_asteroid_min": 1.1,
+    "speed_asteroid_max": 1.9,
+    "asteroid_diameter_min": 2,
+    "asteroid_diameter_max": 80
   }
 ]

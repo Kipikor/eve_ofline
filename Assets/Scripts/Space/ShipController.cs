@@ -16,6 +16,10 @@ namespace EveOffline.Space
 		[Header("Config")]
 		[SerializeField] private string shipId;
 
+		[Header("Camera")]
+		[SerializeField] private bool attachCameraToShip = true;
+		[SerializeField] private Vector3 cameraLocalOffset = new Vector3(0f, 0f, -10f);
+
 		private float acceleration = 25f; // из JSON (значение по умолчанию)
 		private float shipWidthMeters = 1f;  // из JSON
 		private float shipHeightMeters = 1f; // из JSON
@@ -81,6 +85,8 @@ namespace EveOffline.Space
 					modeMouseToggle.onValueChanged.AddListener(OnModeMouseToggleChanged);
 				}
 			}
+
+			AttachCameraIfConfigured();
 		}
 
 #if UNITY_EDITOR
@@ -89,6 +95,17 @@ namespace EveOffline.Space
 			// В редакторе не меняем сам sprite, чтобы не ловить SendMessage в OnValidate
 			LoadShipConfig();
 			ApplySizeAndVisuals(changeSprite: false);
+
+			// При изменении настроек поддержим позицию камеры
+			if (attachCameraToShip)
+			{
+				var cam = Camera.main;
+				if (cam != null && cam.transform.parent == transform)
+				{
+					cam.transform.localPosition = cameraLocalOffset;
+					cam.transform.localRotation = Quaternion.identity;
+				}
+			}
 		}
 #endif
 
@@ -318,6 +335,39 @@ namespace EveOffline.Space
 		private void OnModeMouseToggleChanged(bool isOn)
 		{
 			isAlignToMouseEnabled = isOn;
+		}
+
+		private void AttachCameraIfConfigured()
+		{
+			if (!attachCameraToShip) return;
+			var cam = Camera.main;
+			if (cam == null) return;
+			var camTr = cam.transform;
+			// Камера не должна вращаться вместе с кораблём — держим её отдельно и только переносим
+			if (camTr.parent == transform)
+			{
+				// Отсоединяем, чтобы не наследовать вращение
+				camTr.SetParent(null, true);
+			}
+			SetCameraWorldTransform(cam);
+		}
+
+		private void LateUpdate()
+		{
+			if (!attachCameraToShip) return;
+			var cam = Camera.main;
+			if (cam == null) return;
+			SetCameraWorldTransform(cam);
+		}
+
+		private void SetCameraWorldTransform(Camera cam)
+		{
+			// Позиция = позиция корабля + фиксированный мировой сдвиг, поворот фиксированный
+			var shipPos = transform.position;
+			var worldPos = new Vector3(shipPos.x + cameraLocalOffset.x, shipPos.y + cameraLocalOffset.y, cameraLocalOffset.z);
+			var camTr = cam.transform;
+			camTr.position = worldPos;
+			camTr.rotation = Quaternion.identity;
 		}
 
 	}
