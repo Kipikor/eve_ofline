@@ -69,6 +69,14 @@ namespace EditorTools
 				EditorUtility.SetDirty(tr);
 			}
 
+			EditorGUILayout.Space(6);
+			if (GUILayout.Button("Разрушить (тест)"))
+			{
+				Undo.RecordObject(controller, "Разрушение астероида (тест)");
+				controller.ApplyDamage(controller.GetMaxHitPoints());
+				EditorUtility.SetDirty(controller);
+			}
+
 			serializedObject.ApplyModifiedProperties();
 		}
 	}

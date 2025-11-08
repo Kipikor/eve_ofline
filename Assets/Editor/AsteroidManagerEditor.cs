@@ -67,6 +67,40 @@ namespace EditorTools
 				AsteroidRegistryBuilder.Rebuild();
 			}
 
+			EditorGUILayout.Space(8);
+			EditorGUILayout.LabelField("Статистика пула (по типам)", EditorStyles.boldLabel);
+			var stats = manager.GetTypeStats();
+			if (stats != null && stats.Count > 0)
+			{
+				// Заголовок таблицы
+				var right = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleRight };
+				var bold = new GUIStyle(EditorStyles.miniBoldLabel) { alignment = TextAnchor.MiddleRight };
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.LabelField("Тип", EditorStyles.miniBoldLabel);
+				GUILayout.Label("Активно", bold, GUILayout.Width(70));
+				GUILayout.Label("В запасе", bold, GUILayout.Width(70));
+				GUILayout.Label("Всего", bold, GUILayout.Width(70));
+				GUILayout.Label("Квота", bold, GUILayout.Width(70));
+				EditorGUILayout.EndHorizontal();
+
+				// Строки
+				for (int i = 0; i < stats.Count; i++)
+				{
+					var s = stats[i];
+					EditorGUILayout.BeginHorizontal();
+					EditorGUILayout.LabelField(s.asteroidId);
+					GUILayout.Label(s.active.ToString(), right, GUILayout.Width(70));
+					GUILayout.Label(s.reserve.ToString(), right, GUILayout.Width(70));
+					GUILayout.Label(s.total.ToString(), right, GUILayout.Width(70));
+					GUILayout.Label(s.target.ToString(), right, GUILayout.Width(70));
+					EditorGUILayout.EndHorizontal();
+				}
+			}
+			else
+			{
+				EditorGUILayout.HelpBox("Пул пуст.", MessageType.Info);
+			}
+
 			serializedObject.ApplyModifiedProperties();
 		}
 

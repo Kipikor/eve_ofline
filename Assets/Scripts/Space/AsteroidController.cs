@@ -91,6 +91,12 @@ namespace Space
 			ActivateSizeChildForDiameter(diameter);
 		}
 
+		private void OnEnable()
+		{
+			// Новый спавн: устанавливаем текущее здоровье в максимум
+			currentHitPoints = GetMaxHitPoints();
+		}
+
 		private void Reset()
 		{
 			EnsureConfigLoaded();
@@ -127,6 +133,16 @@ namespace Space
 		public void SetDiameter(float newDiameter)
 		{
 			ApplyDiameter(newDiameter, autoPickSize: true);
+		}
+
+		public void ApplyDamage(int damage)
+		{
+			if (damage <= 0) return;
+			CurrentHitPoints -= damage;
+			if (CurrentHitPoints <= 0)
+			{
+				BreakIntoPieces();
+			}
 		}
 
 		public void RegenerateRandom()
@@ -306,6 +322,136 @@ namespace Space
 				result[i] = child;
 			}
 			return result;
+		}
+
+		private void BreakIntoPieces()
+		{
+			if (!TryGetConfigFor(gameObject.name, out var cfg) || cfg == null)
+			{
+				gameObject.SetActive(false);
+				var m1 = UnityEngine.Object.FindFirstObjectByType<AsteroidManager>();
+				if (m1 != null) m1.NotifyDisabledInstance(gameObject);
+				return;
+			}
+
+			int volume = GetVolumeRounded();
+			int lost = Mathf.RoundToInt(volume * Mathf.Clamp01(cfg.m3_loss_to_break));
+			int remain = Mathf.Max(0, volume - lost);
+
+			int pieces = ChoosePiecesCount(cfg.pieces_to_break_weight);
+			if (pieces <= 0 || remain <= 0)
+			{
+				// просто исчез
+				gameObject.SetActive(false);
+				var m2 = UnityEngine.Object.FindFirstObjectByType<AsteroidManager>();
+				if (m2 != null) m2.NotifyDisabledInstance(gameObject);
+				return;
+			}
+
+			var splitVolumes = AllocateVolumes(remain, pieces);
+			var diameters = new List<float>(pieces);
+			for (int i = 0; i < splitVolumes.Count; i++)
+			{
+				float d = DiameterFromVolume(splitVolumes[i]);
+				diameters.Add(d);
+			}
+
+			// Базовая кинематика от родителя
+			var rb = GetComponent<Rigidbody2D>();
+			Vector2 baseVel = rb != null ? rb.linearVelocity : Vector2.zero;
+			float baseAng = rb != null ? rb.angularVelocity : 0f;
+
+			var manager = UnityEngine.Object.FindFirstObjectByType<AsteroidManager>();
+			Vector3 pos = transform.position;
+			if (manager != null)
+			{
+				for (int i = 0; i < diameters.Count; i++)
+				{
+					float d = diameters[i];
+					if (d < 2f) continue; // рассыпались в пыль
+					// Импульс разлёта
+					float ang = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
+					float extraSpeed = UnityEngine.Random.Range(0.5f, 2.0f);
+					Vector2 impulse = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * extraSpeed;
+					Vector2 childVel = baseVel + impulse;
+					float childAng = baseAng + UnityEngine.Random.Range(-10f, 10f);
+					// Попытка взять свободный из пула
+					bool ok = manager.TrySpawnSpecific(gameObject.name, pos, d, childVel, childAng);
+					if (!ok)
+					{
+						// Нет свободных — пропускаем
+						continue;
+					}
+				}
+			}
+
+			// Отключаем исходный астероид
+			gameObject.SetActive(false);
+			if (manager != null) manager.NotifyDisabledInstance(gameObject);
+		}
+
+		private static int ChoosePiecesCount(string weights)
+		{
+			if (string.IsNullOrWhiteSpace(weights)) return 0;
+			var parts = weights.Split(',');
+			var options = new List<(int n, int w)>();
+			int totalW = 0;
+			for (int i = 0; i < parts.Length; i++)
+			{
+				var p = parts[i].Trim();
+				var kv = p.Split(':');
+				if (kv.Length != 2) continue;
+				if (!int.TryParse(kv[0], out var n)) continue;
+				if (!int.TryParse(kv[1], out var w)) continue;
+				if (w <= 0) continue;
+				options.Add((n, w));
+				totalW += w;
+			}
+			if (totalW <= 0 || options.Count == 0) return 0;
+			int pick = UnityEngine.Random.Range(0, totalW);
+			int acc = 0;
+			for (int i = 0; i < options.Count; i++)
+			{
+				acc += options[i].w;
+				if (pick < acc) return options[i].n;
+			}
+			return options[options.Count - 1].n;
+		}
+
+		private static List<int> AllocateVolumes(int total, int pieces)
+		{
+			var xs = new float[pieces];
+			float sum = 0f;
+			for (int i = 0; i < pieces; i++)
+			{
+				xs[i] = UnityEngine.Random.Range(1f, 2f); // гарантирует max/min <= 2
+				sum += xs[i];
+			}
+			var vols = new List<int>(pieces);
+			int acc = 0;
+			for (int i = 0; i < pieces; i++)
+			{
+				int vi = Mathf.RoundToInt(total * (xs[i] / sum));
+				vols.Add(vi);
+				acc += vi;
+			}
+			// Коррекция суммы
+			int diff = total - acc;
+			for (int i = 0; diff != 0 && i < pieces; i++)
+			{
+				int sign = diff > 0 ? 1 : -1;
+				vols[i] = Mathf.Max(0, vols[i] + sign);
+				diff -= sign;
+			}
+			return vols;
+		}
+
+		private static float DiameterFromVolume(int vol)
+		{
+			if (vol <= 0) return 0f;
+			// V = 4/3 * pi * r^3 => r = cbrt( V * 3 / (4*pi) ), d = 2r
+			double r = Math.Pow(vol * 3.0 / (4.0 * Math.PI), 1.0 / 3.0);
+			return (float)(2.0 * r);
 		}
 
 		private List<int> GetCandidateSizesForDiameter(string asteroidId, float currentDiameter)

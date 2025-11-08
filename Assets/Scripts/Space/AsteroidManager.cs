@@ -287,28 +287,25 @@ namespace Space
 					activeByType[pa.asteroidId]++;
 				}
 			}
-			bool needAny = false;
-			foreach (var kv in targetCountByType)
+			// Собираем список всех НЕАКТИВНЫХ экземпляров, чьи типы ещё не достигли своей квоты
+			var reserveIndices = new List<int>();
+			for (int i = 0; i < pool.Count; i++)
 			{
-				activeByType.TryGetValue(kv.Key, out var a);
-				if (a < kv.Value) { needAny = true; break; }
-			}
-			if (!needAny) return;
-
-			// Берем первый неактивный, чей тип ещё не достиг квоты
-			PooledAsteroid candidate = null;
-			foreach (var pa in pool)
-			{
-				if (pa.active) continue;
-				targetCountByType.TryGetValue(pa.asteroidId, out var target);
-				activeByType.TryGetValue(pa.asteroidId, out var have);
-				if (have < target)
+				var pa = pool[i];
+				if (!pa.active && pa.instance != null)
 				{
-					candidate = pa;
-					break;
+					// Проверяем квоту типа
+					targetCountByType.TryGetValue(pa.asteroidId, out var targetForType);
+					activeByType.TryGetValue(pa.asteroidId, out var activeForType);
+					if (activeForType < targetForType)
+					{
+						reserveIndices.Add(i);
+					}
 				}
 			}
-			if (candidate == null) return;
+			if (reserveIndices.Count == 0) return;
+			int chosenIndex = reserveIndices[UnityEngine.Random.Range(0, reserveIndices.Count)];
+			var candidate = pool[chosenIndex];
 
 			// Сгенерируем диаметр (независимо от контроллера), чтобы проверить редукцию плотности
 			var diameter = UnityEngine.Random.Range(sectorDiameterMin, sectorDiameterMax);
@@ -411,6 +408,55 @@ namespace Space
 			}
 		}
 
+		// Публичный API для точечного спавна конкретных детей (используется при расколе)
+		public bool TrySpawnSpecific(string asteroidId, Vector3 position, float diameter, Vector2 velocity, float angularVelocity)
+		{
+			for (int i = 0; i < pool.Count; i++)
+			{
+				var pa = pool[i];
+				if (pa == null) continue;
+				if (pa.asteroidId != asteroidId) continue;
+				if (pa.active) continue;
+				if (pa.instance == null) continue;
+
+				// Настраиваем
+				pa.instance.transform.position = position;
+				if (pa.controller == null) pa.controller = pa.instance.GetComponent<AsteroidController>();
+				if (pa.controller != null)
+				{
+					pa.controller.SetDiameter(diameter);
+				}
+				pa.instance.SetActive(true);
+				pa.active = true;
+				pa.diameter = diameter;
+				if (pa.body == null) pa.body = pa.instance.GetComponent<Rigidbody2D>();
+				if (pa.body != null)
+				{
+					pa.body.linearVelocity = velocity;
+					pa.body.angularVelocity = angularVelocity;
+				}
+				return true;
+			}
+			return false;
+		}
+
+		// Уведомление от контроллера, что инстанс отключился (например, при разрушении)
+		public void NotifyDisabledInstance(GameObject instance)
+		{
+			if (instance == null) return;
+			for (int i = 0; i < pool.Count; i++)
+			{
+				var pa = pool[i];
+				if (pa == null || pa.instance == null) continue;
+				if (pa.instance == instance)
+				{
+					pa.active = false;
+					pa.diameter = 0f;
+					return;
+				}
+			}
+		}
+
 		private static void EnsureSectorConfigLoaded()
 		{
 			if (sectorIdToConfig != null) return;
@@ -462,6 +508,55 @@ namespace Space
 		}
 
 		public float CameraSpawnMargin => cameraSpawnMargin;
+
+		[Serializable]
+		public struct TypeStats
+		{
+			public string asteroidId;
+			public int active;
+			public int reserve;
+			public int total;
+			public int target;
+		}
+
+		public List<TypeStats> GetTypeStats()
+		{
+			var activeByType = new Dictionary<string, int>(StringComparer.Ordinal);
+			var totalByType = new Dictionary<string, int>(StringComparer.Ordinal);
+			for (int i = 0; i < pool.Count; i++)
+			{
+				var pa = pool[i];
+				if (pa == null) continue;
+				if (!totalByType.ContainsKey(pa.asteroidId)) totalByType[pa.asteroidId] = 0;
+				totalByType[pa.asteroidId]++;
+				if (pa.active)
+				{
+					if (!activeByType.ContainsKey(pa.asteroidId)) activeByType[pa.asteroidId] = 0;
+					activeByType[pa.asteroidId]++;
+				}
+			}
+
+			var result = new List<TypeStats>();
+			// включаем все типы из пула и из целей
+			var keys = new HashSet<string>(totalByType.Keys, StringComparer.Ordinal);
+			foreach (var k in targetCountByType.Keys) keys.Add(k);
+			foreach (var id in keys)
+			{
+				totalByType.TryGetValue(id, out var total);
+				activeByType.TryGetValue(id, out var active);
+				targetCountByType.TryGetValue(id, out var target);
+				result.Add(new TypeStats
+				{
+					asteroidId = id,
+					active = active,
+					reserve = Math.Max(0, total - active),
+					total = total,
+					target = target
+				});
+			}
+			result.Sort((a, b) => string.Compare(a.asteroidId, b.asteroidId, StringComparison.Ordinal));
+			return result;
+		}
 
 		private void OnDrawGizmosSelected()
 		{

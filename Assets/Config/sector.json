@@ -4,11 +4,11 @@
     "sector_name": "Солнечная система",
     "cost_start": 0,
     "asteroid_id": "Реголит_asteroid,Ржавый_пирулит_asteroid,Блестящий_амурил_asteroid,Пятнистый_эолит_asteroid,Загоризонтный_вилокцит_asteroid,Микроструктурный_импаксит_asteroid,Океанический_флюидит_asteroid,Сверкающий_фиссурит_asteroid,Кровавый_пегмасил_asteroid,Прочный_синтар_asteroid,Гранулированный_фотарид_asteroid,Рассеивающий_Нептур_asteroid,Концентрированный_борксал_asteroid,Смертоносный_авид_asteroid,Ужасный_моргелит_asteroid,Предельный_таласонит_asteroid",
-    "asteroid_count": "100,20,20,20,0,0,0,0,0,0,0,0,0,0,0,0",
-    "rarefaction_asteroid": 5,
+    "asteroid_count": "1000,200,200,200,0,0,0,0,0,0,0,0,0,0,0,0",
+    "rarefaction_asteroid": 10,
     "speed_asteroid_min": 1.1,
     "speed_asteroid_max": 11.9,
-    "asteroid_diameter_min": 2,
+    "asteroid_diameter_min": 5,
     "asteroid_diameter_max": 80
   },
   {
