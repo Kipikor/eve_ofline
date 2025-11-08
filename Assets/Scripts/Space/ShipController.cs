@@ -40,6 +40,15 @@ namespace EveOffline.Space
 		private float rotationTorqueKiloNewtonMeters = 2500f; // момент, кН·м
 		private bool isAlignToMouseEnabled;
 		private Toggle modeMouseToggle;
+		
+		public enum ForceOrientation
+		{
+			Local,  // усилия прикладываются относительно корабля (нос = вперёд)
+			World   // усилия прикладываются относительно экрана/мира (W=вверх экрана)
+		}
+		
+		[Header("Движение")]
+		[SerializeField] private ForceOrientation forceOrientation = ForceOrientation.Local;
 		// режим поворота к мыши контролируется чекбоксом в сцене (mode_mouse_orientatioon)
 
 		[Serializable]
@@ -290,10 +299,19 @@ namespace EveOffline.Space
 		private void UpdateMovement()
 		{
 			Vector2 inputDirection = ReadWasdDirection();
-			// Переводим локальное направление ввода в мировое через ориентацию корабля
-			Vector2 worldDirection =
-				(Vector2)transform.right * inputDirection.x +
-				(Vector2)transform.up * inputDirection.y;
+			Vector2 worldDirection;
+			if (forceOrientation == ForceOrientation.Local)
+			{
+				// Локальная ориентация сил (вдоль корпуса)
+				worldDirection =
+					(Vector2)transform.right * inputDirection.x +
+					(Vector2)transform.up * inputDirection.y;
+			}
+			else
+			{
+				// Мировая ориентация сил (относительно экрана)
+				worldDirection = new Vector2(inputDirection.x, inputDirection.y);
+			}
 			// Тяга: используем кН напрямую (масса в тоннах), без пересчёта единиц
 			float thrustUnits = Mathf.Max(0f, acceleration); // кН
 
