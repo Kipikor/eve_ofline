@@ -46,6 +46,8 @@ namespace Space.Weapons
 
 		private void Update()
 		{
+			// Блокируем огонь по мыши, если UI забирает ввод
+			if (global::UI.UiInput.IsMouseBlocked) return;
 			bool wantFire = false;
 #if ENABLE_INPUT_SYSTEM
 			var mouse = Mouse.current;

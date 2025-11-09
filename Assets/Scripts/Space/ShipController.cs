@@ -361,8 +361,8 @@ namespace EveOffline.Space
 
 		private void UpdateRotationToMouseIfEnabled()
 		{
-			// Если режим ориентации выключен — не целимся на мышь, а демпфируем вращение
-			if (!isAlignToMouseEnabled)
+			// Если режим ориентации выключен ИЛИ мышь заблокирована UI — не целимся на мышь, а демпфируем вращение
+			if (!isAlignToMouseEnabled || global::UI.UiInput.IsMouseBlocked)
 			{
 				// Автодемпфирование вращения при отсутствии управления (кН·м напрямую)
 				float torqueUnits = Mathf.Max(0f, rotationTorqueKiloNewtonMeters);
@@ -447,7 +447,8 @@ namespace EveOffline.Space
 			if (cam == null) return;
 			SetCameraWorldTransform(cam);
 
-			if (enableZoom)
+			// Блокируем масштабирование мышью, если UI захватывает мышь
+			if (enableZoom && !global::UI.UiInput.IsMouseBlocked)
 			{
 				HandleZoom(cam);
 			}
