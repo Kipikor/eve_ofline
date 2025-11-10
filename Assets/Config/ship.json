@@ -34,6 +34,6 @@
     "in_cargo_size": 50,
     "drone_throughput": 5.5,
     "drone_radius": 1200,
-    "innate_module": "analog_drone_condor_factory"
+    "innate_module": "ore_crusher_t1"
   }
 ]
