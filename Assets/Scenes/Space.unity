@@ -4136,6 +4136,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1285417546481560039, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
+      propertyPath: debugLogging
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1285417546481560039, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
+      propertyPath: inventoryOverride
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 2162825884281428053, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
       propertyPath: m_Name
       value: Ship_condor
@@ -4185,8 +4193,8 @@ PrefabInstance:
       value: mining_laser_t1
       objectReference: {fileID: 0}
     - target: {fileID: 8765726082183787817, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
-      propertyPath: forceOrientation
-      value: 1
+      propertyPath: autoFireEnabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8765726082183787817, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
       propertyPath: drones.Array.size
