@@ -171,6 +171,7 @@ MonoBehaviour:
   maxOrthoSize: 500
   zoomSpeed: 500
   clampZoomToSpawnBounds: 1
+  cargoHolding: 75000
   forceOrientation: 0
 --- !u!61 &4976103487166497788
 BoxCollider2D:

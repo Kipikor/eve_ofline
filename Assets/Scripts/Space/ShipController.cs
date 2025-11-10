@@ -35,6 +35,10 @@ namespace EveOffline.Space
 		private float shipOffsetX;           // из JSON
 		private float shipOffsetY;           // из JSON
 
+		[Header("Cargo")]
+		[SerializeField] private float cargoHolding = 750f; // м^3
+		public float CargoHolding => cargoHolding;
+
 		private Rigidbody2D shipBody;
 		private float maxLinearSpeedMetersPerSecond = 6f;
 		private float rotationTorqueKiloNewtonMeters = 2500f; // момент, кН·м
@@ -81,6 +85,7 @@ namespace EveOffline.Space
 			public float offsetX;      // альтернативное имя
 			public float offsetY;      // альтернативное имя
 			public float sprite_scale; // масштаб спрайта
+			public float cargo_holding; // м^3
 		}
 
 		private void Awake()
@@ -167,6 +172,12 @@ namespace EveOffline.Space
 					{
 						if (shipBody == null) shipBody = GetComponent<Rigidbody2D>();
 						if (shipBody != null) shipBody.mass = records[index].mass;
+					}
+
+					// Грузовой отсек
+					if (records[index].cargo_holding > 0f)
+					{
+						cargoHolding = records[index].cargo_holding;
 					}
 				}
 			}

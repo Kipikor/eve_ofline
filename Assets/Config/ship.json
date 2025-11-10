@@ -30,7 +30,7 @@
     "low_slot": 2,
     "Fuel_item": "Репелен",
     "Fuel_in_minute": 10,
-    "cargo_holding": 750,
+    "cargo_holding": 75000,
     "in_cargo_size": 50,
     "drone_throughput": 5.5,
     "drone_radius": 1200,
