@@ -1,24 +1,27 @@
 using System;
 using System.Collections.Generic;
+using EveOffline.Space;
+using EveOffline.Space.Drone;
 using UnityEditor;
 using UnityEngine;
-using EveOffline.Space;
 
 [CustomEditor(typeof(ShipController))]
 public class ShipControllerEditor : Editor
 {
 	private string[] _shipIds;
+	private static string[] s_droneIds = new string[0];
 
 	private void OnEnable()
 	{
 		_shipIds = LoadShipIds();
+		EnsureDroneIds();
 	}
 
 	public override void OnInspectorGUI()
 	{
 		serializedObject.Update();
 
-		// Draw Ship Id as popup
+		// Ship Id popup
 		var shipIdProp = serializedObject.FindProperty("shipId");
 		int currentIndex = 0;
 		if (_shipIds != null && _shipIds.Length > 0)
@@ -42,16 +45,65 @@ public class ShipControllerEditor : Editor
 			EditorGUILayout.PropertyField(shipIdProp, new GUIContent("Ship Id"));
 		}
 
-		// Draw the rest excluding m_Script and shipId
-		DrawPropertiesExcluding(serializedObject, "m_Script", "shipId");
+		// Остальные свойства кроме m_Script, shipId и drones (дроны рисуем кастомно ниже)
+		DrawPropertiesExcluding(serializedObject, "m_Script", "shipId", "drones");
+
+		EditorGUILayout.Space();
+		EditorGUILayout.LabelField("Дроны", EditorStyles.boldLabel);
+		var ship = (ShipController)target;
+		var dronesProp = serializedObject.FindProperty("drones");
+		if (dronesProp != null)
+		{
+			for (int i = 0; i < dronesProp.arraySize; i++)
+			{
+				var elem = dronesProp.GetArrayElementAtIndex(i);
+				var idProp = elem.FindPropertyRelative("droneId");
+				var countProp = elem.FindPropertyRelative("count");
+
+				EditorGUILayout.BeginHorizontal();
+				int current = Mathf.Max(0, IndexOfDrone(idProp.stringValue));
+				int next = EditorGUILayout.Popup(current, s_droneIds);
+				if (next != current)
+				{
+					idProp.stringValue = s_droneIds[next];
+				}
+				countProp.intValue = Mathf.Max(0, EditorGUILayout.IntField(countProp.intValue, GUILayout.Width(80)));
+				if (GUILayout.Button("X", GUILayout.Width(20)))
+				{
+					dronesProp.DeleteArrayElementAtIndex(i);
+					EditorGUILayout.EndHorizontal();
+					break;
+				}
+				EditorGUILayout.EndHorizontal();
+			}
+
+			EditorGUILayout.BeginHorizontal();
+			if (GUILayout.Button("+ Добавить"))
+			{
+				int idx = dronesProp.arraySize;
+				dronesProp.InsertArrayElementAtIndex(idx);
+				var elem = dronesProp.GetArrayElementAtIndex(idx);
+				elem.FindPropertyRelative("droneId").stringValue = s_droneIds.Length > 0 ? s_droneIds[0] : "";
+				elem.FindPropertyRelative("count").intValue = 1;
+			}
+			if (GUILayout.Button("Очистить"))
+			{
+				dronesProp.ClearArray();
+			}
+			EditorGUILayout.EndHorizontal();
+		}
 
 		serializedObject.ApplyModifiedProperties();
 
+		EditorGUILayout.Space();
 		if (GUILayout.Button("Обновить список Ship Id"))
 		{
 			_shipIds = LoadShipIds();
 		}
-
+		if (GUILayout.Button("Обновить список Drone Id"))
+		{
+			EnsureDroneIds();
+		}
 		if (GUILayout.Button("Перечитать конфиг корабля"))
 		{
 			foreach (var t in targets)
@@ -62,6 +114,11 @@ public class ShipControllerEditor : Editor
 				ctrl.EditorReloadConfig();
 				EditorUtility.SetDirty(ctrl);
 			}
+		}
+		if (GUILayout.Button("Переспавнить дронов (сцена)"))
+		{
+			var m = typeof(ShipController).GetMethod("SpawnDronesFromLoadout", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+			if (m != null) m.Invoke(ship, null);
 		}
 	}
 
@@ -84,7 +141,6 @@ public class ShipControllerEditor : Editor
 
 	[Serializable]
 	private class Wrapper<T> { public T[] items; }
-
 	[Serializable]
 	private class ShipIdRecord { public string id; }
 
@@ -103,6 +159,20 @@ public class ShipControllerEditor : Editor
 		}
 		return result.ToArray();
 	}
-}
 
+	private static void EnsureDroneIds()
+	{
+		IReadOnlyList<string> ids = DroneDatabase.GetAllIds();
+		if (ids == null) { s_droneIds = new string[0]; return; }
+		var arr = new string[ids.Count];
+		for (int i = 0; i < arr.Length; i++) arr[i] = ids[i];
+		s_droneIds = arr;
+	}
+
+	private static int IndexOfDrone(string id)
+	{
+		for (int i = 0; i < s_droneIds.Length; i++) if (s_droneIds[i] == id) return i;
+		return 0;
+	}
+}
 

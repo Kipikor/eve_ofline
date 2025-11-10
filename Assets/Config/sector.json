@@ -21,7 +21,7 @@
     "speed_asteroid_min": 1.1,
     "speed_asteroid_max": 11.9,
     "asteroid_diameter_min": 2,
-    "asteroid_diameter_max": 80
+    "asteroid_diameter_max": 50
   },
   {
     "sector_id": "Межзвёздное_пространство",
@@ -33,7 +33,7 @@
     "speed_asteroid_min": 1.1,
     "speed_asteroid_max": 11.9,
     "asteroid_diameter_min": 2,
-    "asteroid_diameter_max": 80
+    "asteroid_diameter_max": 50
   },
   {
     "sector_id": "Окраины_чёрной_дыры",
@@ -45,7 +45,7 @@
     "speed_asteroid_min": 1.1,
     "speed_asteroid_max": 11.9,
     "asteroid_diameter_min": 2,
-    "asteroid_diameter_max": 80
+    "asteroid_diameter_max": 50
   },
   {
     "sector_id": "Космический_воид",
@@ -57,6 +57,6 @@
     "speed_asteroid_min": 1.1,
     "speed_asteroid_max": 11.9,
     "asteroid_diameter_min": 2,
-    "asteroid_diameter_max": 80
+    "asteroid_diameter_max": 50
   }
 ]

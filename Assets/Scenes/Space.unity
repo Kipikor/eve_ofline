@@ -2257,7 +2257,7 @@ MonoBehaviour:
   m_CellSize: {x: 96, y: 112}
   m_Spacing: {x: 8, y: 8}
   m_Constraint: 1
-  m_ConstraintCount: 3
+  m_ConstraintCount: 7
 --- !u!114 &809326170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2459,6 +2459,7 @@ GameObject:
   - component: {fileID: 1163850533}
   - component: {fileID: 1163850534}
   - component: {fileID: 1163850535}
+  - component: {fileID: 1163850536}
   m_Layer: 0
   m_Name: Fill
   m_TagString: Untagged
@@ -2535,10 +2536,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 054e1fd6fd750dc4988be40d73dfe8b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debugLogging: 0
   useShipCargoHolding: 1
   capacityM3: 750
-  gridContent: {fileID: 0}
-  gridLayout: {fileID: 0}
+  gridContent: {fileID: 1163850532}
+  gridLayout: {fileID: 1163850536}
   capacityFill: {fileID: 0}
   capacityText: {fileID: 0}
   cellSize: {x: 96, y: 112}
@@ -2553,6 +2555,30 @@ MonoBehaviour:
   debugRandomMax: 100
   editorAutoRefresh: 0
   controlBarByAnchors: 1
+--- !u!114 &1163850536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1163850531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 96, y: 112}
+  m_Spacing: {x: 8, y: 8}
+  m_Constraint: 1
+  m_ConstraintCount: 7
 --- !u!1 &1234020389
 GameObject:
   m_ObjectHideFlags: 0
@@ -2690,7 +2716,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1313294916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2899,7 +2925,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1452577683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3170,8 +3196,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 306, y: -193}
-  m_SizeDelta: {x: 399.3, y: 333}
+  m_AnchoredPosition: {x: 529, y: -207}
+  m_SizeDelta: {x: 791.5, y: 329.61}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1550229278
 MonoBehaviour:
@@ -3185,6 +3211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 054e1fd6fd750dc4988be40d73dfe8b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debugLogging: 0
   useShipCargoHolding: 1
   capacityM3: 750
   gridContent: {fileID: 809326171}
@@ -4160,6 +4187,18 @@ PrefabInstance:
     - target: {fileID: 8765726082183787817, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
       propertyPath: forceOrientation
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765726082183787817, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
+      propertyPath: drones.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765726082183787817, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
+      propertyPath: drones.Array.data[0].count
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765726082183787817, guid: 6be6ba384f2219c48a720c1a5ba073aa, type: 3}
+      propertyPath: drones.Array.data[0].droneId
+      value: analog_drone
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

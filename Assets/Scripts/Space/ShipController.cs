@@ -518,6 +518,85 @@ namespace EveOffline.Space
 			return Mathf.Max(minOrthoSize, maxAllowed);
 		}
 
+		// ======== Drones ========
+		[Serializable]
+		public class DroneSlot
+		{
+			public string droneId;
+			public int count = 0;
+		}
+
+		[Header("Drones")]
+		[SerializeField] private System.Collections.Generic.List<DroneSlot> drones = new System.Collections.Generic.List<DroneSlot>();
+		private Transform dronesRoot;
+
+		private float GetShipBaseRadius()
+		{
+			// Радиус для орбиты: возьмём половину диагонали хитбокса
+			float w = Mathf.Max(0.01f, shipWidthMeters);
+			float h = Mathf.Max(0.01f, shipHeightMeters);
+			return 0.5f * Mathf.Sqrt(w * w + h * h);
+		}
+
+		private void Start()
+		{
+			// После инициализации — спавним дронов по конфигурации
+			SpawnDronesFromLoadout();
+		}
+
+		private void SpawnDronesFromLoadout()
+		{
+			if (dronesRoot == null)
+			{
+				var root = transform.Find("drones");
+				dronesRoot = root != null ? root : new GameObject("drones").transform;
+				dronesRoot.SetParent(transform, false);
+				dronesRoot.localPosition = Vector3.zero;
+				dronesRoot.localRotation = Quaternion.identity;
+			}
+
+			// Чистим старых, если были
+			for (int i = dronesRoot.childCount - 1; i >= 0; i--)
+			{
+				var ch = dronesRoot.GetChild(i);
+				if (Application.isPlaying) Destroy(ch.gameObject);
+				else DestroyImmediate(ch.gameObject);
+			}
+
+			float baseRadius = GetShipBaseRadius();
+
+			for (int s = 0; s < drones.Count; s++)
+			{
+				var slot = drones[s];
+				if (slot == null || string.IsNullOrEmpty(slot.droneId) || slot.count <= 0) continue;
+				var def = EveOffline.Space.Drone.DroneDatabase.Get(slot.droneId);
+				if (def == null) { Debug.LogWarning($"[Ship] Не найден дрон '{slot.droneId}' в базе."); continue; }
+				var prefab = EveOffline.Space.Drone.DroneDatabase.LoadPrefab(def);
+				if (prefab == null) { Debug.LogWarning($"[Ship] Не найден префаб дрона '{def.prefab}' для '{slot.droneId}'."); continue; }
+
+				for (int i = 0; i < slot.count; i++)
+				{
+					var go = Instantiate(prefab, dronesRoot);
+					go.name = $"{slot.droneId}_{i+1}";
+					// начальная позиция — рядом с кораблём
+					Vector2 rnd = UnityEngine.Random.insideUnitCircle * (baseRadius * 0.5f);
+					go.transform.position = transform.position + new Vector3(rnd.x, rnd.y, 0f);
+
+					var rb = go.GetComponent<Rigidbody2D>();
+					if (rb == null) rb = go.AddComponent<Rigidbody2D>();
+					rb.gravityScale = 0f;
+					rb.mass = Mathf.Max(0.01f, def.mass > 0 ? def.mass : 1f);
+
+					var ctrl = go.GetComponent<EveOffline.Space.Drone.DroneController>();
+					if (ctrl == null) ctrl = go.AddComponent<EveOffline.Space.Drone.DroneController>();
+					float acc = Mathf.Max(0f, def.acceleration);
+					float vmax = Mathf.Max(0f, def.max_speed);
+					float rmax = Mathf.Max(0f, def.radius_from_ship);
+					float grabMaxD = Mathf.Max(0f, def.grab_max_diameter);
+					ctrl.Setup(this, rb.mass, acc, vmax, rmax, baseRadius, grabMaxD);
+				}
+			}
+		}
 	}
 
 	internal static class JsonArrayHelper

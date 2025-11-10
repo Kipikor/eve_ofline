@@ -148,6 +148,10 @@ namespace Space.Weapons
 					if (hit.collider == null) continue;
 					if (IsOwnerCollider(hit.collider)) continue;
 
+					// Игнорируем дронов (луч должен быть «прозрачным» для них)
+					var drone = hit.collider.GetComponentInParent<EveOffline.Space.Drone.DroneController>();
+					if (drone != null) continue;
+
 					var ast = hit.collider.GetComponentInParent<Space.AsteroidController>();
 					if (ast != null)
 					{

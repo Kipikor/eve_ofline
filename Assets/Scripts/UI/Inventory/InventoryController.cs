@@ -10,6 +10,8 @@ namespace UI.Inventory
 	[DisallowMultipleComponent]
 	public class InventoryController : MonoBehaviour
 	{
+		public static InventoryController Instance { get; private set; }
+		[SerializeField] private bool debugLogging = false;
 		[Header("Capacity")]
 		[SerializeField] private bool useShipCargoHolding = true;
 		[SerializeField, Min(0f)] private float capacityM3 = 750f;
@@ -70,6 +72,40 @@ namespace UI.Inventory
 			{
 				Debug.LogWarning($"[Inventory] Mineral DB load error: {e}");
 			}
+
+			// Также подключаем ore.json как предметы (id = ore_id)
+			try
+			{
+				var path = Path.Combine(Application.dataPath, "Config/ore.json");
+				if (File.Exists(path))
+				{
+					var json = File.ReadAllText(path);
+					var wrapped = "{ \"items\": " + json + " }";
+					var list = JsonUtility.FromJson<OreList>(wrapped);
+					if (list?.items != null)
+					{
+						for (int i = 0; i < list.items.Count; i++)
+						{
+							var o = list.items[i];
+							if (o == null || string.IsNullOrEmpty(o.ore_id)) continue;
+							if (_db.ContainsKey(o.ore_id)) continue;
+							_db.Add(o.ore_id, new MineralDef
+							{
+								item_id = o.ore_id,
+								item_name = o.ore_name,
+								item_icon = o.ore_icon,
+								cagro = o.cagro,
+								cost = o.cost,
+								item_descr = o.ore_descr
+							});
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Debug.LogWarning($"[Inventory] Ore DB load error: {e}");
+			}
 		}
 
 		private static MineralDef GetDef(string id)
@@ -79,6 +115,9 @@ namespace UI.Inventory
 			_db.TryGetValue(id, out var def);
 			return def;
 		}
+
+		[Serializable] private class OreDef { public string ore_id; public string ore_name; public string ore_icon; public float cagro; public float cost; public string ore_descr; }
+		[Serializable] private class OreList { public List<OreDef> items; }
 
 		private static Sprite LoadIcon(string iconKey)
 		{
@@ -107,12 +146,38 @@ namespace UI.Inventory
 				}
 			}
 #endif
+			if (s != null) return s;
+
+			// ORE icons fallback
+			s = Resources.Load<Sprite>($"Sprites/Asteroid/{iconKey}");
+#if UNITY_EDITOR
+			if (s == null)
+			{
+				string basePath2 = "Assets/Sprites/Asteroid/" + iconKey;
+				string[] exts2 = { ".png", ".psb", ".jpg", ".jpeg" };
+				foreach (var ext in exts2)
+				{
+					var p = basePath2 + ext;
+					var byPath = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(p);
+					if (byPath != null) return byPath;
+				}
+				var guids2 = UnityEditor.AssetDatabase.FindAssets(iconKey + " t:Sprite");
+				foreach (var g in guids2)
+				{
+					var p = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
+					var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(p);
+					if (asset != null && asset.name == iconKey) return asset;
+				}
+			}
+#endif
 			return s;
 		}
 		#endregion
 
 		private void Awake()
 		{
+			Instance = this;
+			EnsureUiRefs();
 			if (useShipCargoHolding)
 			{
 				EveOffline.Space.ShipController ship = null;
@@ -140,8 +205,14 @@ namespace UI.Inventory
 			RefreshUI();
 		}
 
+		private void OnDestroy()
+		{
+			if (Instance == this) Instance = null;
+		}
+
 		private void OnValidate()
 		{
+			EnsureUiRefs();
 			ApplyGridSettings();
 			#if UNITY_EDITOR
 			if (editorAutoRefresh)
@@ -153,6 +224,42 @@ namespace UI.Inventory
 				};
 			}
 			#endif
+		}
+
+		private void EnsureUiRefs()
+		{
+			// Автопоиск ссылок, если не проставлены вручную
+			if (gridContent == null || gridLayout == null || capacityFill == null || capacityText == null)
+			{
+				var rt = transform as RectTransform;
+				if (rt != null)
+				{
+					// Ищем типичную структуру Scroll/Viewport/Content
+					var scroll = transform.Find("Scroll") ?? transform;
+					var viewport = scroll.Find("Viewport") ?? scroll;
+					var content = viewport.Find("Content") ?? viewport;
+					if (gridContent == null) gridContent = content as RectTransform;
+					if (gridContent != null && gridLayout == null)
+					{
+						gridLayout = gridContent.GetComponent<GridLayoutGroup>();
+						// Не добавляем компоненты внутри OnValidate/Awake, чтобы не ловить SendMessage ошибки.
+						// Если компонента нет, просто пропустим — пользователь может добавить вручную или через ранее созданный билдер.
+					}
+
+					// Хедер бар
+					var header = transform.Find("Header") ?? transform;
+					if (capacityFill == null)
+					{
+						var fillTr = header.Find("Fill");
+						if (fillTr != null) capacityFill = fillTr.GetComponent<Image>();
+					}
+					if (capacityText == null)
+					{
+						var textTr = header.Find("Text");
+						if (textTr != null) capacityText = textTr.GetComponent<TMP_Text>();
+					}
+				}
+			}
 		}
 
 		private void ApplyGridSettings()
@@ -219,6 +326,10 @@ namespace UI.Inventory
 			else
 			{
 				stack.amount += addCount;
+			}
+			if (debugLogging)
+			{
+				Debug.Log($"[Inventory] AddItem id={itemId} req={amount} added={addCount} used={UsedVolume:0.##}/{capacityM3:0.##}", this);
 			}
 			RefreshUI();
 			return addCount;
