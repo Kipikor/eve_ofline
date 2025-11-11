@@ -27,6 +27,9 @@ namespace Space.Weapons
 		[SerializeField] private LayerMask hitMask = ~0; // по умолчанию все слои
 		[SerializeField, Min(0f)] private float originOffset = 0.08f; // смещение старта луча вперёд от дула
 
+		[Header("Auto Mode")]
+		[SerializeField] private bool autoFire = false;
+
 		private struct BeamData
 		{
 			public Transform muzzle;
@@ -35,11 +38,13 @@ namespace Space.Weapons
 
 		private readonly List<BeamData> beams = new List<BeamData>();
 		private Collider2D[] ownerColliders;
+		private TurretController turretController;
 
 		private void Awake()
 		{
 			ownerColliders = GetComponentInParent<Transform>()?.GetComponentsInChildren<Collider2D>(true);
 			SetupBeams();
+			turretController = GetComponentInParent<TurretController>();
 		}
 
 		private void SetupBeams()
@@ -96,16 +101,24 @@ namespace Space.Weapons
 
 		private void Update()
 		{
-			// Блокируем стрельбу мышью, если UI забирает ввод
-			if (global::UI.UiInput.IsMouseBlocked) { SetVisible(false); return; }
-
 			bool wantFire = false;
+
+			if (autoFire)
+			{
+				// В авто-режиме не слушаем мышь и не блокируемся UI
+				wantFire = turretController != null && turretController.HasTarget;
+			}
+			else
+			{
+				// Блокируем стрельбу мышью, если UI забирает ввод
+				if (global::UI.UiInput.IsMouseBlocked) { SetVisible(false); return; }
 #if ENABLE_INPUT_SYSTEM
-			var mouse = Mouse.current;
-			if (mouse != null) wantFire = holdMouseToFire ? mouse.leftButton.isPressed : mouse.leftButton.wasPressedThisFrame;
+				var mouse = Mouse.current;
+				if (mouse != null) wantFire = holdMouseToFire ? mouse.leftButton.isPressed : mouse.leftButton.wasPressedThisFrame;
 #else
-			wantFire = holdMouseToFire ? Input.GetMouseButton(0) : Input.GetMouseButtonDown(0);
+				wantFire = holdMouseToFire ? Input.GetMouseButton(0) : Input.GetMouseButtonDown(0);
 #endif
+			}
 
 			if (!wantFire) { SetVisible(false); return; }
 			FireContinuous();

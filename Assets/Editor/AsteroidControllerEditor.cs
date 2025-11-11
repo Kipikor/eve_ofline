@@ -21,7 +21,13 @@ namespace EditorTools
 			EditorGUILayout.IntField("Площадь сечения (м²)", controller.GetAreaRounded());
 			EditorGUILayout.IntField("Объём (м³)", controller.GetVolumeRounded());
 			EditorGUILayout.FloatField("Плотность (из ore)", controller.OreDensity);
-			EditorGUILayout.FloatField("HP/м³ (из asteroid)", controller.HpFromM3);
+			{
+				float k2 = controller.HpFromM2;
+				if (k2 > 0f)
+					EditorGUILayout.FloatField("HP/м² (из asteroid)", k2);
+				else
+					EditorGUILayout.FloatField("HP/м³ (из asteroid, legacy)", controller.HpFromM3);
+			}
 			EditorGUILayout.IntField("Масса (кг)", controller.GetMassRounded());
 			EditorGUILayout.IntField("HP максимум", controller.GetMaxHitPoints());
 			EditorGUI.EndDisabledGroup();

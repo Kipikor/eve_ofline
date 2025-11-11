@@ -10,7 +10,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 20,
+    "hp_from_m2": 20,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -25,7 +25,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 40,
+    "hp_from_m2": 40,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -40,7 +40,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 50,
+    "hp_from_m2": 50,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -55,7 +55,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 60,
+    "hp_from_m2": 60,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -70,7 +70,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 80,
+    "hp_from_m2": 80,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -85,7 +85,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 90,
+    "hp_from_m2": 90,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -100,7 +100,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 100,
+    "hp_from_m2": 100,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -115,7 +115,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 120,
+    "hp_from_m2": 120,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -130,7 +130,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 130,
+    "hp_from_m2": 130,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -145,7 +145,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 140,
+    "hp_from_m2": 140,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -160,7 +160,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 160,
+    "hp_from_m2": 160,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -175,7 +175,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 170,
+    "hp_from_m2": 170,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -190,7 +190,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 180,
+    "hp_from_m2": 180,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -205,7 +205,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 200,
+    "hp_from_m2": 200,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -220,7 +220,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 210,
+    "hp_from_m2": 210,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   },
@@ -235,7 +235,7 @@
     "diameter_max_size_2": 90,
     "diameter_min_size_3": 60,
     "diameter_max_size_3": 250,
-    "hp_from_m3": 220,
+    "hp_from_m2": 220,
     "m3_loss_to_break": 0.3,
     "pieces_to_break_weight": "0:0,1:25,2:35,3:15,4:10"
   }

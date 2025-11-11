@@ -10,6 +10,7 @@ namespace EditorTools
 		private const string RegistryResourcesPath = "Assets/Resources";
 		private const string RegistryAssetPath = "Assets/Resources/TurretPrefabRegistry.asset";
 		private static readonly string[] PrefabFolders = { "Assets/Prefab/turret" };
+		private const string PrefKeyLastCount = "TurretRegistry_LastCount";
 
 		[MenuItem("Tools/Turrets/Rebuild Turret Prefab Registry")]
 		public static void Rebuild()
@@ -42,7 +43,14 @@ namespace EditorTools
 			registry.SetEntries(entries);
 			EditorUtility.SetDirty(registry);
 			AssetDatabase.SaveAssets();
-			Debug.Log($"[TurretRegistry] Собрано записей: {entries.Count}");
+
+			// Лог показываем только при реальном изменении количества, чтобы не спамить консоль
+			int prevCount = EditorPrefs.GetInt(PrefKeyLastCount, -1);
+			if (prevCount != entries.Count)
+			{
+				Debug.Log($"[TurretRegistry] Собрано записей: {entries.Count}");
+				EditorPrefs.SetInt(PrefKeyLastCount, entries.Count);
+			}
 		}
 	}
 
@@ -50,6 +58,7 @@ namespace EditorTools
 	public class TurretRegistryPostprocessor : AssetPostprocessor
 	{
 		private static readonly string WatchFolder = "Assets/Prefab/turret";
+		private static bool pendingRebuild;
 
 		static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
 		{
@@ -78,7 +87,14 @@ namespace EditorTools
 
 			if (needRebuild)
 			{
-				TurretRegistryBuilder.Rebuild();
+				// Дебаунс: собрать один раз после пачки импортов
+				if (pendingRebuild) return;
+				pendingRebuild = true;
+				EditorApplication.delayCall += () =>
+				{
+					pendingRebuild = false;
+					TurretRegistryBuilder.Rebuild();
+				};
 			}
 		}
 	}

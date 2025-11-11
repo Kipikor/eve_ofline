@@ -38,6 +38,7 @@ namespace Space
 			public float diameter_min_size_3;
 			public float diameter_max_size_3;
 			public float hp_from_m3;
+			public float hp_from_m2;
 			public float m3_loss_to_break;
 			public string pieces_to_break_weight;
 		}
@@ -667,6 +668,17 @@ namespace Space
 				return 0f;
 			}
 		}
+		public float HpFromM2
+		{
+			get
+			{
+				if (TryGetConfigFor(gameObject.name, out var cfg) && cfg != null)
+				{
+					return cfg.hp_from_m2;
+				}
+				return 0f;
+			}
+		}
 		public int GetAreaRounded()
 		{
 			var r = diameter * 0.5f;
@@ -688,9 +700,18 @@ namespace Space
 		}
 		public int GetMaxHitPoints()
 		{
+			// Новая формула: по площади сечения, если задан hp_from_m2
+			var k2 = HpFromM2;
+			if (k2 > 0f)
+			{
+				var area = GetAreaRounded();
+				var hp2 = area * k2;
+				return Mathf.RoundToInt(hp2);
+			}
+			// Фолбэк на старую формулу по объёму (для старых конфигов)
 			var vol = GetVolumeRounded();
-			var k = HpFromM3;
-			var hp = vol * k;
+			var k3 = HpFromM3;
+			var hp = vol * k3;
 			return Mathf.RoundToInt(hp);
 		}
 		public int CurrentHitPoints

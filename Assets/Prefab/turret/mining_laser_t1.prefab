@@ -167,6 +167,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aimSpeedDegPerSec: 120
   instantAim: 0
+  autoAim: 1
+  targetDiameterMin: 5
+  retargetEvery: 0.5
+  maxTargetDistance: 500
 --- !u!114 &6907119535181237864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,3 +196,4 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   originOffset: 0.08
+  autoFire: 1

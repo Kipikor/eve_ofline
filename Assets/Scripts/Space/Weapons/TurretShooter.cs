@@ -14,13 +14,18 @@ namespace Space.Weapons
 		[SerializeField] private bool fireAllMuzzles = true; // если false — циклически по одному
 		[SerializeField] private bool holdMouseToFire = true;
 
+			[Header("Auto Mode")]
+			[SerializeField] private bool autoFire = false;
+
 		private readonly List<Transform> muzzles = new List<Transform>();
 		private int muzzleIndex;
 		private float nextFireTime;
+			private TurretController turretController;
 
 		private void Awake()
 		{
 			FindMuzzles();
+				turretController = GetComponentInParent<TurretController>();
 		}
 
 		private void FindMuzzles()
@@ -46,18 +51,28 @@ namespace Space.Weapons
 
 		private void Update()
 		{
-			// Блокируем огонь по мыши, если UI забирает ввод
-			if (global::UI.UiInput.IsMouseBlocked) return;
 			bool wantFire = false;
-#if ENABLE_INPUT_SYSTEM
-			var mouse = Mouse.current;
-			if (mouse != null)
+
+			if (autoFire)
 			{
-				wantFire = holdMouseToFire ? mouse.leftButton.isPressed : mouse.leftButton.wasPressedThisFrame;
+				// В авто-режиме не слушаем мышь и не блокируемся UI
+				wantFire = turretController != null && turretController.HasTarget;
 			}
+			else
+			{
+				// Блокируем огонь по мыши, если UI забирает ввод
+				if (global::UI.UiInput.IsMouseBlocked) return;
+#if ENABLE_INPUT_SYSTEM
+				var mouse = Mouse.current;
+				if (mouse != null)
+				{
+					wantFire = holdMouseToFire ? mouse.leftButton.isPressed : mouse.leftButton.wasPressedThisFrame;
+				}
 #else
-			wantFire = holdMouseToFire ? Input.GetMouseButton(0) : Input.GetMouseButtonDown(0);
+				wantFire = holdMouseToFire ? Input.GetMouseButton(0) : Input.GetMouseButtonDown(0);
 #endif
+			}
+
 			if (!wantFire) return;
 			if (Time.time < nextFireTime) return;
 			nextFireTime = Time.time + (fireRate > 0f ? 1f / fireRate : 0f);
