@@ -19,7 +19,7 @@
     "armor_hp": 50,
     "structure_hp": 50,
     "acceleration": 100,
-    "rotation": 100,
+    "rotation": 300,
     "max_speed": 200,
     "in_cargo_size": 5,
     "need_drone_throughput": 1.5

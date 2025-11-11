@@ -61,6 +61,9 @@ namespace EveOffline.Space.Drone
 		[SerializeField] private float orbitAngularSpeedDeg = 35; // град/с
 		[SerializeField] private float orbitPhaseDeg;             // стартовая фаза
 
+		[Header("Steering")]
+		[SerializeField, Min(0f)] private float stopDistance = 0.25f; // радиус остановки у цели
+
 		private Rigidbody2D body;
 
 		public void Setup(EveOffline.Space.ShipController shipOwner, float massTons, float accelerationKN, float maxSpeedMS, float maxRadiusFromShip, float baseShipRadius, float grabMaxDiameter)
@@ -192,16 +195,28 @@ namespace EveOffline.Space.Drone
 			if (desired.sqrMagnitude < 0.0001f) return;
 
 			Vector2 dir = desired.normalized;
+			float dist = desired.magnitude;
 
-			// Плавное изменение скорости: acceleration = скорость набора/торможения (м/с^2, но применяем как Δv/с)
 			float accel = Mathf.Max(0f, accelerationKN);
-			Vector2 desiredVel = dir * Mathf.Max(0f, maxSpeedMS);
+			float vmax = Mathf.Max(0f, maxSpeedMS);
+
+			// «Arrive»: ограничиваем целевую скорость так, чтобы успевать затормозить без переросов
+			// v_target = min(vmax, sqrt(2 * a * dist))
+			float vTarget = Mathf.Min(vmax, Mathf.Sqrt(Mathf.Max(0f, 2f * accel * dist)));
+
+			// Малый радиус остановки — гасим скорость у цели, чтобы не «плавать» туда-сюда
+			if (dist <= Mathf.Max(0.001f, stopDistance))
+			{
+				vTarget = 0f;
+			}
+
+			Vector2 desiredVel = dir * vTarget;
 			velocity = Vector2.MoveTowards(velocity, desiredVel, accel * Time.fixedDeltaTime);
 
 			// Дискретный поворот к целевому направлению с ограничением скорости (град/с).
 			// Приоритетно смотрим по направлению движения; если почти стоим — по направлению к цели.
 			Vector2 faceDir = velocity.sqrMagnitude > 0.001f ? velocity.normalized : dir;
-			float targetAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
+			float targetAngle = Mathf.Atan2(faceDir.y, faceDir.x) * Mathf.Rad2Deg - 90f;
 			float currentAngle = body.rotation;
 			float delta = Mathf.DeltaAngle(currentAngle, targetAngle);
 			float maxStep = Mathf.Max(0f, maxAngularSpeedDegPerSec) * Time.fixedDeltaTime;
