@@ -29,6 +29,18 @@ namespace EveOffline.Space.Drone
 
 		private static readonly System.Collections.Generic.HashSet<global::Space.AsteroidController> Claimed = new System.Collections.Generic.HashSet<global::Space.AsteroidController>();
 
+		private static void PurgeClaimed()
+		{
+			if (Claimed.Count == 0) return;
+			// Удаляем записи на неактивные/уничтоженные астероиды из глобального набора
+			var toRemove = new System.Collections.Generic.List<global::Space.AsteroidController>();
+			foreach (var a in Claimed)
+			{
+				if (a == null || !a.gameObject.activeInHierarchy) toRemove.Add(a);
+			}
+			for (int i = 0; i < toRemove.Count; i++) Claimed.Remove(toRemove[i]);
+		}
+
 		[Header("Orbit")]
 		[SerializeField] private float orbitRadius;               // м
 		[SerializeField] private float orbitAngularSpeedDeg = 35; // град/с
@@ -202,6 +214,7 @@ namespace EveOffline.Space.Drone
 
 		private void TryAcquireTarget(Vector2 ownerPos)
 		{
+			PurgeClaimed();
 			if (carryingVolumeM3 > 0) { state = DroneState.ReturnToShip; return; }
 
 			// Ищем подходящие астероиды в радиусе
