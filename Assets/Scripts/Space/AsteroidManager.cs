@@ -71,6 +71,10 @@ namespace Space
 		private float sectorDiameterMin = 2f;
 		private float sectorDiameterMax = 80f;
 
+		[Header("Начальная генерация")]
+		[SerializeField] private bool fillAllAtStart = true;
+		private bool initialFillDone;
+
 		private void Awake()
 		{
 			EnsureSectorConfigLoaded();
@@ -78,6 +82,8 @@ namespace Space
 			LoadSector(currentSectorId);
 			EnsureRegistry();
 			BuildOrResizePool();
+			// Выполним начальную заливку сразу, без ограничений спавнов в секунду
+			if (fillAllAtStart) InitialFillAllArea();
 		}
 
 		private void Update()
@@ -319,6 +325,113 @@ namespace Space
 
 			// Активируем и настраиваем
 			EnableAndSetup(candidate, spawnPos, diameter);
+		}
+
+		// Единовременная заливка области при старте:
+		// - Заполняем весь красный прямоугольник (despawnRect), игнорируя обычное правило "только за синим"
+		// - Не спавним в круге вокруг корабля радиусом ≈ 2 размеров корабля
+		// - Соблюдаем разрежённость и квоты типов
+		private void InitialFillAllArea()
+		{
+			if (initialFillDone) return;
+			initialFillDone = true;
+			if (cameraTransform == null && shipTransform == null) FindRefsIfMissing();
+
+			// Для стартового заполнения прямоугольник берём по размерам камеры, но центрируем ПО КОРАБЛЮ
+			var cam = Camera.main != null ? Camera.main : (cameraTransform != null ? cameraTransform.GetComponent<Camera>() : null);
+			Vector3 shipPos = shipTransform != null ? shipTransform.position
+				: (cameraTransform != null ? cameraTransform.position : Vector3.zero);
+			var worldRect = GetCameraWorldRect(shipPos, cam);
+			var despawnRect = ExpandRect(worldRect, cameraDespawnMargin);
+
+			// Оценим радиус исключения вокруг корабля (≈ 2 размеров корабля)
+			float exclusionRadius = 0f;
+			{
+				if (shipTransform != null)
+				{
+					var box = shipTransform.GetComponent<BoxCollider2D>();
+					if (box != null)
+					{
+						// Полудиагональ коробки как базовый радиус
+						float baseR = 0.5f * Mathf.Sqrt(box.size.x * box.size.x + box.size.y * box.size.y);
+						exclusionRadius = Mathf.Max(0f, baseR * 2f);
+					}
+					else
+					{
+						exclusionRadius = 2f; // безопасный минимум
+					}
+				}
+			}
+
+			// Подсчёт активных и целевых по типам
+			var activeByType = new Dictionary<string, int>(StringComparer.Ordinal);
+			foreach (var pa in pool)
+			{
+				if (pa.active)
+				{
+					if (!activeByType.ContainsKey(pa.asteroidId)) activeByType[pa.asteroidId] = 0;
+					activeByType[pa.asteroidId]++;
+				}
+			}
+
+			// Список резервов, которые ещё можно активировать по квоте
+			var candidates = new List<int>();
+			for (int i = 0; i < pool.Count; i++)
+			{
+				var pa = pool[i];
+				if (pa == null || pa.instance == null || pa.active) continue;
+				targetCountByType.TryGetValue(pa.asteroidId, out var target);
+				activeByType.TryGetValue(pa.asteroidId, out var active);
+				if (active < target) candidates.Add(i);
+			}
+			if (candidates.Count == 0) return;
+
+			// Перемешаем для равномерности
+			for (int i = 0; i < candidates.Count; i++)
+			{
+				int j = UnityEngine.Random.Range(i, candidates.Count);
+				(candidates[i], candidates[j]) = (candidates[j], candidates[i]);
+			}
+
+			// Пытаемся расставить все допустимые резервы сразу
+			for (int ci = 0; ci < candidates.Count; ci++)
+			{
+				int idx = candidates[ci];
+				if (idx < 0 || idx >= pool.Count) continue;
+				var pa = pool[idx];
+				if (pa == null || pa.instance == null || pa.active) continue;
+
+				// Проверим квоту на каждом шаге
+				targetCountByType.TryGetValue(pa.asteroidId, out var target);
+				activeByType.TryGetValue(pa.asteroidId, out var active);
+				if (active >= target) continue;
+
+				// Выбираем диаметр и позицию в пределах despawnRect, исключая круг у корабля
+				float diameter = UnityEngine.Random.Range(sectorDiameterMin, sectorDiameterMax);
+				float radius = diameter * 0.5f;
+
+				Vector3 pos;
+				bool placed = false;
+				for (int attempt = 0; attempt < 48 && !placed; attempt++)
+				{
+					float x = UnityEngine.Random.Range(despawnRect.xMin, despawnRect.xMax);
+					float y = UnityEngine.Random.Range(despawnRect.yMin, despawnRect.yMax);
+					pos = new Vector3(x, y, 0f);
+					// Исключаем пузырь у корабля
+					if (exclusionRadius > 0f && (new Vector2(pos.x - shipPos.x, pos.y - shipPos.y)).sqrMagnitude < exclusionRadius * exclusionRadius)
+					{
+						continue;
+					}
+					// Разрежённость
+					if (!IsFarFromOthers(pos, radius * sectorRarefaction)) continue;
+
+					EnableAndSetup(pa, pos, diameter);
+					placed = true;
+					// Обновим счётчик
+					activeByType.TryGetValue(pa.asteroidId, out active);
+					activeByType[pa.asteroidId] = active + 1;
+				}
+			}
 		}
 
 		private bool TryPickSpawnPosition(float asteroidRadius, out Vector3 pos)
