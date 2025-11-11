@@ -34,6 +34,7 @@ namespace EveOffline.Space
 		private float spriteScale = 1f;      // из JSON
 		private float shipOffsetX;           // из JSON
 		private float shipOffsetY;           // из JSON
+		private string innateModuleId;       // из JSON
 
 		[Header("Cargo")]
 		[SerializeField] private float cargoHolding = 750f; // м^3
@@ -86,7 +87,10 @@ namespace EveOffline.Space
 			public float offsetY;      // альтернативное имя
 			public float sprite_scale; // масштаб спрайта
 			public float cargo_holding; // м^3
+			public string innate_module; // врождённый модуль
 		}
+
+		public string InnateModuleId => innateModuleId;
 
 		private void Awake()
 		{
@@ -179,6 +183,9 @@ namespace EveOffline.Space
 					{
 						cargoHolding = records[index].cargo_holding;
 					}
+
+					// Врождённый модуль
+					innateModuleId = records[index].innate_module;
 				}
 			}
 			catch (Exception)

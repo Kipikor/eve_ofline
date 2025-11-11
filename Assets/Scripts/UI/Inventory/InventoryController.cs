@@ -346,6 +346,16 @@ namespace UI.Inventory
 			return take;
 		}
 
+		/// <summary>
+		/// Вернёт текущее количество предмета в инвентаре (0 если нет).
+		/// </summary>
+		public int GetItemCount(string itemId)
+		{
+			if (string.IsNullOrEmpty(itemId)) return 0;
+			var s = stacks.Find(x => x.itemId == itemId);
+			return s != null ? Mathf.Max(0, s.amount) : 0;
+		}
+
 		private float ComputeUsedVolume()
 		{
 			float acc = 0f;
