@@ -2876,7 +2876,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9166733063398634736, guid: 9213905852e0c664e965f847b0d9ce9a, type: 3}
       propertyPath: cameraDespawnMargin
-      value: 400
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 9166733063398634736, guid: 9213905852e0c664e965f847b0d9ce9a, type: 3}
       propertyPath: shipSpawnInnerRadius
