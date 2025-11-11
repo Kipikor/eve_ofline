@@ -32,11 +32,26 @@ namespace EveOffline.Space.Drone
 		private static void PurgeClaimed()
 		{
 			if (Claimed.Count == 0) return;
-			// Удаляем записи на неактивные/уничтоженные астероиды из глобального набора
+			// Актуальные цели, на которые реально кто-то летит сейчас
+			var activeTargets = new System.Collections.Generic.HashSet<global::Space.AsteroidController>();
+			var drones = UnityEngine.Object.FindObjectsByType<DroneController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			for (int i = 0; i < drones.Length; i++)
+			{
+				var d = drones[i];
+				if (d != null && d.targetAsteroid != null && d.targetAsteroid.gameObject.activeInHierarchy)
+				{
+					activeTargets.Add(d.targetAsteroid);
+				}
+			}
+
+			// Удаляем записи на неактивные/уничтоженные и «осиротевшие» цели
 			var toRemove = new System.Collections.Generic.List<global::Space.AsteroidController>();
 			foreach (var a in Claimed)
 			{
-				if (a == null || !a.gameObject.activeInHierarchy) toRemove.Add(a);
+				if (a == null || !a.gameObject.activeInHierarchy || !activeTargets.Contains(a))
+				{
+					toRemove.Add(a);
+				}
 			}
 			for (int i = 0; i < toRemove.Count; i++) Claimed.Remove(toRemove[i]);
 		}
@@ -219,7 +234,8 @@ namespace EveOffline.Space.Drone
 
 			// Ищем подходящие астероиды в радиусе
 			var asteroids = UnityEngine.Object.FindObjectsByType<global::Space.AsteroidController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-			float bestDist = float.MaxValue;
+			float bestShipDist = float.MaxValue;
+			float bestDroneDist = float.MaxValue;
 			global::Space.AsteroidController best = null;
 			for (int i = 0; i < asteroids.Length; i++)
 			{
@@ -234,11 +250,12 @@ namespace EveOffline.Space.Drone
 				if (maxRadiusFromShip > 0f && d > maxRadiusFromShip) continue;
 				// Уже помечен
 				if (Claimed.Contains(a)) continue;
-				// Ближайший
+				// Приоритет: ближе к кораблю; при равенстве — ближе к дрону
 				float meDist = Vector2.Distance((Vector2)transform.position, (Vector2)a.transform.position);
-				if (meDist < bestDist)
+				if (d < bestShipDist || (Mathf.Approximately(d, bestShipDist) && meDist < bestDroneDist))
 				{
-					bestDist = meDist;
+					bestShipDist = d;
+					bestDroneDist = meDist;
 					best = a;
 				}
 			}
