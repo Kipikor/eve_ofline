@@ -16,11 +16,23 @@ namespace Space.Weapons
 			[SerializeField, Min(0.05f)] private float retargetEvery = 0.5f;
 			[SerializeField, Min(0f)] private float maxTargetDistance = 0f; // 0 = без ограничения
 
+			[Header("Prediction")]
+			[SerializeField] private bool usePrediction = true;
+			[SerializeField, Min(0f)] private float projectileSpeedOverride = 0f; // 0 = взять из TurretShooter
+			[SerializeField, Min(0f)] private float maxLeadSeconds = 2.0f;
+			[SerializeField] private bool debugDrawLead = false;
+
+			[Header("Firing Gate")]
+			[SerializeField, Min(0f)] private float fireAngleToleranceDeg = 4f;
+
 			private Space.AsteroidController currentTarget;
 			private float nextRetargetTime;
+			private TurretShooter shooter;
+			private bool isAimedNow;
 
 			public Space.AsteroidController CurrentTarget => currentTarget;
 			public bool HasTarget => currentTarget != null && currentTarget.gameObject.activeInHierarchy;
+			public bool IsAimed => isAimedNow;
 
 		private void Awake()
 		{
@@ -36,11 +48,15 @@ namespace Space.Weapons
 					rotationPivot = transform;
 				}
 			}
+
+			// Попробуем найти шутер для чтения скорости пули
+			shooter = GetComponentInChildren<TurretShooter>(true);
 		}
 
 		private void LateUpdate()
 		{
 			if (rotationPivot == null) return;
+			isAimedNow = false;
 
 			Vector3 targetWorld;
 			if (autoAim)
@@ -51,7 +67,36 @@ namespace Space.Weapons
 					currentTarget = AcquireTarget();
 				}
 				if (!HasTarget) return;
-				targetWorld = currentTarget.transform.position;
+
+				// Предиктивное упреждение для снарядов
+				if (usePrediction)
+				{
+					Vector2 origin = rotationPivot.position;
+					Vector2 targetPos = currentTarget.transform.position;
+					var rb = currentTarget.GetComponent<Rigidbody2D>();
+					Vector2 targetVel = rb != null ? rb.linearVelocity : Vector2.zero;
+
+					float projectileSpeed = projectileSpeedOverride > 0f ? projectileSpeedOverride
+						: (shooter != null ? Mathf.Max(0f, shooter.ProjectileSpeed) : 0f);
+
+					Vector2 lead;
+					if (TrySolveIntercept(origin, targetPos, targetVel, projectileSpeed, maxLeadSeconds, out lead))
+					{
+						targetWorld = new Vector3(lead.x, lead.y, currentTarget.transform.position.z);
+						if (debugDrawLead)
+						{
+							Debug.DrawLine(origin, targetWorld, Color.cyan, 0f, false);
+						}
+					}
+					else
+					{
+						targetWorld = currentTarget.transform.position;
+					}
+				}
+				else
+				{
+					targetWorld = currentTarget.transform.position;
+				}
 			}
 			else
 			{
@@ -75,6 +120,11 @@ namespace Space.Weapons
 			if (dir.sqrMagnitude < 0.0001f) return;
 			float targetAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
 			float current = rotationPivot.eulerAngles.z;
+
+			// Оценка наведения до применения поворота
+			float err = Mathf.Abs(Mathf.DeltaAngle(current, targetAngle));
+			isAimedNow = err <= Mathf.Max(0f, fireAngleToleranceDeg);
+
 			if (instantAim)
 			{
 				rotationPivot.rotation = Quaternion.Euler(0, 0, targetAngle);
@@ -84,6 +134,51 @@ namespace Space.Weapons
 				float next = Mathf.MoveTowardsAngle(current, targetAngle, aimSpeedDegPerSec * Time.deltaTime);
 				rotationPivot.rotation = Quaternion.Euler(0, 0, next);
 			}
+		}
+
+		// Решение перехвата: ||r + v*t|| = s*t
+		private static bool TrySolveIntercept(Vector2 shooterPos, Vector2 targetPos, Vector2 targetVel, float projectileSpeed, float maxT, out Vector2 impactPoint)
+		{
+			impactPoint = targetPos;
+			if (projectileSpeed <= 0.001f)
+			{
+				return false;
+			}
+
+			Vector2 r = targetPos - shooterPos;
+			float vv = Vector2.Dot(targetVel, targetVel);
+			float rr = Vector2.Dot(r, r);
+			float rv = Vector2.Dot(r, targetVel);
+			float s2 = projectileSpeed * projectileSpeed;
+
+			// Квадратное: (vv - s^2) t^2 + 2(rv) t + rr = 0
+			float a = vv - s2;
+			float b = 2f * rv;
+			float c = rr;
+
+			float t;
+			if (Mathf.Abs(a) < 1e-6f)
+			{
+				// Линейный случай: s ~= |v| → t = -c / b
+				if (Mathf.Abs(b) < 1e-6f) return false;
+				t = -c / b;
+				if (t <= 0f) return false;
+			}
+			else
+			{
+				float disc = b * b - 4f * a * c;
+				if (disc < 0f) return false;
+				float sqrt = Mathf.Sqrt(disc);
+				float t1 = (-b - sqrt) / (2f * a);
+				float t2 = (-b + sqrt) / (2f * a);
+				// Нужен наименьший положительный корень
+				t = (t1 > 0f && t2 > 0f) ? Mathf.Min(t1, t2) : Mathf.Max(t1, t2);
+				if (t <= 0f) return false;
+			}
+
+			if (maxT > 0f) t = Mathf.Min(t, maxT);
+			impactPoint = targetPos + targetVel * t;
+			return true;
 		}
 
 		private Space.AsteroidController AcquireTarget()

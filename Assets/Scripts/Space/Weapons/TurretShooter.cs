@@ -22,6 +22,8 @@ namespace Space.Weapons
 		private float nextFireTime;
 			private TurretController turretController;
 
+			public float ProjectileSpeed => projectileSpeed;
+
 		private void Awake()
 		{
 			FindMuzzles();
@@ -56,7 +58,7 @@ namespace Space.Weapons
 			if (autoFire)
 			{
 				// В авто-режиме не слушаем мышь и не блокируемся UI
-				wantFire = turretController != null && turretController.HasTarget;
+				wantFire = turretController != null && turretController.HasTarget && turretController.IsAimed;
 			}
 			else
 			{

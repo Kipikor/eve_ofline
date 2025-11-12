@@ -203,6 +203,11 @@ MonoBehaviour:
   targetDiameterMin: 5
   retargetEvery: 0.5
   maxTargetDistance: 500
+  usePrediction: 1
+  projectileSpeedOverride: 0
+  maxLeadSeconds: 2
+  debugDrawLead: 0
+  fireAngleToleranceDeg: 4
 --- !u!114 &4870252840299186712
 MonoBehaviour:
   m_ObjectHideFlags: 0
