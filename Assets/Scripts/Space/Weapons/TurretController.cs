@@ -28,6 +28,7 @@ namespace Space.Weapons
 			private Space.AsteroidController currentTarget;
 			private float nextRetargetTime;
 			private TurretShooter shooter;
+			private EveOffline.Space.ShipController ownerShip;
 			private bool isAimedNow;
 
 			public Space.AsteroidController CurrentTarget => currentTarget;
@@ -51,6 +52,24 @@ namespace Space.Weapons
 
 			// Попробуем найти шутер для чтения скорости пули
 			shooter = GetComponentInChildren<TurretShooter>(true);
+			ownerShip = GetComponentInParent<EveOffline.Space.ShipController>();
+
+			// Применим стартовые настройки от корабля и подпишемся на изменения
+			ApplyWeaponSettingsFromShip();
+			if (ownerShip != null) ownerShip.WeaponSettingsChanged += ApplyWeaponSettingsFromShip;
+		}
+
+		private void OnDestroy()
+		{
+			if (ownerShip != null) ownerShip.WeaponSettingsChanged -= ApplyWeaponSettingsFromShip;
+		}
+
+		private void ApplyWeaponSettingsFromShip()
+		{
+			if (ownerShip == null) return;
+			autoAim = ownerShip.WeaponAutoAim;
+			usePrediction = ownerShip.WeaponAutoPrediction;
+			fireAngleToleranceDeg = ownerShip.WeaponFireAngleToleranceDeg;
 		}
 
 		private void LateUpdate()

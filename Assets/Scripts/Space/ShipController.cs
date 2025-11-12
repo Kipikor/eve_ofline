@@ -116,6 +116,15 @@ namespace EveOffline.Space
 
 			AttachCameraIfConfigured();
 			CacheCameraBaseSize();
+
+			// Автоподключение щита
+			if (GetComponent<ShipShieldController>() == null)
+			{
+				gameObject.AddComponent<ShipShieldController>();
+			}
+
+			// Сообщим подписчикам начальные настройки оружия
+			RaiseWeaponSettingsChanged();
 		}
 
 #if UNITY_EDITOR
@@ -136,6 +145,9 @@ namespace EveOffline.Space
 				}
 			}
 			CacheCameraBaseSize();
+
+			// Обновились значения в инспекторе — сообщим подписчикам
+			RaiseWeaponSettingsChanged();
 		}
 #endif
 
@@ -536,6 +548,19 @@ namespace EveOffline.Space
 		[Header("Drones")]
 		[SerializeField] private System.Collections.Generic.List<DroneSlot> drones = new System.Collections.Generic.List<DroneSlot>();
 		private Transform dronesRoot;
+
+		[Header("Weapons")]
+		[SerializeField] private bool weaponAutoAim = true;
+		[SerializeField] private bool weaponAutoFire = true;
+		[SerializeField] private bool weaponAutoPrediction = true;
+		[SerializeField, Min(0f)] private float weaponFireAngleToleranceDeg = 4f;
+
+		public bool WeaponAutoAim => weaponAutoAim;
+		public bool WeaponAutoFire => weaponAutoFire;
+		public bool WeaponAutoPrediction => weaponAutoPrediction;
+		public float WeaponFireAngleToleranceDeg => weaponFireAngleToleranceDeg;
+		public event System.Action WeaponSettingsChanged;
+		private void RaiseWeaponSettingsChanged() { WeaponSettingsChanged?.Invoke(); }
 
 		private float GetShipBaseRadius()
 		{

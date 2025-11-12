@@ -1,6 +1,7 @@
 using EveOffline.Game;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace EveOffline.UI
 {
@@ -35,6 +36,25 @@ namespace EveOffline.UI
         {
             // Если время изменилось внешне (например, пауза), подтягиваем значение на слайдер
             SyncFromController();
+
+            // Блокируем управление слайдером с клавиатуры (WASD/стрелки) — убираем фокус при нажатии
+            if (slider != null && EventSystem.current != null && EventSystem.current.currentSelectedGameObject == slider.gameObject)
+            {
+#if ENABLE_INPUT_SYSTEM
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb != null && (kb.wKey.isPressed || kb.aKey.isPressed || kb.sKey.isPressed || kb.dKey.isPressed ||
+                                   kb.leftArrowKey.isPressed || kb.rightArrowKey.isPressed || kb.upArrowKey.isPressed || kb.downArrowKey.isPressed))
+                {
+                    EventSystem.current.SetSelectedGameObject(null);
+                }
+#else
+                if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D) ||
+                    Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow))
+                {
+                    EventSystem.current.SetSelectedGameObject(null);
+                }
+#endif
+            }
         }
 
         private void EnsureRefs()
@@ -47,6 +67,11 @@ namespace EveOffline.UI
                     slider.minValue = 0f;
                     slider.maxValue = 5f;
                     // Не трогаем Whole Numbers — оставляем как выставлено в инспекторе
+
+                    // Отключаем навигацию по клавиатуре для слайдера
+                    var nav = slider.navigation;
+                    nav.mode = Navigation.Mode.None;
+                    slider.navigation = nav;
                 }
                 else
                 {

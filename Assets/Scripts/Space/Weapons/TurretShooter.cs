@@ -21,6 +21,7 @@ namespace Space.Weapons
 		private int muzzleIndex;
 		private float nextFireTime;
 			private TurretController turretController;
+			private EveOffline.Space.ShipController ownerShip;
 
 			public float ProjectileSpeed => projectileSpeed;
 
@@ -28,6 +29,22 @@ namespace Space.Weapons
 		{
 			FindMuzzles();
 				turretController = GetComponentInParent<TurretController>();
+				ownerShip = GetComponentInParent<EveOffline.Space.ShipController>();
+
+			// Стартовые настройки авто-огня и подписка на изменения
+			ApplyWeaponSettingsFromShip();
+			if (ownerShip != null) ownerShip.WeaponSettingsChanged += ApplyWeaponSettingsFromShip;
+		}
+
+		private void OnDestroy()
+		{
+			if (ownerShip != null) ownerShip.WeaponSettingsChanged -= ApplyWeaponSettingsFromShip;
+		}
+
+		private void ApplyWeaponSettingsFromShip()
+		{
+			if (ownerShip == null) return;
+			autoFire = ownerShip.WeaponAutoFire;
 		}
 
 		private void FindMuzzles()
