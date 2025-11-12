@@ -22,12 +22,17 @@ namespace EveOffline.Space.Drone
 		[Header("Debug")]
 		[SerializeField] private bool enableLogging = true;
 		private DroneState lastLoggedState;
+		private float orbitStayStartTime;
+		private bool ownerMissingLogged;
+		private float orbitLogNextTime;
 
 		private enum DroneState { Orbit, Seek, ToAsteroid, ReturnToShip }
 		[SerializeField] private DroneState state = DroneState.Orbit;
 		private global::Space.AsteroidController targetAsteroid;
 
 		private static readonly System.Collections.Generic.HashSet<global::Space.AsteroidController> Claimed = new System.Collections.Generic.HashSet<global::Space.AsteroidController>();
+		private static readonly System.Collections.Generic.Dictionary<global::Space.AsteroidController, float> ClaimTime = new System.Collections.Generic.Dictionary<global::Space.AsteroidController, float>();
+		private readonly System.Collections.Generic.Dictionary<global::Space.AsteroidController, float> avoidUntil = new System.Collections.Generic.Dictionary<global::Space.AsteroidController, float>();
 
 		private static void PurgeClaimed()
 		{
@@ -44,16 +49,29 @@ namespace EveOffline.Space.Drone
 				}
 			}
 
-			// Удаляем записи на неактивные/уничтоженные и «осиротевшие» цели
+			// Удаляем записи на неактивные/уничтоженные и «осиротевшие» цели (с таймаутом)
 			var toRemove = new System.Collections.Generic.List<global::Space.AsteroidController>();
 			foreach (var a in Claimed)
 			{
-				if (a == null || !a.gameObject.activeInHierarchy || !activeTargets.Contains(a))
+				bool remove = false;
+				if (a == null || !a.gameObject.activeInHierarchy) remove = true;
+				if (!remove && !activeTargets.Contains(a))
+				{
+					float t0 = 0f;
+					ClaimTime.TryGetValue(a, out t0);
+					if (Time.time - t0 > 4f) remove = true;
+				}
+				if (remove)
 				{
 					toRemove.Add(a);
 				}
 			}
-			for (int i = 0; i < toRemove.Count; i++) Claimed.Remove(toRemove[i]);
+			for (int i = 0; i < toRemove.Count; i++)
+			{
+				var key = toRemove[i];
+				Claimed.Remove(key);
+				if (ClaimTime.ContainsKey(key)) ClaimTime.Remove(key);
+			}
 		}
 
 		[Header("Orbit")]
@@ -128,7 +146,32 @@ namespace EveOffline.Space.Drone
 
 		private void FixedUpdate()
 		{
-			if (owner == null || body == null) return;
+			// Самовосстановление ссылок, если что-то потерялось
+			if (owner == null)
+			{
+#if UNITY_2023_1_OR_NEWER
+				owner = UnityEngine.Object.FindFirstObjectByType<EveOffline.Space.ShipController>(FindObjectsInactive.Exclude);
+				if (owner == null) owner = UnityEngine.Object.FindAnyObjectByType<EveOffline.Space.ShipController>(FindObjectsInactive.Exclude);
+#else
+				var ships = Resources.FindObjectsOfTypeAll(typeof(EveOffline.Space.ShipController));
+				for (int i = 0; i < ships.Length && owner == null; i++)
+				{
+					var sc = ships[i] as EveOffline.Space.ShipController;
+					if (sc != null && sc.gameObject.scene.IsValid()) owner = sc;
+				}
+#endif
+				if (owner == null)
+				{
+					if (enableLogging && !ownerMissingLogged) { ownerMissingLogged = true; Log("owner == null (ожидаю корабль)"); }
+					return;
+				}
+				ownerMissingLogged = false;
+			}
+			if (body == null)
+			{
+				body = GetComponent<Rigidbody2D>();
+				if (body == null) return;
+			}
 
 			Vector2 ownerPos = owner.transform.position;
 			Vector2 myPos = transform.position;
@@ -156,13 +199,32 @@ namespace EveOffline.Space.Drone
 							SteerKinematicTo(target);
 						}
 						TryAcquireTarget(ownerPos);
+						// Если цель выбрана и валидна — переходим к преследованию
+						if (state == DroneState.Orbit && targetAsteroid != null && targetAsteroid.gameObject.activeInHierarchy)
+						{
+							state = DroneState.ToAsteroid;
+						}
+
+						// Периодический лог каждые 5 секунд: ключевые состояния и диагностика
+						if (enableLogging)
+						{
+							if (Time.time >= orbitLogNextTime || lastLoggedState != DroneState.Orbit)
+							{
+								orbitLogNextTime = Time.time + 5f;
+								var pos = (Vector2)transform.position;
+								float speed = velocity.magnitude;
+								string tgt = (targetAsteroid != null && targetAsteroid.gameObject.activeInHierarchy) ? targetAsteroid.AsteroidId : "none";
+								Log($"STATUS Orbit: pos=({pos.x:0.0},{pos.y:0.0}) dist_to_ship={Vector2.Distance(ownerPos, pos):0.0} speed={speed:0.0} carrying_m3={carryingVolumeM3} carrying_id='{carryingOreId}' target='{tgt}' radius_from_ship={maxRadiusFromShip} grab_max_diameter={grabMaxDiameter} accel={accelerationKN} max_speed={maxSpeedMS} turn_deg_s={maxAngularSpeedDegPerSec} orbit_radius={orbitRadius}");
+								LogOrbitDiagnostics(ownerPos);
+							}
+						}
 						break;
 
 					case DroneState.Seek:
 					case DroneState.ToAsteroid:
 						if (targetAsteroid == null || !targetAsteroid.gameObject.activeInHierarchy)
 						{
-							ClearTarget();
+							ClearTarget(blacklist: true);
 							state = DroneState.Orbit;
 							break;
 						}
@@ -186,6 +248,7 @@ namespace EveOffline.Space.Drone
 			body.MovePosition(newPos);
 
 			// state-change logging suppressed
+			lastLoggedState = state;
 		}
 
 		private void SteerKinematicTo(Vector2 target)
@@ -265,6 +328,8 @@ namespace EveOffline.Space.Drone
 				if (maxRadiusFromShip > 0f && d > maxRadiusFromShip) continue;
 				// Уже помечен
 				if (Claimed.Contains(a)) continue;
+				// Временный чёрный список для снятия конкуренции
+				if (avoidUntil.TryGetValue(a, out var until) && Time.time < until) continue;
 				// Приоритет: ближе к кораблю; при равенстве — ближе к дрону
 				float meDist = Vector2.Distance((Vector2)transform.position, (Vector2)a.transform.position);
 				if (d < bestShipDist || (Mathf.Approximately(d, bestShipDist) && meDist < bestDroneDist))
@@ -277,15 +342,77 @@ namespace EveOffline.Space.Drone
 			if (best != null)
 			{
 				Claimed.Add(best);
+				ClaimTime[best] = Time.time;
 				targetAsteroid = best;
 				state = DroneState.ToAsteroid;
 				// acquire logging suppressed
 			}
 		}
 
-		private void ClearTarget()
+		private void LogOrbitDiagnostics(Vector2 ownerPos)
 		{
-			if (targetAsteroid != null) { Claimed.Remove(targetAsteroid); }
+			try
+				{
+				var asteroids = UnityEngine.Object.FindObjectsByType<global::Space.AsteroidController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+				int total = 0, activeOk = 0, inRadius = 0, sizeOk = 0, nonReg = 0, free = 0;
+				float bestShip = float.MaxValue;
+				string bestName = "";
+				global::Space.AsteroidController nearest = null;
+				for (int i = 0; i < asteroids.Length; i++)
+				{
+					var a = asteroids[i];
+					if (a == null) continue;
+					total++;
+					if (!a.gameObject.activeInHierarchy) continue; activeOk++;
+					float dShip = Vector2.Distance(ownerPos, (Vector2)a.transform.position);
+					if (maxRadiusFromShip > 0f && dShip > maxRadiusFromShip) continue; inRadius++;
+					if (a.Diameter > grabMaxDiameter) continue; sizeOk++;
+					bool isReg = !string.IsNullOrEmpty(a.AsteroidId) && a.AsteroidId.IndexOf("Реголит", StringComparison.Ordinal) >= 0;
+					if (isReg) continue; nonReg++;
+					if (Claimed.Contains(a)) continue; free++;
+					if (dShip < bestShip) { bestShip = dShip; bestName = a.AsteroidId; nearest = a; }
+				}
+				Log($"DIAG Orbit: total={total} active={activeOk} inRadius={inRadius} sizeOk={sizeOk} nonReg={nonReg} free={free} best='{bestName}' dist={bestShip:0.0}");
+				
+				// Причина отказа для ближайшего вообще (включая занятые/реголит и т.п.)
+				if (asteroids.Length > 0)
+				{
+					global::Space.AsteroidController closestAny = null;
+					float dMin = float.MaxValue;
+					for (int i = 0; i < asteroids.Length; i++)
+					{
+						var a = asteroids[i];
+						if (a == null) continue;
+						float dShip = Vector2.Distance(ownerPos, (Vector2)a.transform.position);
+						if (dShip < dMin) { dMin = dShip; closestAny = a; }
+					}
+					if (closestAny != null)
+					{
+						string reason = "";
+						if (!closestAny.gameObject.activeInHierarchy) reason = "inactive";
+						else if (maxRadiusFromShip > 0f && Vector2.Distance(ownerPos, (Vector2)closestAny.transform.position) > maxRadiusFromShip) reason = "out_of_radius";
+						else if (closestAny.Diameter > grabMaxDiameter) reason = "too_big";
+						else if (!string.IsNullOrEmpty(closestAny.AsteroidId) && closestAny.AsteroidId.IndexOf("Реголит", StringComparison.Ordinal) >= 0) reason = "regolith";
+						else if (Claimed.Contains(closestAny)) reason = "claimed";
+						else if (avoidUntil.TryGetValue(closestAny, out var until) && Time.time < until) reason = "recently_lost";
+						else reason = "should_be_ok";
+						Log($"DIAG Reason(nearest_any='{closestAny.AsteroidId}', dist={dMin:0.0}): {reason}");
+					}
+				}
+			}
+			catch (Exception) { }
+		}
+
+		private void ClearTarget(bool blacklist = false)
+		{
+			if (targetAsteroid != null)
+			{
+				Claimed.Remove(targetAsteroid);
+				if (blacklist)
+				{
+					avoidUntil[targetAsteroid] = Time.time + 2.0f;
+				}
+			}
 			targetAsteroid = null;
 		}
 
