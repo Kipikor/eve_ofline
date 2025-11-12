@@ -34,17 +34,22 @@ namespace Space.Weapons
 		{
 			public Transform muzzle;
 			public LineRenderer lr;
+			public Transform hitFx;
 		}
 
 		private readonly List<BeamData> beams = new List<BeamData>();
 		private Collider2D[] ownerColliders;
 		private TurretController turretController;
+		[SerializeField, Min(1)] private int maxRaycastHits = 64;
+		private RaycastHit2D[] rayHits;
 
 		private void Awake()
 		{
 			ownerColliders = GetComponentInParent<Transform>()?.GetComponentsInChildren<Collider2D>(true);
 			SetupBeams();
 			turretController = GetComponentInParent<TurretController>();
+			maxRaycastHits = Mathf.Max(8, maxRaycastHits);
+			rayHits = new RaycastHit2D[maxRaycastHits];
 		}
 
 		private void SetupBeams()
@@ -71,7 +76,23 @@ namespace Space.Weapons
 				if (!string.IsNullOrEmpty(sortingLayerName)) lr.sortingLayerName = sortingLayerName;
 				lr.sortingOrder = sortingOrder;
 				lr.enabled = false;
-				beams.Add(new BeamData { muzzle = muzzles[i], lr = lr });
+
+				// Create pooled hit effect (one per beam) to avoid per-frame allocations
+				Transform fx = null;
+				if (hitEffectPrefab != null)
+				{
+					var fxGo = Instantiate(hitEffectPrefab, Vector3.zero, Quaternion.identity, transform);
+					var systems = fxGo.GetComponentsInChildren<ParticleSystem>(true);
+					for (int s = 0; s < systems.Length; s++)
+					{
+						var main = systems[s].main;
+						main.simulationSpace = ParticleSystemSimulationSpace.Local;
+					}
+					fxGo.SetActive(false); // keep disabled until first hit
+					fx = fxGo.transform;
+				}
+
+				beams.Add(new BeamData { muzzle = muzzles[i], lr = lr, hitFx = fx });
 			}
 		}
 
@@ -146,34 +167,34 @@ namespace Space.Weapons
 				// Смещаем старт, чтобы не «упираться» в собственный носик/коллайдер
 				origin += dir * originOffset;
 
-				// Временно отключаем «старты внутри коллайдеров» для чистого результата
+				// Временно отключаем «старты внутри коллайдеров» для чистого результата и используем NonAlloc
 				bool prevQ = Physics2D.queriesStartInColliders;
 				Physics2D.queriesStartInColliders = false;
-				var hits = Physics2D.RaycastAll(origin, dir, dist, hitMask);
+				int hitCount = Physics2D.RaycastNonAlloc(origin, dir, rayHits, dist, hitMask);
 				Physics2D.queriesStartInColliders = prevQ;
 
 				Vector2 end = origin + dir * dist;
 				Space.AsteroidController found = null;
 				Vector2 hitPoint = end;
-				for (int h = 0; h < hits.Length; h++)
+				for (int h = 0; h < hitCount; h++)
 				{
-					var hit = hits[h];
-					if (hit.collider == null) continue;
-					if (IsOwnerCollider(hit.collider)) continue;
+					var col = rayHits[h].collider;
+					if (col == null) continue;
+					if (IsOwnerCollider(col)) continue;
 
 					// Игнорируем дронов (луч должен быть «прозрачным» для них)
-					var drone = hit.collider.GetComponentInParent<EveOffline.Space.Drone.DroneController>();
+					var drone = col.GetComponentInParent<EveOffline.Space.Drone.DroneController>();
 					if (drone != null) continue;
 
-					var ast = hit.collider.GetComponentInParent<Space.AsteroidController>();
+					var ast = col.GetComponentInParent<Space.AsteroidController>();
 					if (ast != null)
 					{
 						found = ast;
-						hitPoint = hit.point;
+						hitPoint = rayHits[h].point;
 						break;
 					}
 					// если не астероид — это препятствие для луча
-					end = hit.point;
+					end = rayHits[h].point;
 					break;
 				}
 
@@ -181,7 +202,20 @@ namespace Space.Weapons
 				{
 					found.ApplyDamage(damageTick);
 					end = hitPoint;
-					SpawnHitFx(found.transform, hitPoint, dir);
+					// перемещаем/показываем единичный FX
+					if (beams[i].hitFx != null)
+					{
+						var fx = beams[i].hitFx;
+						if (!fx.gameObject.activeSelf) fx.gameObject.SetActive(true);
+						fx.position = hitPoint;
+						float ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
+						fx.rotation = UnityEngine.Quaternion.Euler(0f, 0f, ang);
+						fx.SetParent(found.transform, true);
+					}
+				}
+				else if (beams[i].hitFx != null && beams[i].hitFx.gameObject.activeSelf)
+				{
+					beams[i].hitFx.gameObject.SetActive(false);
 				}
 
 				// Устанавливаем два конца сегмента

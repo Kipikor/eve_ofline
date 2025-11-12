@@ -7,6 +7,7 @@ namespace Space
 {
 	public class AsteroidManager : MonoBehaviour
 	{
+		public static AsteroidManager Instance { get; private set; }
 		[Serializable]
 		private class SectorConfigEntry
 		{
@@ -77,6 +78,7 @@ namespace Space
 
 		private void Awake()
 		{
+			Instance = this;
 			EnsureSectorConfigLoaded();
 			FindRefsIfMissing();
 			LoadSector(currentSectorId);
@@ -84,6 +86,11 @@ namespace Space
 			BuildOrResizePool();
 			// Выполним начальную заливку сразу, без ограничений спавнов в секунду
 			if (fillAllAtStart) InitialFillAllArea();
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this) Instance = null;
 		}
 
 		private void Update()
@@ -670,6 +677,20 @@ namespace Space
 			}
 			result.Sort((a, b) => string.Compare(a.asteroidId, b.asteroidId, StringComparison.Ordinal));
 			return result;
+		}
+
+		// Быстрый доступ к активным астероидам без аллокаций массивов/поисков по сцене
+		public int FillActiveAsteroidsNonAlloc(System.Collections.Generic.List<AsteroidController> buffer)
+		{
+			if (buffer == null) return 0;
+			buffer.Clear();
+			for (int i = 0; i < pool.Count; i++)
+			{
+				var pa = pool[i];
+				if (pa == null || !pa.active) continue;
+				if (pa.controller != null) buffer.Add(pa.controller);
+			}
+			return buffer.Count;
 		}
 
 		private void OnDrawGizmosSelected()

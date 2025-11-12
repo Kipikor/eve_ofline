@@ -34,6 +34,11 @@ namespace EveOffline.Space.Drone
 		private static readonly System.Collections.Generic.Dictionary<global::Space.AsteroidController, float> ClaimTime = new System.Collections.Generic.Dictionary<global::Space.AsteroidController, float>();
 		private readonly System.Collections.Generic.Dictionary<global::Space.AsteroidController, float> avoidUntil = new System.Collections.Generic.Dictionary<global::Space.AsteroidController, float>();
 
+		// Кэш сканирования и ссылка на менеджер астероидов (без аллокаций и FindObjects каждый кадр)
+		private System.Collections.Generic.List<global::Space.AsteroidController> _scanBuffer;
+		private global::Space.AsteroidManager _asteroidManager;
+		private float _nextScanTime;
+
 		private static void PurgeClaimed()
 		{
 			if (Claimed.Count == 0) return;
@@ -310,17 +315,36 @@ namespace EveOffline.Space.Drone
 			PurgeClaimed();
 			if (carryingVolumeM3 > 0) { state = DroneState.ReturnToShip; return; }
 
-			// Ищем подходящие астероиды в радиусе
-			var asteroids = UnityEngine.Object.FindObjectsByType<global::Space.AsteroidController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			// Подготовка к сканированию
+			if (_scanBuffer == null) _scanBuffer = new System.Collections.Generic.List<global::Space.AsteroidController>(256);
+			if (_asteroidManager == null) _asteroidManager = UnityEngine.Object.FindFirstObjectByType<global::Space.AsteroidManager>(FindObjectsInactive.Exclude);
+
+			// ограничиваем частоту сканирования целей
+			if (Time.time < _nextScanTime) return;
+			_nextScanTime = Time.time + 0.25f; // 4 раза в секунду
+
+			// Получаем активные астероиды без лишних аллокаций
+			_scanBuffer.Clear();
+			if (_asteroidManager != null)
+			{
+				_ = _asteroidManager.FillActiveAsteroidsNonAlloc(_scanBuffer);
+			}
+			else
+			{
+				var arr = UnityEngine.Object.FindObjectsByType<global::Space.AsteroidController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+				_scanBuffer.AddRange(arr);
+			}
+
 			float bestShipDist = float.MaxValue;
 			float bestDroneDist = float.MaxValue;
 			global::Space.AsteroidController best = null;
-			for (int i = 0; i < asteroids.Length; i++)
+
+			for (int i = 0; i < _scanBuffer.Count; i++)
 			{
-				var a = asteroids[i];
+				var a = _scanBuffer[i];
 				if (a == null || !a.gameObject.activeInHierarchy) continue;
 				// Пропускаем реголит
-				if (!string.IsNullOrEmpty(a.AsteroidId) && a.AsteroidId.IndexOf("Реголит", StringComparison.Ordinal) >= 0) continue;
+				if (!string.IsNullOrEmpty(a.AsteroidId) && a.AsteroidId.IndexOf("Реголит", System.StringComparison.Ordinal) >= 0) continue;
 				// Диаметр
 				if (a.Diameter > grabMaxDiameter) continue;
 				// В радиусе работы от корабля
@@ -328,7 +352,7 @@ namespace EveOffline.Space.Drone
 				if (maxRadiusFromShip > 0f && d > maxRadiusFromShip) continue;
 				// Уже помечен
 				if (Claimed.Contains(a)) continue;
-				// Временный чёрный список для снятия конкуренции
+				// Временный чёрный список
 				if (avoidUntil.TryGetValue(a, out var until) && Time.time < until) continue;
 				// Приоритет: ближе к кораблю; при равенстве — ближе к дрону
 				float meDist = Vector2.Distance((Vector2)transform.position, (Vector2)a.transform.position);
@@ -345,7 +369,6 @@ namespace EveOffline.Space.Drone
 				ClaimTime[best] = Time.time;
 				targetAsteroid = best;
 				state = DroneState.ToAsteroid;
-				// acquire logging suppressed
 			}
 		}
 

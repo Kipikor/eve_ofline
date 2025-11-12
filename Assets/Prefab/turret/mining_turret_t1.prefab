@@ -199,6 +199,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aimSpeedDegPerSec: 120
   instantAim: 0
+  autoAim: 1
+  targetDiameterMin: 5
+  retargetEvery: 0.5
+  maxTargetDistance: 500
 --- !u!114 &4870252840299186712
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -216,3 +220,4 @@ MonoBehaviour:
   fireRate: 40
   fireAllMuzzles: 0
   holdMouseToFire: 1
+  autoFire: 1
