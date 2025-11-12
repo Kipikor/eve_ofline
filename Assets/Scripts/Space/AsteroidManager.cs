@@ -76,6 +76,15 @@ namespace Space
 		[SerializeField] private bool fillAllAtStart = true;
 		private bool initialFillDone;
 
+		[Header("Разлёт обломков")]
+		[Tooltip("Минимальная добавочная скорость обломков при расколе, м/с")]
+		[SerializeField, Min(0f)] public float splitImpulseSpeedMin = 0.5f;
+		[Tooltip("Максимальная добавочная скорость обломков при расколе, м/с")]
+		[SerializeField, Min(0f)] public float splitImpulseSpeedMax = 2.0f;
+		[Tooltip("Время защиты братьев после раскола от взаимного урона, сек")]
+		[SerializeField, Min(0f)] public float splitProtectionSeconds = 0.4f;
+		private int nextSpawnGroupId = 1;
+
 		private void Awake()
 		{
 			Instance = this;
@@ -530,7 +539,7 @@ namespace Space
 		}
 
 		// Публичный API для точечного спавна конкретных детей (используется при расколе)
-		public bool TrySpawnSpecific(string asteroidId, Vector3 position, float diameter, Vector2 velocity, float angularVelocity)
+		public bool TrySpawnSpecific(string asteroidId, Vector3 position, float diameter, Vector2 velocity, float angularVelocity, int spawnGroupId = 0)
 		{
 			for (int i = 0; i < pool.Count; i++)
 			{
@@ -546,6 +555,11 @@ namespace Space
 				if (pa.controller != null)
 				{
 					pa.controller.SetDiameter(diameter);
+					// Инициализация метаданных спавна (защита от урона между «братьями»)
+					if (spawnGroupId != 0)
+					{
+						pa.controller.InitializeSpawnMeta(spawnGroupId, splitProtectionSeconds);
+					}
 				}
 				pa.instance.SetActive(true);
 				pa.active = true;
@@ -629,6 +643,10 @@ namespace Space
 		}
 
 		public float CameraSpawnMargin => cameraSpawnMargin;
+		public float SplitImpulseMin => splitImpulseSpeedMin;
+		public float SplitImpulseMax => splitImpulseSpeedMax;
+		public float SplitProtectionSeconds => splitProtectionSeconds;
+		public int AcquireSpawnGroupId() { return nextSpawnGroupId++; }
 
 		[Serializable]
 		public struct TypeStats

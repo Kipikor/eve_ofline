@@ -62,6 +62,12 @@ namespace EditorTools
 			}
 
 			EditorGUILayout.Space(6);
+			EditorGUILayout.LabelField("Разлёт обломков", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("splitImpulseSpeedMin"), new GUIContent("Мин. добавочная скорость (м/с)"));
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("splitImpulseSpeedMax"), new GUIContent("Макс. добавочная скорость (м/с)"));
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("splitProtectionSeconds"), new GUIContent("Защита братьев (сек)"));
+
+			EditorGUILayout.Space(6);
 			if (GUILayout.Button("Rebuild Prefab Registry"))
 			{
 				AsteroidRegistryBuilder.Rebuild();

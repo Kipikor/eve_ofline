@@ -14,6 +14,20 @@ namespace Space
 		[Tooltip("Диаметр астероида в метрах. Равен локальному скейлу родителя.")]
 		[SerializeField] private float diameter = 2f;
 
+		[Header("Collisions")]
+		[SerializeField] private bool enableAsteroidCollisions = true;
+		[SerializeField, Min(0f)] private float minAsteroidImpactSpeed = 1.0f; // м/с, ниже — урона нет
+		[SerializeField] private bool logAsteroidImpacts = false;
+
+		// Метаданные для защиты после раскола — чтобы «братья» не взрывали друг друга сразу
+		[SerializeField] private int spawnGroupId;
+		[SerializeField] private float spawnProtectionUntil;
+		public void InitializeSpawnMeta(int groupId, float protectionSeconds)
+		{
+			spawnGroupId = groupId;
+			spawnProtectionUntil = Time.time + Mathf.Max(0f, protectionSeconds);
+		}
+
 		[Header("Генератор (диаметр)")]
 		[Min(0f), HideInInspector]
 		[SerializeField] private float generateMinDiameter = 2f;
@@ -366,18 +380,22 @@ namespace Space
 			Vector3 pos = transform.position;
 			if (manager != null)
 			{
+				// Общая группа спавна для защиты «братьев»
+				int groupId = manager.AcquireSpawnGroupId();
+				float vMin = Mathf.Max(0f, manager.SplitImpulseMin);
+				float vMax = Mathf.Max(vMin, manager.SplitImpulseMax);
 				for (int i = 0; i < diameters.Count; i++)
 				{
 					float d = diameters[i];
 					if (d < 2f) continue; // рассыпались в пыль
 					// Импульс разлёта
 					float ang = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
-					float extraSpeed = UnityEngine.Random.Range(0.5f, 2.0f);
+					float extraSpeed = UnityEngine.Random.Range(vMin, vMax);
 					Vector2 impulse = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * extraSpeed;
 					Vector2 childVel = baseVel + impulse;
 					float childAng = baseAng + UnityEngine.Random.Range(-10f, 10f);
 					// Попытка взять свободный из пула
-					bool ok = manager.TrySpawnSpecific(gameObject.name, pos, d, childVel, childAng);
+					bool ok = manager.TrySpawnSpecific(gameObject.name, pos, d, childVel, childAng, groupId);
 					if (!ok)
 					{
 						// Нет свободных — пропускаем
@@ -389,6 +407,48 @@ namespace Space
 			// Отключаем исходный астероид
 			gameObject.SetActive(false);
 			if (manager != null) manager.NotifyDisabledInstance(gameObject);
+		}
+
+		private void OnCollisionEnter2D(Collision2D collision)
+		{
+			if (!enableAsteroidCollisions) return;
+			if (collision == null || collision.rigidbody == null) return;
+			var otherCtrl = collision.collider.GetComponentInParent<AsteroidController>();
+			if (otherCtrl == null) return;
+
+			// Обрабатываем столкновение только один раз (по id объекта)
+			if (GetInstanceID() > otherCtrl.GetInstanceID()) return;
+
+			// Если оба — «братья» одного раскола и оба ещё под защитой — не наносим урон
+			float now = Time.time;
+			if (spawnGroupId != 0 && spawnGroupId == otherCtrl.spawnGroupId &&
+				now < spawnProtectionUntil && now < otherCtrl.spawnProtectionUntil)
+			{
+				return;
+			}
+
+			float v = collision.relativeVelocity.magnitude;
+			if (v < Mathf.Max(0f, minAsteroidImpactSpeed)) return;
+
+			var rbA = GetComponent<Rigidbody2D>();
+			var rbB = otherCtrl.GetComponent<Rigidbody2D>();
+			float m1 = rbA != null && rbA.mass > 0f ? rbA.mass : Mathf.Max(1f, GetMassRounded());
+			float m2 = rbB != null && rbB.mass > 0f ? rbB.mass : Mathf.Max(1f, otherCtrl.GetMassRounded());
+
+			// Приведённая масса и энергия удара (кДж, т.к. масса — в "тоннах")
+			float mu = (m1 > 0f && m2 > 0f) ? (m1 * m2) / (m1 + m2) : Mathf.Max(m1, m2);
+			float E_total_kJ = 0.5f * mu * v * v;
+			float E_each_kJ = E_total_kJ * 0.5f;
+			int damageEach = Mathf.Max(1, Mathf.RoundToInt(E_each_kJ)); // 1 кДж = 1 урон
+
+			// Применяем урон обоим
+			ApplyDamage(damageEach);
+			otherCtrl.ApplyDamage(damageEach);
+
+			if (logAsteroidImpacts)
+			{
+				Debug.Log($"[AsteroidImpact] v={v:0.###} m1={m1:0.###} m2={m2:0.###} mu={mu:0.###} E_total={E_total_kJ:0.###}kJ dmg_each={damageEach}", this);
+			}
 		}
 
 		private static int ChoosePiecesCount(string weights)

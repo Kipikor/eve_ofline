@@ -883,6 +883,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   diameter: 79.287125
+  enableAsteroidCollisions: 1
+  minAsteroidImpactSpeed: 1
+  logAsteroidImpacts: 0
+  spawnGroupId: 0
+  spawnProtectionUntil: 0
   generateMinDiameter: 2
   generateMaxDiameter: 250
   currentHitPoints: 0
