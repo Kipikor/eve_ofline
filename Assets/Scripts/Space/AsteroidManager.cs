@@ -263,8 +263,9 @@ namespace Space
 			foreach (var pa in pool)
 			{
 				if (!pa.active || pa.instance == null) continue;
-				var pos = pa.instance.transform.position;
-				if (!despawnRect.Contains(pos))
+				var pos3 = pa.instance.transform.position;
+				var pos2 = new Vector2(pos3.x, pos3.y);
+				if (!despawnRect.Contains(pos2))
 				{
 					DisableAsteroid(pa);
 				}

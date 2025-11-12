@@ -18,7 +18,7 @@
     "shield_cd": 5,
     "armor_hp": 50,
     "structure_hp": 50,
-    "acceleration": 100,
+    "acceleration": 300,
     "rotation": 300,
     "max_speed": 200,
     "in_cargo_size": 5,
