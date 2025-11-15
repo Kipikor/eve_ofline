@@ -23,8 +23,11 @@ namespace EveOffline.Planets
 		private const string PopulationDecayName = "Естественная убыль населения на планетах каждый тик от всех имеющихся";
 		private const string ReserveTicksAheadName = "На сколько тиков вперёд запасает ресурсов планета(целевой запас). Так же планеты не будет продавать ресурс если его текущий запас ниже целевого.";
 		private const string ReservePenaltyTicksAheadName = "Штрафы за отсутствие запасов начинают начисляться если их меньше чем на сколько тиков вперёд";
+		private const string MaxProcessesPerTickName = "Сколько максимум процессов за тик может запустить планеты.";
 		private const string PriceDecreasePerTickName = "На какое значение в тик планеты понижает свою цену при избытке товара(запасы текущие больше необходимых), относительно текущей цены планеты";
 		private const string PriceIncreasePerTickName = "На какое значение в тик планета повышает свою цену при дефиите(запасы текущие ниже необходимыых) товара, относительно текущей цены планеты";
+		private const string MinPriceMultiplierName = "Множитель от среднегалактической цены товара как минимально доступная цена планеты";
+		private const string MaxPriceMultiplierName = "Множитель от среднегалактической цены товара как максимально доступная цена планеты";
 		private const string AveragePriceCollectTicksName = "Частота сбора среднегалактической цены, раз во сколько тиков. Берётся цена на каждый товар у каждой планеты, находиться средний и получается среднегалактическая цена.";
 
 		[Serializable]
@@ -54,6 +57,10 @@ namespace EveOffline.Planets
 			[Tooltip("Штрафы за отсутствие запасов начинают начисляться если их меньше чем на сколько тиков вперёд")]
 			public float reservePenaltyTicksAhead = 75f;
 
+			[InspectorName("Сколько максимум процессов за тик может запустить планеты.")]
+			[Tooltip("Сколько максимум процессов за тик может запустить планеты.")]
+			public float maxProcessesPerTick = 1f;
+
 			[InspectorName("На какое значение в тик планеты понижает свою цену при избытке товара(запасы текущие больше необходимых), относительно текущей цены планеты")]
 			[Tooltip("На какое значение в тик планеты понижает свою цену при избытке товара(запасы текущие больше необходимых), относительно текущей цены планеты")]
 			public float priceDecreasePerTick = 0.01f;
@@ -61,6 +68,14 @@ namespace EveOffline.Planets
 			[InspectorName("На какое значение в тик планета повышает свою цену при дефиите(запасы текущие ниже необходимыых) товара, относительно текущей цены планеты")]
 			[Tooltip("На какое значение в тик планета повышает свою цену при дефиите(запасы текущие ниже необходимыых) товара, относительно текущей цены планеты")]
 			public float priceIncreasePerTick = 0.02f;
+
+			[InspectorName("Множитель от среднегалактической цены товара как минимально доступная цена планеты")]
+			[Tooltip("Множитель от среднегалактической цены товара как минимально доступная цена планеты")]
+			public float minPriceMultiplier = 0.3f;
+
+			[InspectorName("Множитель от среднегалактической цены товара как максимально доступная цена планеты")]
+			[Tooltip("Множитель от среднегалактической цены товара как максимально доступная цена планеты")]
+			public float maxPriceMultiplier = 3f;
 
 			[InspectorName("Частота сбора среднегалактической цены, раз во сколько тиков. Берётся цена на каждый товар у каждой планеты, находиться средний и получается среднегалактическая цена.")]
 			[Tooltip("Частота сбора среднегалактической цены, раз во сколько тиков. Берётся цена на каждый товар у каждой планеты, находиться средний и получается среднегалактическая цена.")]
@@ -210,9 +225,12 @@ namespace EveOffline.Planets
 				constants.populationDecayPerTick = TryReadFloatConst(lines, PopulationDecayName, constants.populationDecayPerTick);
 				constants.reserveTicksAhead = TryReadFloatConst(lines, ReserveTicksAheadName, constants.reserveTicksAhead);
 				constants.reservePenaltyTicksAhead = TryReadFloatConst(lines, ReservePenaltyTicksAheadName, constants.reservePenaltyTicksAhead);
+				constants.maxProcessesPerTick = TryReadFloatConst(lines, MaxProcessesPerTickName, constants.maxProcessesPerTick);
 				constants.priceDecreasePerTick = TryReadFloatConst(lines, PriceDecreasePerTickName, constants.priceDecreasePerTick);
 				constants.priceIncreasePerTick = TryReadFloatConst(lines, PriceIncreasePerTickName, constants.priceIncreasePerTick);
 				constants.averagePriceCollectTicks = TryReadFloatConst(lines, AveragePriceCollectTicksName, constants.averagePriceCollectTicks);
+				constants.minPriceMultiplier = TryReadFloatConst(lines, MinPriceMultiplierName, constants.minPriceMultiplier);
+				constants.maxPriceMultiplier = TryReadFloatConst(lines, MaxPriceMultiplierName, constants.maxPriceMultiplier);
 			}
 			catch (Exception e)
 			{

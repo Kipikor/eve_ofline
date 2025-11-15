@@ -24,8 +24,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,3,1,1
     processSlotBasePenaltyRaw: 30%,30%,0%,40%,30%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:2000,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:3,PR_Water:3,PR_Weapon:7,PR_Minerals:1,PR_Technique:4
+    needAnytimeRaw: PR_Workers:1500,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.3,PR_Water:0.3,PR_Weapon:0.7,PR_Minerals:0.1,PR_Technique:0.4
   - idPlanet: "\u0417\u0435\u043C\u043B\u044F_2"
     planetType: "\u0417\u0435\u043C\u043B\u0435\u043F\u043E\u0434\u043E\u0431\u043D\u0430\u044F
       \u043F\u043B\u0430\u043D\u0435\u0442\u0430"
@@ -37,8 +37,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,3,1,1
     processSlotBasePenaltyRaw: 30%,30%,0%,40%,30%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:2000,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:3,PR_Water:3,PR_Weapon:7,PR_Minerals:1,PR_Technique:4
+    needAnytimeRaw: PR_Workers:1500,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.3,PR_Water:0.3,PR_Weapon:0.7,PR_Minerals:0.1,PR_Technique:0.4
   - idPlanet: "\u0417\u0435\u043C\u043B\u044F_3"
     planetType: "\u0417\u0435\u043C\u043B\u0435\u043F\u043E\u0434\u043E\u0431\u043D\u0430\u044F
       \u043F\u043B\u0430\u043D\u0435\u0442\u0430"
@@ -50,8 +50,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,3,1,1
     processSlotBasePenaltyRaw: 30%,30%,0%,40%,30%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:2000,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:3,PR_Water:3,PR_Weapon:7,PR_Minerals:1,PR_Technique:4
+    needAnytimeRaw: PR_Workers:1500,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.3,PR_Water:0.3,PR_Weapon:0.7,PR_Minerals:0.1,PR_Technique:0.4
   - idPlanet: "\u0417\u0435\u043C\u043B\u044F_4"
     planetType: "\u0417\u0435\u043C\u043B\u0435\u043F\u043E\u0434\u043E\u0431\u043D\u0430\u044F
       \u043F\u043B\u0430\u043D\u0435\u0442\u0430"
@@ -63,8 +63,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,3,1,1
     processSlotBasePenaltyRaw: 30%,30%,0%,40%,30%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:2000,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:3,PR_Water:3,PR_Weapon:7,PR_Minerals:1,PR_Technique:4
+    needAnytimeRaw: PR_Workers:1500,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.3,PR_Water:0.3,PR_Weapon:0.7,PR_Minerals:0.1,PR_Technique:0.4
   - idPlanet: "\u0417\u0435\u043C\u043B\u044F_5"
     planetType: "\u0417\u0435\u043C\u043B\u0435\u043F\u043E\u0434\u043E\u0431\u043D\u0430\u044F
       \u043F\u043B\u0430\u043D\u0435\u0442\u0430"
@@ -76,8 +76,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,3,1,1
     processSlotBasePenaltyRaw: 30%,30%,0%,40%,30%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:2000,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:3,PR_Water:3,PR_Weapon:7,PR_Minerals:1,PR_Technique:4
+    needAnytimeRaw: PR_Workers:1500,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.3,PR_Water:0.3,PR_Weapon:0.7,PR_Minerals:0.1,PR_Technique:0.4
   - idPlanet: "\u041C\u0430\u0439\u043D\u0438\u043D\u0433_1"
     planetType: "\u0414\u043E\u0431\u044B\u0432\u0430\u044E\u0449\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 8.5
@@ -88,8 +88,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,5,0,1,0
     processSlotBasePenaltyRaw: 50%,0%,0%,30%,70%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:1200,PR_Engineers:300
-    baseConsumptionTikRaw: PR_Food:5,PR_Water:6,PR_Weapon:2,PR_Minerals:1,PR_Technique:6
+    needAnytimeRaw: PR_Workers:800,PR_Engineers:200
+    baseConsumptionTikRaw: PR_Food:0.5,PR_Water:0.6,PR_Weapon:0.2,PR_Minerals:0.1,PR_Technique:0.6
   - idPlanet: "\u041C\u0430\u0439\u043D\u0438\u043D\u0433_2"
     planetType: "\u0414\u043E\u0431\u044B\u0432\u0430\u044E\u0449\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 7.4
@@ -100,8 +100,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,5,0,1,0
     processSlotBasePenaltyRaw: 50%,0%,0%,30%,70%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:1200,PR_Engineers:300
-    baseConsumptionTikRaw: PR_Food:5,PR_Water:6,PR_Weapon:2,PR_Minerals:1,PR_Technique:6
+    needAnytimeRaw: PR_Workers:800,PR_Engineers:200
+    baseConsumptionTikRaw: PR_Food:0.5,PR_Water:0.6,PR_Weapon:0.2,PR_Minerals:0.1,PR_Technique:0.6
   - idPlanet: "\u041C\u0430\u0439\u043D\u0438\u043D\u0433_3"
     planetType: "\u0414\u043E\u0431\u044B\u0432\u0430\u044E\u0449\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 13.1
@@ -112,8 +112,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,5,0,1,0
     processSlotBasePenaltyRaw: 50%,0%,0%,30%,70%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:1200,PR_Engineers:300
-    baseConsumptionTikRaw: PR_Food:5,PR_Water:6,PR_Weapon:2,PR_Minerals:1,PR_Technique:6
+    needAnytimeRaw: PR_Workers:800,PR_Engineers:200
+    baseConsumptionTikRaw: PR_Food:0.5,PR_Water:0.6,PR_Weapon:0.2,PR_Minerals:0.1,PR_Technique:0.6
   - idPlanet: "\u041C\u0430\u0439\u043D\u0438\u043D\u0433_4"
     planetType: "\u0414\u043E\u0431\u044B\u0432\u0430\u044E\u0449\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 11.3
@@ -124,8 +124,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,5,0,1,0
     processSlotBasePenaltyRaw: 50%,0%,0%,30%,70%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:1200,PR_Engineers:300
-    baseConsumptionTikRaw: PR_Food:5,PR_Water:6,PR_Weapon:2,PR_Minerals:1,PR_Technique:6
+    needAnytimeRaw: PR_Workers:800,PR_Engineers:200
+    baseConsumptionTikRaw: PR_Food:0.5,PR_Water:0.6,PR_Weapon:0.2,PR_Minerals:0.1,PR_Technique:0.6
   - idPlanet: "\u041C\u0430\u0439\u043D\u0438\u043D\u0433_5"
     planetType: "\u0414\u043E\u0431\u044B\u0432\u0430\u044E\u0449\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 11.3
@@ -136,8 +136,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,5,0,1,0
     processSlotBasePenaltyRaw: 50%,0%,0%,30%,70%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:1200,PR_Engineers:300
-    baseConsumptionTikRaw: PR_Food:5,PR_Water:6,PR_Weapon:2,PR_Minerals:1,PR_Technique:6
+    needAnytimeRaw: PR_Workers:800,PR_Engineers:200
+    baseConsumptionTikRaw: PR_Food:0.5,PR_Water:0.6,PR_Weapon:0.2,PR_Minerals:0.1,PR_Technique:0.6
   - idPlanet: "\u0418\u043D\u0434\u0443\u0441\u0442\u0440\u0438_1"
     planetType: "\u041F\u0440\u043E\u043C\u044B\u0448\u043B\u0435\u043D\u043D\u0430\u044F
       \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
@@ -149,8 +149,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,1,4,0
     processSlotBasePenaltyRaw: 40%,20%,40%,0%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:500,PR_Engineers:500
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:1.3,PR_Weapon:4,PR_Minerals:6,PR_Technique:2
+    needAnytimeRaw: PR_Workers:400,PR_Engineers:400
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.13,PR_Weapon:0.4,PR_Minerals:0.6,PR_Technique:0.2
   - idPlanet: "\u0418\u043D\u0434\u0443\u0441\u0442\u0440\u0438_2"
     planetType: "\u041F\u0440\u043E\u043C\u044B\u0448\u043B\u0435\u043D\u043D\u0430\u044F
       \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
@@ -162,8 +162,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,1,4,0
     processSlotBasePenaltyRaw: 40%,20%,40%,0%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:500,PR_Engineers:500
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:1.3,PR_Weapon:4,PR_Minerals:6,PR_Technique:2
+    needAnytimeRaw: PR_Workers:400,PR_Engineers:400
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.13,PR_Weapon:0.4,PR_Minerals:0.6,PR_Technique:0.2
   - idPlanet: "\u0418\u043D\u0434\u0443\u0441\u0442\u0440\u0438_3"
     planetType: "\u041F\u0440\u043E\u043C\u044B\u0448\u043B\u0435\u043D\u043D\u0430\u044F
       \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
@@ -175,8 +175,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,1,4,0
     processSlotBasePenaltyRaw: 40%,20%,40%,0%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:500,PR_Engineers:500
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:1.3,PR_Weapon:4,PR_Minerals:6,PR_Technique:2
+    needAnytimeRaw: PR_Workers:400,PR_Engineers:400
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.13,PR_Weapon:0.4,PR_Minerals:0.6,PR_Technique:0.2
   - idPlanet: "\u0418\u043D\u0434\u0443\u0441\u0442\u0440\u0438_4"
     planetType: "\u041F\u0440\u043E\u043C\u044B\u0448\u043B\u0435\u043D\u043D\u0430\u044F
       \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
@@ -188,8 +188,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,1,4,0
     processSlotBasePenaltyRaw: 40%,20%,40%,0%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:500,PR_Engineers:500
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:1.3,PR_Weapon:4,PR_Minerals:6,PR_Technique:2
+    needAnytimeRaw: PR_Workers:400,PR_Engineers:400
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.13,PR_Weapon:0.4,PR_Minerals:0.6,PR_Technique:0.2
   - idPlanet: "\u0418\u043D\u0434\u0443\u0441\u0442\u0440\u0438_5"
     planetType: "\u041F\u0440\u043E\u043C\u044B\u0448\u043B\u0435\u043D\u043D\u0430\u044F
       \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
@@ -201,8 +201,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,1,1,4,0
     processSlotBasePenaltyRaw: 40%,20%,40%,0%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:500,PR_Engineers:500
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:1.3,PR_Weapon:4,PR_Minerals:6,PR_Technique:2
+    needAnytimeRaw: PR_Workers:400,PR_Engineers:400
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.13,PR_Weapon:0.4,PR_Minerals:0.6,PR_Technique:0.2
   - idPlanet: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F_1"
     planetType: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 11.2
@@ -213,8 +213,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,0,2,1,3
     processSlotBasePenaltyRaw: 40%,0%,20%,20%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:200,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:2,PR_Weapon:3,PR_Minerals:2,PR_Technique:6
+    needAnytimeRaw: PR_Workers:150,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.2,PR_Weapon:0.3,PR_Minerals:0.2,PR_Technique:0.6
   - idPlanet: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F_2"
     planetType: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 13.5
@@ -225,8 +225,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,0,2,1,3
     processSlotBasePenaltyRaw: 40%,0%,20%,20%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:200,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:2,PR_Weapon:3,PR_Minerals:2,PR_Technique:6
+    needAnytimeRaw: PR_Workers:150,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.2,PR_Weapon:0.3,PR_Minerals:0.2,PR_Technique:0.6
   - idPlanet: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F_3"
     planetType: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 8
@@ -237,8 +237,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,0,2,1,3
     processSlotBasePenaltyRaw: 40%,0%,20%,20%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:200,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:2,PR_Weapon:3,PR_Minerals:2,PR_Technique:6
+    needAnytimeRaw: PR_Workers:150,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.2,PR_Weapon:0.3,PR_Minerals:0.2,PR_Technique:0.6
   - idPlanet: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F_4"
     planetType: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 12.1
@@ -249,8 +249,8 @@ MonoBehaviour:
     processSlotCountRaw: 1,0,2,1,3
     processSlotBasePenaltyRaw: 40%,0%,20%,20%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:200,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:2,PR_Weapon:3,PR_Minerals:2,PR_Technique:6
+    needAnytimeRaw: PR_Workers:150,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.2,PR_Weapon:0.3,PR_Minerals:0.2,PR_Technique:0.6
   - idPlanet: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F_5"
     planetType: "\u041D\u0430\u0443\u0447\u043D\u0430\u044F \u0441\u0442\u0430\u043D\u0446\u0438\u044F"
     scale: 9.4
@@ -261,5 +261,5 @@ MonoBehaviour:
     processSlotCountRaw: 1,0,2,1,3
     processSlotBasePenaltyRaw: 40%,0%,20%,20%,0%
     baseIncomeTikRaw: PR_Credits:100
-    needAnytimeRaw: PR_Workers:200,PR_Engineers:1000
-    baseConsumptionTikRaw: PR_Food:1,PR_Water:2,PR_Weapon:3,PR_Minerals:2,PR_Technique:6
+    needAnytimeRaw: PR_Workers:150,PR_Engineers:750
+    baseConsumptionTikRaw: PR_Food:0.1,PR_Water:0.2,PR_Weapon:0.3,PR_Minerals:0.2,PR_Technique:0.6

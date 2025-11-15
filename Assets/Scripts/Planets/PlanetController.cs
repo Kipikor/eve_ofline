@@ -30,6 +30,14 @@ namespace EveOffline.Planets
 
 			[Tooltip("Штраф (в процентах), уже с учётом +100%. Например, 140 = 140%.")]
 			public float penaltyPercent = 100f;
+
+			[Tooltip("ID текущего рецепта, запущенного в этом слоте (если есть).")]
+			public string currentRecipeId;
+
+			[Tooltip("Сколько тиков осталось до завершения процесса в этом слоте.")]
+			public int ticksRemaining;
+
+			public bool IsBusy => !string.IsNullOrEmpty(currentRecipeId) && ticksRemaining > 0;
 		}
 
 		[Header("Процессные слоты (генерируется из конфигов)")]
@@ -75,6 +83,12 @@ namespace EveOffline.Planets
 
 		private void Awake()
 		{
+			// В редакторе при генерации галактики не пытаемся регистрировать и не ругаемся
+			if (!Application.isPlaying)
+			{
+				return;
+			}
+
 			// Гарантируем наличие менеджера времени и галактики без ручной привязки
 			_ = PlanetTimeManager.Instance;
 			_ = GalaxyManager.Instance;
@@ -131,6 +145,12 @@ namespace EveOffline.Planets
 			if ((_incomePerTick == null || _incomePerTick.Count == 0) &&
 			    (_consumptionPerTick == null || _consumptionPerTick.Count == 0))
 				return;
+
+			// 1. Обновляем таймеры процессов в слотах и выдаём результаты, если таймеры истекли
+			UpdateRunningProcesses((int)tickCount);
+
+			// 2. Пытаемся запустить новые процессы (ограничены константой)
+			StartBestProcessesPerTick();
 
 			for (int i = 0; i < resources.Count; i++)
 			{
@@ -238,7 +258,7 @@ namespace EveOffline.Planets
 				r.currentAmount = ClampResourceAmount(value);
 				r.targetAmount = ClampResourceAmount(target);
 				r.warningAmount = ClampResourceAmount(warning);
-				r.currentPrice = ClampPrice(price);
+				r.currentPrice = ClampPrice(id, price);
 			}
 		}
 
@@ -296,6 +316,187 @@ namespace EveOffline.Planets
 			{
 				_needAnytimePerPlanet = new Dictionary<string, float>(StringComparer.Ordinal);
 			}
+		}
+
+		private void UpdateRunningProcesses(int ticks)
+		{
+			if (ticks <= 0 || processSlots == null || processSlots.Count == 0) return;
+
+			for (int i = 0; i < processSlots.Count; i++)
+			{
+				var slot = processSlots[i];
+				if (slot == null || !slot.IsBusy) continue;
+
+				slot.ticksRemaining -= ticks;
+				if (slot.ticksRemaining > 0) continue;
+
+				// Процесс завершился — выдаём результаты и освобождаем слот
+				var recipe = PlanetRecipeDatabase.GetById(slot.currentRecipeId);
+				if (recipe != null && recipe.outResources != null)
+				{
+					for (int ri = 0; ri < resources.Count; ri++)
+					{
+						var rs = resources[ri];
+						if (rs == null || string.IsNullOrEmpty(rs.resourceId)) continue;
+
+						if (recipe.outResources.TryGetValue(rs.resourceId, out float add) && Math.Abs(add) > float.Epsilon)
+						{
+							rs.currentAmount = ClampResourceAmount(rs.currentAmount + add);
+						}
+					}
+				}
+
+				slot.currentRecipeId = null;
+				slot.ticksRemaining = 0;
+			}
+		}
+
+		private void StartBestProcessesPerTick()
+		{
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm == null || tm.Constants == null) return;
+
+			int maxStarts = Mathf.Max(0, Mathf.FloorToInt(tm.Constants.maxProcessesPerTick));
+			if (maxStarts <= 0) return;
+
+			if (processSlots == null || processSlots.Count == 0) return;
+
+			var recipes = PlanetRecipeDatabase.Recipes;
+			if (recipes == null || recipes.Count == 0) return;
+
+			// Собираем кандидатов: (потенциальная прибыль, индекс слота, рецепт)
+			var candidates = new List<(float profit, int slotIndex, PlanetRecipeDatabase.PlanetRecipe recipe)>();
+
+			for (int si = 0; si < processSlots.Count; si++)
+			{
+				var slot = processSlots[si];
+				if (slot == null || slot.IsBusy) continue;
+
+				float inputMultiplier = slot.penaltyPercent > 0f ? (slot.penaltyPercent / 100f) : 1f;
+
+				for (int ri = 0; ri < recipes.Count; ri++)
+				{
+					var recipe = recipes[ri];
+					if (recipe == null) continue;
+					if (!recipe.CanUseSlot(slot.slotName)) continue;
+
+					if (!CanRunRecipeWithCurrentResources(recipe, inputMultiplier)) continue;
+
+					float profit = EstimateRecipeProfit(recipe, inputMultiplier);
+					if (profit <= 0f) continue;
+
+					candidates.Add((profit, si, recipe));
+				}
+			}
+
+			if (candidates.Count == 0) return;
+
+			// Сортируем по убыванию прибыли
+			candidates.Sort((a, b) => b.profit.CompareTo(a.profit));
+
+			int started = 0;
+			for (int i = 0; i < candidates.Count && started < maxStarts; i++)
+			{
+				var c = candidates[i];
+				var slot = processSlots[c.slotIndex];
+				if (slot == null || slot.IsBusy) continue;
+				float inputMultiplier = slot.penaltyPercent > 0f ? (slot.penaltyPercent / 100f) : 1f;
+
+				if (!CanRunRecipeWithCurrentResources(c.recipe, inputMultiplier)) continue;
+
+				// Списываем входные ресурсы с учётом штрафа слота
+				ConsumeResources(c.recipe.inResources, inputMultiplier);
+
+				// Запускаем процесс в слоте
+				slot.currentRecipeId = c.recipe.id;
+				slot.ticksRemaining = c.recipe.processTicks;
+				started++;
+			}
+		}
+
+		private bool CanRunRecipeWithCurrentResources(PlanetRecipeDatabase.PlanetRecipe recipe, float inputMultiplier)
+		{
+			if (recipe == null || recipe.inResources == null) return true;
+
+			if (inputMultiplier <= 0f) inputMultiplier = 1f;
+
+			for (int i = 0; i < resources.Count; i++)
+			{
+				var rs = resources[i];
+				if (rs == null || string.IsNullOrEmpty(rs.resourceId)) continue;
+
+				if (recipe.inResources.TryGetValue(rs.resourceId, out float need) && need > 0f)
+				{
+					float effectiveNeed = need * inputMultiplier;
+					if (rs.currentAmount < effectiveNeed)
+						return false;
+				}
+			}
+			return true;
+		}
+
+		private void ConsumeResources(Dictionary<string, float> amounts, float inputMultiplier)
+		{
+			if (amounts == null) return;
+
+			if (inputMultiplier <= 0f) inputMultiplier = 1f;
+
+			for (int i = 0; i < resources.Count; i++)
+			{
+				var rs = resources[i];
+				if (rs == null || string.IsNullOrEmpty(rs.resourceId)) continue;
+
+				if (amounts.TryGetValue(rs.resourceId, out float need) && need > 0f)
+				{
+					float effectiveNeed = need * inputMultiplier;
+					rs.currentAmount = ClampResourceAmount(rs.currentAmount - effectiveNeed);
+				}
+			}
+		}
+
+		private float EstimateRecipeProfit(PlanetRecipeDatabase.PlanetRecipe recipe, float inputMultiplier)
+		{
+			if (recipe == null) return 0f;
+
+			if (inputMultiplier <= 0f) inputMultiplier = 1f;
+
+			float GetPriceFor(string id)
+			{
+				for (int i = 0; i < resources.Count; i++)
+				{
+					var rs = resources[i];
+					if (rs == null || !string.Equals(rs.resourceId, id, StringComparison.Ordinal)) continue;
+					return rs.currentPrice > 0f ? rs.currentPrice : rs.basePrice;
+				}
+				return 0f;
+			}
+
+			float cost = 0f;
+			if (recipe.inResources != null)
+			{
+				foreach (var kv in recipe.inResources)
+				{
+					float p = GetPriceFor(kv.Key);
+					if (p > 0f && kv.Value > 0f)
+					{
+						float effectiveNeed = kv.Value * inputMultiplier;
+						cost += p * effectiveNeed;
+					}
+				}
+			}
+
+			float income = 0f;
+			if (recipe.outResources != null)
+			{
+				foreach (var kv in recipe.outResources)
+				{
+					float p = GetPriceFor(kv.Key);
+					if (p > 0f && kv.Value > 0f)
+						income += p * kv.Value;
+				}
+			}
+
+			return income - cost;
 		}
 
 #if UNITY_EDITOR
@@ -542,7 +743,7 @@ namespace EveOffline.Planets
 			return value;
 		}
 
-		private static float ClampPrice(float value)
+		internal static float ClampPrice(string resourceId, float value)
 		{
 			if (value <= 0f) return 0f;
 
@@ -551,6 +752,47 @@ namespace EveOffline.Planets
 			if (step <= 0f) step = 0.001f;
 
 			value = Mathf.Round(value / step) * step;
+
+			// Ограничиваем цену относительно среднегалактической
+			if (!string.IsNullOrEmpty(resourceId))
+			{
+				// Кредиты не ограничиваем — их цена фиксирована как basePrice
+				if (!string.Equals(resourceId, "PR_Credits", StringComparison.Ordinal))
+				{
+					var gm = GalaxyManager.HasInstance ? GalaxyManager.Instance : null;
+					var tm = PlanetTimeManager.TryGetExistingInstance();
+					var constants = tm != null ? tm.Constants : null;
+					if (gm != null && constants != null && gm.GalacticPrices != null)
+					{
+						float minMul = constants.minPriceMultiplier > 0f ? constants.minPriceMultiplier : 0.3f;
+						float maxMul = constants.maxPriceMultiplier > 0f ? constants.maxPriceMultiplier : 3f;
+
+						float galacticPrice = 0f;
+						var prices = gm.GalacticPrices;
+						for (int i = 0; i < prices.Count; i++)
+						{
+							var e = prices[i];
+							if (e == null || !string.Equals(e.resourceId, resourceId, StringComparison.Ordinal)) continue;
+							galacticPrice = e.currentPrice > 0f ? e.currentPrice : e.lastPrice;
+							break;
+						}
+
+						if (galacticPrice > 0f)
+						{
+							float minAllowed = galacticPrice * minMul;
+							float maxAllowed = galacticPrice * maxMul;
+							if (maxAllowed < minAllowed)
+							{
+								var tmp = minAllowed;
+								minAllowed = maxAllowed;
+								maxAllowed = tmp;
+							}
+							value = Mathf.Clamp(value, minAllowed, maxAllowed);
+						}
+					}
+				}
+			}
+
 			return value;
 		}
 

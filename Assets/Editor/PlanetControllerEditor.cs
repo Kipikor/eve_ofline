@@ -32,32 +32,33 @@ public class PlanetControllerEditor : Editor
 					var element = slotsProp.GetArrayElementAtIndex(i);
 					var nameProp = element.FindPropertyRelative("slotName");
 					var penaltyProp = element.FindPropertyRelative("penaltyPercent");
+					var recipeProp = element.FindPropertyRelative("currentRecipeId");
+					var ticksProp = element.FindPropertyRelative("ticksRemaining");
 
-					if (nameProp == null || penaltyProp == null) continue;
+					if (nameProp == null || penaltyProp == null || recipeProp == null || ticksProp == null) continue;
 
 					EditorGUILayout.BeginHorizontal();
 
-					// Нередактируемое имя слота
+					// Тип слота (не редактируемый)
 					GUI.enabled = false;
-					EditorGUILayout.TextField(nameProp.stringValue, GUILayout.MinWidth(140));
+					EditorGUILayout.TextField(nameProp.stringValue, GUILayout.MinWidth(120));
 
-					// Редактируемое значение штрафа в формате "140%"
-					string penaltyText = $"{penaltyProp.floatValue:0.##}%";
 					GUI.enabled = true;
-					string newPenaltyText = EditorGUILayout.TextField(penaltyText, GUILayout.Width(80));
 
-					// Парсим число обратно, допускаем ввод без знака % или с ним
-					if (newPenaltyText != penaltyText && !string.IsNullOrEmpty(newPenaltyText))
-					{
-						string raw = newPenaltyText.Trim();
-						if (raw.EndsWith("%"))
-							raw = raw.Substring(0, raw.Length - 1);
-						if (float.TryParse(raw, System.Globalization.NumberStyles.Float,
-							    System.Globalization.CultureInfo.InvariantCulture, out float parsed))
-						{
-							penaltyProp.floatValue = parsed;
-						}
-					}
+					// Штраф (редактируемый, без знака %)
+					float penalty = penaltyProp.floatValue;
+					penalty = EditorGUILayout.FloatField(penalty, GUILayout.Width(60));
+					penaltyProp.floatValue = penalty;
+
+					// Текущий рецепт (не редактируемый)
+					GUI.enabled = false;
+					EditorGUILayout.TextField(string.IsNullOrEmpty(recipeProp.stringValue) ? "-" : recipeProp.stringValue, GUILayout.MinWidth(140));
+					GUI.enabled = true;
+
+					// Тиков до окончания (редактируемый)
+					int ticks = ticksProp.intValue;
+					ticks = EditorGUILayout.IntField(ticks, GUILayout.Width(60));
+					ticksProp.intValue = Mathf.Max(0, ticks);
 
 					EditorGUILayout.EndHorizontal();
 				}

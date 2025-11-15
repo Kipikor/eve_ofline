@@ -6,8 +6,8 @@
     "process_slot_count": "1,1,3,1,1",
     "process_slot_base_penalty": "30%,30%,0%,40%,30%",
     "base_income_tik": "PR_Credits:100",
-    "need_anytime": "PR_Workers:2000,PR_Engineers:1000",
-    "base_consumption_tik": "PR_Food:3,PR_Water:3,PR_Weapon:7,PR_Minerals:1,PR_Technique:4"
+    "need_anytime": "PR_Workers:1500,PR_Engineers:750",
+    "base_consumption_tik": "PR_Food:0.3,PR_Water:0.3,PR_Weapon:0.7,PR_Minerals:0.1,PR_Technique:0.4"
   },
   {
     "planet_type": "Добывающая станция",
@@ -16,8 +16,8 @@
     "process_slot_count": "1,5,0,1,0",
     "process_slot_base_penalty": "50%,0%,0%,30%,70%",
     "base_income_tik": "PR_Credits:100",
-    "need_anytime": "PR_Workers:1200,PR_Engineers:300",
-    "base_consumption_tik": "PR_Food:5,PR_Water:6,PR_Weapon:2,PR_Minerals:1,PR_Technique:6"
+    "need_anytime": "PR_Workers:800,PR_Engineers:200",
+    "base_consumption_tik": "PR_Food:0.5,PR_Water:0.6,PR_Weapon:0.2,PR_Minerals:0.1,PR_Technique:0.6"
   },
   {
     "planet_type": "Промышленная станция",
@@ -26,8 +26,8 @@
     "process_slot_count": "1,1,1,4,0",
     "process_slot_base_penalty": "40%,20%,40%,0%,0%",
     "base_income_tik": "PR_Credits:100",
-    "need_anytime": "PR_Workers:500,PR_Engineers:500",
-    "base_consumption_tik": "PR_Food:1,PR_Water:1.3,PR_Weapon:4,PR_Minerals:6,PR_Technique:2"
+    "need_anytime": "PR_Workers:400,PR_Engineers:400",
+    "base_consumption_tik": "PR_Food:0.1,PR_Water:0.13,PR_Weapon:0.4,PR_Minerals:0.6,PR_Technique:0.2"
   },
   {
     "planet_type": "Научная станция",
@@ -36,7 +36,7 @@
     "process_slot_count": "1,0,2,1,3",
     "process_slot_base_penalty": "40%,0%,20%,20%,0%",
     "base_income_tik": "PR_Credits:100",
-    "need_anytime": "PR_Workers:200,PR_Engineers:1000",
-    "base_consumption_tik": "PR_Food:1,PR_Water:2,PR_Weapon:3,PR_Minerals:2,PR_Technique:6"
+    "need_anytime": "PR_Workers:150,PR_Engineers:750",
+    "base_consumption_tik": "PR_Food:0.1,PR_Water:0.2,PR_Weapon:0.3,PR_Minerals:0.2,PR_Technique:0.6"
   }
 ]

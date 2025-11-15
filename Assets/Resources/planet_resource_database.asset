@@ -15,10 +15,10 @@ MonoBehaviour:
   resources:
   - resourceId: PR_Workers
     resourceName: "\u0420\u0430\u0431\u043E\u0447\u0438\u0435"
-    baseCost: 500
+    baseCost: 20
   - resourceId: PR_Engineers
     resourceName: "\u0418\u043D\u0436\u0435\u043D\u0435\u0440\u044B"
-    baseCost: 1000
+    baseCost: 40
   - resourceId: PR_Food
     resourceName: "\u0415\u0434\u0430"
     baseCost: 10
@@ -27,13 +27,13 @@ MonoBehaviour:
     baseCost: 10
   - resourceId: PR_Weapon
     resourceName: "\u0412\u043E\u043E\u0440\u0443\u0436\u0435\u043D\u0438\u0435"
-    baseCost: 120
+    baseCost: 4
   - resourceId: PR_Minerals
     resourceName: "\u041C\u0438\u043D\u0435\u0440\u0430\u043B\u044B"
-    baseCost: 20
+    baseCost: 2
   - resourceId: PR_Technique
     resourceName: "\u0422\u0435\u0445\u043D\u0438\u043A\u0430"
-    baseCost: 150
+    baseCost: 4
   - resourceId: PR_Credits
     resourceName: "\u041A\u0440\u0435\u0434\u0438\u0442\u044B"
     baseCost: 1

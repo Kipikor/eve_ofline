@@ -2,12 +2,12 @@
   {
     "resource_id": "PR_Workers",
     "resource_name": "Рабочие",
-    "base_cost": 500
+    "base_cost": 20
   },
   {
     "resource_id": "PR_Engineers",
     "resource_name": "Инженеры",
-    "base_cost": 1000
+    "base_cost": 40
   },
   {
     "resource_id": "PR_Food",
@@ -22,17 +22,17 @@
   {
     "resource_id": "PR_Weapon",
     "resource_name": "Вооружение",
-    "base_cost": 120
+    "base_cost": 4
   },
   {
     "resource_id": "PR_Minerals",
     "resource_name": "Минералы",
-    "base_cost": 20
+    "base_cost": 2
   },
   {
     "resource_id": "PR_Technique",
     "resource_name": "Техника",
-    "base_cost": 150
+    "base_cost": 4
   },
   {
     "resource_id": "PR_Credits",

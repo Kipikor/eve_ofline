@@ -15,9 +15,9 @@ public class GalaxyManagerEditor : Editor
 
 	public override void OnInspectorGUI()
 	{
-		var manager = (GalaxyManager)target;
-
 		serializedObject.Update();
+
+		var manager = (GalaxyManager)target;
 
 		// Рисуем стандартные поля компонента
 		DrawDefaultInspector();
@@ -128,6 +128,12 @@ public class GalaxyManagerEditor : Editor
 
 	private static void GenerateGalaxy(GalaxyManager manager, float radius)
 	{
+		if (Application.isPlaying)
+		{
+			EditorUtility.DisplayDialog("Galaxy Manager", "Генерация галактики недоступна в Play Mode. Останови игру и попробуй снова.", "OK");
+			return;
+		}
+
 		if (manager == null) return;
 
 		// 1. Загружаем базу планет из Resources

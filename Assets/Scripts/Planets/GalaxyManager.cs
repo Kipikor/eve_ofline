@@ -216,6 +216,30 @@ namespace EveOffline.Planets
 			}
 
 			galacticPrices = newList;
+
+			// 3. После обновления среднегалактических цен сразу подрежем цены на планетах до допустимого диапазона
+			ApplyPriceBoundsToPlanets();
+		}
+
+		private void ApplyPriceBoundsToPlanets()
+		{
+			if (_planets == null || _planets.Count == 0) return;
+			if (galacticPrices == null || galacticPrices.Count == 0) return;
+
+			for (int i = 0; i < _planets.Count; i++)
+			{
+				var planet = _planets[i];
+				if (planet == null || planet.Resources == null) continue;
+
+				var resList = planet.Resources;
+				for (int r = 0; r < resList.Count; r++)
+				{
+					var rs = resList[r];
+					if (rs == null || string.IsNullOrEmpty(rs.resourceId)) continue;
+
+					rs.currentPrice = PlanetController.ClampPrice(rs.resourceId, rs.currentPrice);
+				}
+			}
 		}
 
 #if UNITY_EDITOR
