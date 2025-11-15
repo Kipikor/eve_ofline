@@ -1,15 +1,22 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace EveOffline.Planets
 {
 	/// <summary>
 	/// Контроллер одной планеты в экономической симуляции.
-	/// Пока это заглушка, позже сюда добавим загрузку конфигов и логику ресурсов.
+	/// Подтягивает данные из конфигов/датабаз и хранит текущее состояние планеты.
 	/// </summary>
 	[DisallowMultipleComponent]
 	public class PlanetController : MonoBehaviour
 	{
+		private const string PlanetConstFileRelative = "Config/planet_const.json";
+		private const string MinResourceShareName = "Минимальная доля ресурсов";
+
+		private static float s_minResourceShare = -1f;
+
 		[Header("Идентификатор планеты")]
 		[Tooltip("ID планеты из конфигов (planet.json / planet_type.json и др.).")]
 		[SerializeField] private string planetId;
@@ -31,11 +38,33 @@ namespace EveOffline.Planets
 		}
 
 		[Header("Процессные слоты (генерируется из конфигов)")]
-		[SerializeField] private System.Collections.Generic.List<ProcessSlotInfo> processSlots =
-			new System.Collections.Generic.List<ProcessSlotInfo>();
+		[SerializeField] private List<ProcessSlotInfo> processSlots =
+			new List<ProcessSlotInfo>();
 
 		/// <summary>Список слотов процессов для этой планеты.</summary>
-		public System.Collections.Generic.IReadOnlyList<ProcessSlotInfo> ProcessSlots => processSlots;
+		public IReadOnlyList<ProcessSlotInfo> ProcessSlots => processSlots;
+
+		[Serializable]
+		public class ResourceState
+		{
+			[Tooltip("ID ресурса, например PR_Workers.")]
+			public string resourceId;
+
+			[Tooltip("Человекочитаемое имя ресурса.")]
+			public string resourceName;
+
+			[Tooltip("Стартовое количество при создании планеты.")]
+			public float startAmount;
+
+			[Tooltip("Текущее количество ресурса на планете.")]
+			public float currentAmount;
+		}
+
+		[Header("Ресурсы планеты (генерируется из конфигов)")]
+		[SerializeField] private List<ResourceState> resources = new List<ResourceState>();
+
+		/// <summary>Текущее состояние ресурсов на планете.</summary>
+		public IReadOnlyList<ResourceState> Resources => resources;
 
 		private void Awake()
 		{
@@ -61,21 +90,97 @@ namespace EveOffline.Planets
 			}
 		}
 
+		// ====== Тиковая логика экономики ======
+
+		private Dictionary<string, float> _incomePerTick;
+		private bool _incomeLoaded;
+
+		private void OnEnable()
+		{
+			var tm = PlanetTimeManager.Instance;
+			if (tm != null)
+			{
+				tm.OnTick += HandleTicks;
+			}
+		}
+
+		private void OnDisable()
+		{
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm != null)
+			{
+				tm.OnTick -= HandleTicks;
+			}
+		}
+
+		private void HandleTicks(uint tickCount)
+		{
+			if (tickCount == 0) return;
+			if (resources == null || resources.Count == 0) return;
+
+			EnsureIncomePerTickLoaded();
+			if (_incomePerTick == null || _incomePerTick.Count == 0) return;
+
+			for (int i = 0; i < resources.Count; i++)
+			{
+				var r = resources[i];
+				if (r == null || string.IsNullOrEmpty(r.resourceId)) continue;
+
+				if (_incomePerTick.TryGetValue(r.resourceId, out float inc) && Math.Abs(inc) > float.Epsilon)
+				{
+					r.currentAmount = ClampResourceAmount(r.currentAmount + inc * tickCount);
+				}
+			}
+		}
+
+		private void EnsureIncomePerTickLoaded()
+		{
+			if (_incomeLoaded) return;
+			_incomeLoaded = true;
+			_incomePerTick = null;
+
+			if (string.IsNullOrWhiteSpace(planetId)) return;
+
+			var planetDb = UnityEngine.Resources.Load<PlanetDatabase>("planet_database");
+			if (planetDb == null || planetDb.Planets == null || planetDb.Planets.Count == 0) return;
+
+			PlanetDatabase.PlanetRecord planetRec = null;
+			for (int i = 0; i < planetDb.Planets.Count; i++)
+			{
+				var rec = planetDb.Planets[i];
+				if (rec != null && string.Equals(rec.idPlanet, planetId, StringComparison.Ordinal))
+				{
+					planetRec = rec;
+					break;
+				}
+			}
+			if (planetRec == null) return;
+
+			if (string.IsNullOrWhiteSpace(planetRec.baseIncomeTikRaw))
+			{
+				_incomePerTick = new Dictionary<string, float>(StringComparer.Ordinal);
+				return;
+			}
+
+			_incomePerTick = ParseStartResources(planetRec.baseIncomeTikRaw);
+		}
+
 #if UNITY_EDITOR
 		private void OnValidate()
 		{
 			EditorUpdateProcessSlotsFromDatabase();
+			EditorUpdateResourcesFromDatabase();
 		}
 
 		/// <summary>
-		/// Обновляет список процессных слотов на основе PlanetDatabase + planet_type.json.
+		/// Обновляет список процессных слотов на основе PlanetDatabase.
 		/// Существующие значения penaltyPercent не затираются, если слот уже есть.
 		/// </summary>
 		private void EditorUpdateProcessSlotsFromDatabase()
 		{
 			if (string.IsNullOrWhiteSpace(planetId)) return;
 
-			var db = Resources.Load<PlanetDatabase>("planet_database");
+			var db = UnityEngine.Resources.Load<PlanetDatabase>("planet_database");
 			if (db == null || db.Planets == null || db.Planets.Count == 0) return;
 
 			PlanetDatabase.PlanetRecord found = null;
@@ -96,7 +201,7 @@ namespace EveOffline.Planets
 			var counts = SplitCsv(found.processSlotCountRaw);
 			var penalties = SplitCsv(found.processSlotBasePenaltyRaw);
 
-			var desiredNames = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+			var desiredNames = new HashSet<string>(StringComparer.Ordinal);
 
 			int n = Mathf.Min(types.Length, Mathf.Min(counts.Length, penalties.Length));
 			for (int i = 0; i < n; i++)
@@ -143,6 +248,78 @@ namespace EveOffline.Planets
 			UnityEditor.EditorUtility.SetDirty(this);
 		}
 
+		/// <summary>
+		/// Обновляет список ресурсов планеты на основе PlanetDatabase + PlanetResourceDatabase.
+		/// Все ресурсы из базы ресурсов присутствуют, стартовое значение берётся из start_resource.
+		/// </summary>
+		private void EditorUpdateResourcesFromDatabase()
+		{
+			if (string.IsNullOrWhiteSpace(planetId)) return;
+
+			var planetDb = UnityEngine.Resources.Load<PlanetDatabase>("planet_database");
+			if (planetDb == null || planetDb.Planets == null || planetDb.Planets.Count == 0) return;
+
+			PlanetDatabase.PlanetRecord planetRec = null;
+			for (int i = 0; i < planetDb.Planets.Count; i++)
+			{
+				var rec = planetDb.Planets[i];
+				if (rec != null && string.Equals(rec.idPlanet, planetId, StringComparison.Ordinal))
+				{
+					planetRec = rec;
+					break;
+				}
+			}
+			if (planetRec == null) return;
+
+			var resDb = UnityEngine.Resources.Load<PlanetResourceDatabase>("planet_resource_database");
+			if (resDb == null || resDb.Resources == null || resDb.Resources.Count == 0) return;
+
+			// Разбираем стартовые ресурсы планеты: "PR_Workers:2000,PR_Engineers:1000,..."
+			var startAmounts = ParseStartResources(planetRec.startResourceRaw);
+
+			var idToExisting = new Dictionary<string, ResourceState>(StringComparer.Ordinal);
+			for (int i = 0; i < resources.Count; i++)
+			{
+				var r = resources[i];
+				if (r == null || string.IsNullOrEmpty(r.resourceId)) continue;
+				idToExisting[r.resourceId] = r;
+			}
+
+			var newList = new List<ResourceState>(resDb.Resources.Count);
+			for (int i = 0; i < resDb.Resources.Count; i++)
+			{
+				var def = resDb.Resources[i];
+				if (def == null || string.IsNullOrEmpty(def.resourceId)) continue;
+
+				startAmounts.TryGetValue(def.resourceId, out float startAmount);
+				startAmount = ClampResourceAmount(startAmount);
+
+				if (!idToExisting.TryGetValue(def.resourceId, out var state) || state == null)
+				{
+					state = new ResourceState
+					{
+						resourceId = def.resourceId,
+						resourceName = def.resourceName,
+						startAmount = startAmount,
+						currentAmount = startAmount
+					};
+				}
+				else
+				{
+					state.resourceName = def.resourceName;
+					state.startAmount = startAmount;
+					state.currentAmount = ClampResourceAmount(state.currentAmount);
+				}
+
+				newList.Add(state);
+			}
+
+			resources = newList;
+			UnityEditor.EditorUtility.SetDirty(this);
+		}
+
+#endif
+
 		private static string[] SplitCsv(string raw)
 		{
 			if (string.IsNullOrWhiteSpace(raw)) return Array.Empty<string>();
@@ -175,7 +352,93 @@ namespace EveOffline.Planets
 			// Из конфига приходит, например, 40% → нужно 140%
 			return 100f + basePercent;
 		}
-#endif
+
+		private static Dictionary<string, float> ParseStartResources(string raw)
+		{
+			var result = new Dictionary<string, float>(StringComparer.Ordinal);
+			if (string.IsNullOrWhiteSpace(raw)) return result;
+
+			var entries = raw.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+			for (int i = 0; i < entries.Length; i++)
+			{
+				var part = entries[i].Trim();
+				if (string.IsNullOrEmpty(part)) continue;
+				int idx = part.IndexOf(':');
+				if (idx <= 0 || idx >= part.Length - 1) continue;
+
+				string id = part.Substring(0, idx).Trim();
+				string valueRaw = part.Substring(idx + 1).Trim();
+
+				if (string.IsNullOrEmpty(id)) continue;
+				if (!float.TryParse(valueRaw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float amount))
+				{
+					continue;
+				}
+
+				result[id] = ClampResourceAmount(amount);
+			}
+
+			return result;
+		}
+
+		private static float ClampResourceAmount(float value)
+		{
+			if (value <= 0f) return 0f;
+
+			float minShare = GetMinResourceShare();
+			if (value > 0f && value < minShare)
+				return minShare;
+
+			return value;
+		}
+
+		private static float GetMinResourceShare()
+		{
+			if (s_minResourceShare > 0f) return s_minResourceShare;
+
+			s_minResourceShare = 0.001f; // значение по умолчанию
+			try
+			{
+				string fullPath = Path.Combine(Application.dataPath, PlanetConstFileRelative);
+				if (!File.Exists(fullPath))
+				{
+					Debug.LogWarning($"[PlanetController] Не найден файл констант планет: Assets/{PlanetConstFileRelative}");
+					return s_minResourceShare;
+				}
+
+				var lines = File.ReadAllLines(fullPath);
+				for (int i = 0; i < lines.Length; i++)
+				{
+					if (!lines[i].Contains(MinResourceShareName)) continue;
+
+					for (int j = i + 1; j < Mathf.Min(lines.Length, i + 6); j++)
+					{
+						if (!lines[j].Contains("\"Значение\"")) continue;
+						int colonIndex = lines[j].IndexOf(':');
+						if (colonIndex < 0) continue;
+
+						string raw = lines[j].Substring(colonIndex + 1);
+						raw = raw.Replace(",", string.Empty);
+						raw = raw.Replace("\"", string.Empty);
+						raw = raw.Replace("}", string.Empty);
+						raw = raw.Trim();
+
+						if (float.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float parsed))
+						{
+							if (parsed > 0f)
+								s_minResourceShare = parsed;
+							return s_minResourceShare;
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Debug.LogError("[PlanetController] Ошибка чтения planet_const.json: " + e);
+			}
+
+			return s_minResourceShare;
+		}
 	}
 }
 
