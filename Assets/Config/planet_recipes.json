@@ -1,0 +1,79 @@
+[
+  {
+    "id_planet_recipe": "тренировка рабочих",
+    "process_slot_Universal": 1,
+    "process_slot_Mining": 0,
+    "process_slot_Social": 1,
+    "process_slot_Industrial": 0,
+    "process_slot_Scientific": 0,
+    "in_resource": "PR_Food:5,PR_Water:5",
+    "process_tik_timer": 5,
+    "out_resource": "PR_Workers:5"
+  },
+  {
+    "id_planet_recipe": "тренировка инженеров",
+    "process_slot_Universal": 1,
+    "process_slot_Mining": 0,
+    "process_slot_Social": 0,
+    "process_slot_Industrial": 0,
+    "process_slot_Scientific": 1,
+    "in_resource": "PR_Workers:5,PR_Food:5,PR_Water:5",
+    "process_tik_timer": 5,
+    "out_resource": "PR_Engineers:5"
+  },
+  {
+    "id_planet_recipe": "Производство еды",
+    "process_slot_Universal": 1,
+    "process_slot_Mining": 0,
+    "process_slot_Social": 0,
+    "process_slot_Industrial": 0,
+    "process_slot_Scientific": 0,
+    "in_resource": "PR_Water:1",
+    "process_tik_timer": 5,
+    "out_resource": "PR_Food:5"
+  },
+  {
+    "id_planet_recipe": "производство воды",
+    "process_slot_Universal": 1,
+    "process_slot_Mining": 0,
+    "process_slot_Social": 0,
+    "process_slot_Industrial": 0,
+    "process_slot_Scientific": 0,
+    "in_resource": "PR_Food:1",
+    "process_tik_timer": 5,
+    "out_resource": "PR_Water:5"
+  },
+  {
+    "id_planet_recipe": "Добыча минералов",
+    "process_slot_Universal": 1,
+    "process_slot_Mining": 1,
+    "process_slot_Social": 0,
+    "process_slot_Industrial": 0,
+    "process_slot_Scientific": 0,
+    "in_resource": "PR_Food:1,PR_Water:1",
+    "process_tik_timer": 5,
+    "out_resource": "PR_Minerals:5"
+  },
+  {
+    "id_planet_recipe": "производство техники",
+    "process_slot_Universal": 1,
+    "process_slot_Mining": 0,
+    "process_slot_Social": 0,
+    "process_slot_Industrial": 1,
+    "process_slot_Scientific": 0,
+    "in_resource": "PR_Food:5,PR_Water:5,PR_Minerals:5",
+    "process_tik_timer": 5,
+    "out_resource": "PR_Technique:5"
+  },
+  {
+    "id_planet_recipe": "производство оружия",
+    "process_slot_Universal": 1,
+    "process_slot_Mining": 0,
+    "process_slot_Social": 0,
+    "process_slot_Industrial": 1,
+    "process_slot_Scientific": 0,
+    "in_resource": "PR_Food:5,PR_Water:5,PR_Minerals:5",
+    "process_tik_timer": 5,
+    "out_resource": "PR_Weapon:5"
+  }
+]

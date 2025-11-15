@@ -1,0 +1,42 @@
+[
+  {
+    "resource_id": "PR_Workers",
+    "resource_name": "Рабочие",
+    "base_cost": 500
+  },
+  {
+    "resource_id": "PR_Engineers",
+    "resource_name": "Инженеры",
+    "base_cost": 1000
+  },
+  {
+    "resource_id": "PR_Food",
+    "resource_name": "Еда",
+    "base_cost": 10
+  },
+  {
+    "resource_id": "PR_Water",
+    "resource_name": "Вода",
+    "base_cost": 10
+  },
+  {
+    "resource_id": "PR_Weapon",
+    "resource_name": "Вооружение",
+    "base_cost": 120
+  },
+  {
+    "resource_id": "PR_Minerals",
+    "resource_name": "Минералы",
+    "base_cost": 20
+  },
+  {
+    "resource_id": "PR_Technique",
+    "resource_name": "Техника",
+    "base_cost": 150
+  },
+  {
+    "resource_id": "PR_Credits",
+    "resource_name": "Кредиты",
+    "base_cost": 1
+  }
+]

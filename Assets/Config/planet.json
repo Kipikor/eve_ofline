@@ -1,0 +1,142 @@
+[
+  {
+    "id_planet": "Земля_1",
+    "planet_type": "Землеподобная планета",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 8.3,
+    "color": "#3B7A57"
+  },
+  {
+    "id_planet": "Земля_2",
+    "planet_type": "Землеподобная планета",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 13.9,
+    "color": "#7FBF3F"
+  },
+  {
+    "id_planet": "Земля_3",
+    "planet_type": "Землеподобная планета",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 14.6,
+    "color": "#A8E6A1"
+  },
+  {
+    "id_planet": "Земля_4",
+    "planet_type": "Землеподобная планета",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 10.2,
+    "color": "#2F5D31"
+  },
+  {
+    "id_planet": "Земля_5",
+    "planet_type": "Землеподобная планета",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 7.3,
+    "color": "#9CCB86"
+  },
+  {
+    "id_planet": "Майнинг_1",
+    "planet_type": "Добывающая станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 8.5,
+    "color": "#F5D547"
+  },
+  {
+    "id_planet": "Майнинг_2",
+    "planet_type": "Добывающая станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 7.4,
+    "color": "#E0A106"
+  },
+  {
+    "id_planet": "Майнинг_3",
+    "planet_type": "Добывающая станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 13.1,
+    "color": "#FBE7A1"
+  },
+  {
+    "id_planet": "Майнинг_4",
+    "planet_type": "Добывающая станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 11.3,
+    "color": "#C28F00"
+  },
+  {
+    "id_planet": "Майнинг_5",
+    "planet_type": "Добывающая станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 11.3,
+    "color": "#FFF4C2"
+  },
+  {
+    "id_planet": "Индустри_1",
+    "planet_type": "Промышленная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 7.7,
+    "color": "#D94D4D"
+  },
+  {
+    "id_planet": "Индустри_2",
+    "planet_type": "Промышленная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 9.7,
+    "color": "#FF8A5C"
+  },
+  {
+    "id_planet": "Индустри_3",
+    "planet_type": "Промышленная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 10.7,
+    "color": "#B3262E"
+  },
+  {
+    "id_planet": "Индустри_4",
+    "planet_type": "Промышленная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 8.6,
+    "color": "#F2A3A3"
+  },
+  {
+    "id_planet": "Индустри_5",
+    "planet_type": "Промышленная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 11.2,
+    "color": "#8C1B1B"
+  },
+  {
+    "id_planet": "Научная_1",
+    "planet_type": "Научная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 11.2,
+    "color": "#4A90E2"
+  },
+  {
+    "id_planet": "Научная_2",
+    "planet_type": "Научная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 13.5,
+    "color": "#1B4F72"
+  },
+  {
+    "id_planet": "Научная_3",
+    "planet_type": "Научная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 8,
+    "color": "#7FDBFF"
+  },
+  {
+    "id_planet": "Научная_4",
+    "planet_type": "Научная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 12.1,
+    "color": "#2E86C1"
+  },
+  {
+    "id_planet": "Научная_5",
+    "planet_type": "Научная станция",
+    "start_resource": "PR_Workers:2000,PR_Engineers:1000,PR_Food:500,PR_Water:500,PR_Weapon:500,PR_Minerals:500,PR_Technique:500,PR_Credits:10000",
+    "scale": 9.4,
+    "color": "#A9CCE3"
+  }
+]
