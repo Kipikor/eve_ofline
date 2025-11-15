@@ -15,9 +15,12 @@ public class GalaxyManagerEditor : Editor
 
 	public override void OnInspectorGUI()
 	{
-		base.OnInspectorGUI();
-
 		var manager = (GalaxyManager)target;
+
+		serializedObject.Update();
+
+		// Рисуем стандартные поля компонента
+		DrawDefaultInspector();
 
 		EditorGUILayout.Space();
 		EditorGUILayout.LabelField("Галактический генератор", EditorStyles.boldLabel);
@@ -31,6 +34,52 @@ public class GalaxyManagerEditor : Editor
 		{
 			GenerateGalaxy(manager, hasRadius ? radius : manager.GalaxyRadiusUnityMeters);
 		}
+		EditorGUILayout.Space();
+		DrawPricesPanel(manager);
+
+		serializedObject.ApplyModifiedProperties();
+	}
+
+	private void DrawPricesPanel(GalaxyManager manager)
+	{
+		if (manager == null) return;
+
+		EditorGUILayout.LabelField("Среднегалактические цены", EditorStyles.boldLabel);
+
+		var prices = manager.GalacticPrices;
+		if (prices == null || prices.Count == 0)
+		{
+			EditorGUILayout.HelpBox("Цены ещё не собраны. Запусти плей мод и дождись первого сбора.", MessageType.Info);
+			return;
+		}
+
+		EditorGUI.indentLevel++;
+		for (int i = 0; i < prices.Count; i++)
+		{
+			var e = prices[i];
+			if (e == null) continue;
+
+			EditorGUILayout.BeginHorizontal();
+
+			// Нередактируемое имя ресурса
+			GUI.enabled = false;
+			string label = string.IsNullOrEmpty(e.resourceName) ? e.resourceId : e.resourceName;
+			EditorGUILayout.TextField(label, GUILayout.MinWidth(160));
+			GUI.enabled = true;
+
+			// Редактируемые прошлая и текущая цена
+			float last = e.lastPrice;
+			float current = e.currentPrice;
+
+			last = EditorGUILayout.FloatField(last, GUILayout.Width(80));
+			current = EditorGUILayout.FloatField(current, GUILayout.Width(80));
+
+			e.lastPrice = last;
+			e.currentPrice = current;
+
+			EditorGUILayout.EndHorizontal();
+		}
+		EditorGUI.indentLevel--;
 	}
 
 	private static bool TryReadGalaxyRadius(out float radius)

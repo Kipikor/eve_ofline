@@ -12,19 +12,6 @@ namespace EveOffline.Planets
 	[DisallowMultipleComponent]
 	public class PlanetController : MonoBehaviour
 	{
-		private const string PlanetConstFileRelative = "Config/planet_const.json";
-		private const string MinResourceShareName = "Минимальная доля ресурсов";
-		private const string CreditDecayName = "Естественная убыть PR_Credits со счёта каждый тик от доли существующих, касается всех кто может накапливать PR_Credits";
-		private const string PopulationDecayName = "Естественная убыль населения на планетах каждый тик от всех имеющихся";
-		private const string ReserveTicksAheadName = "На сколько тиков вперёд запасает ресурсов планета(целевой запас). Так же планеты не будет продавать ресурс если его текущий запас ниже целевого.";
-		private const string ReservePenaltyTicksAheadName = "Штрафы за отсутствие запасов начинают начисляться если их меньше чем на сколько тиков вперёд";
-
-		private static float s_minResourceShare = -1f;
-		private static float s_creditDecayPerTick = -1f;
-		private static float s_populationDecayPerTick = -1f;
-		private static float s_reserveTicksAhead = -1f;
-		private static float s_reservePenaltyTicksAhead = -1f;
-
 		[Header("Идентификатор планеты")]
 		[Tooltip("ID планеты из конфигов (planet.json / planet_type.json и др.).")]
 		[SerializeField] private string planetId;
@@ -72,6 +59,12 @@ namespace EveOffline.Planets
 
 			[Tooltip("Нижний порог запаса, ниже которого считаем, что ресурса критически мало.")]
 			public float warningAmount;
+
+			[Tooltip("Базовая цена ресурса из planet_resource_database (base_cost).")]
+			public float basePrice;
+
+			[Tooltip("Текущая цена ресурса на планете.")]
+			public float currentPrice;
 		}
 
 		[Header("Ресурсы планеты (генерируется из конфигов)")]
@@ -148,6 +141,7 @@ namespace EveOffline.Planets
 				float value = r.currentAmount;
 				float target = 0f;
 				float warning = 0f;
+				float price = r.currentPrice <= 0f ? r.basePrice : r.currentPrice;
 
 				if (_incomePerTick != null &&
 				    _incomePerTick.TryGetValue(id, out float inc) &&
@@ -184,6 +178,9 @@ namespace EveOffline.Planets
 						float factor = Mathf.Pow(1f - Mathf.Clamp01(decay), tickCount);
 						value *= factor;
 					}
+
+					// Цена кредитов не меняется никогда
+					price = r.basePrice;
 				}
 
 				// Естественная убыль населения (рабочие + инженеры)
@@ -215,9 +212,33 @@ namespace EveOffline.Planets
 					}
 				}
 
+				// Динамика цены для всех ресурсов, кроме кредитов
+				if (!string.Equals(id, "PR_Credits", StringComparison.Ordinal))
+				{
+					float decrease = GetPriceDecreasePerTick();
+					float increase = GetPriceIncreasePerTick();
+
+					if (target > 0f)
+					{
+						if (value >= target && decrease > 0f)
+						{
+							// Избыток: цена плавно уменьшается относительно текущей
+							float factor = Mathf.Pow(1f - Mathf.Clamp01(decrease), tickCount);
+							price *= factor;
+						}
+						else if (value < target && increase > 0f)
+						{
+							// Дефицит: цена плавно растёт
+							float factor = Mathf.Pow(1f + Mathf.Clamp01(increase), tickCount);
+							price *= factor;
+						}
+					}
+				}
+
 				r.currentAmount = ClampResourceAmount(value);
 				r.targetAmount = ClampResourceAmount(target);
 				r.warningAmount = ClampResourceAmount(warning);
+				r.currentPrice = ClampPrice(price);
 			}
 		}
 
@@ -432,6 +453,11 @@ namespace EveOffline.Planets
 					state.currentAmount = ClampResourceAmount(state.currentAmount);
 				}
 
+				// Базовая цена ресурса берётся из planet_resource_database.
+				state.basePrice = def.baseCost;
+				// Текущая цена при инициализации равна базовой.
+				state.currentPrice = def.baseCost;
+
 				newList.Add(state);
 			}
 
@@ -516,93 +542,86 @@ namespace EveOffline.Planets
 			return value;
 		}
 
+		private static float ClampPrice(float value)
+		{
+			if (value <= 0f) return 0f;
+
+			// Используем ту же минимальную долю, что и для ресурсов, как шаг округления.
+			float step = GetMinResourceShare();
+			if (step <= 0f) step = 0.001f;
+
+			value = Mathf.Round(value / step) * step;
+			return value;
+		}
+
 		private static float GetMinResourceShare()
 		{
-			if (s_minResourceShare > 0f) return s_minResourceShare;
-
-			s_minResourceShare = 0.001f; // значение по умолчанию
-			ReadFloatConstFromConfig(MinResourceShareName, ref s_minResourceShare);
-			return s_minResourceShare;
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm != null && tm.Constants != null)
+			{
+				return Mathf.Max(0f, tm.Constants.minResourceShare);
+			}
+			return 0.001f;
 		}
 
 		private static float GetCreditDecayPerTick()
 		{
-			if (s_creditDecayPerTick >= 0f) return s_creditDecayPerTick;
-
-			s_creditDecayPerTick = 0.01f; // значение по умолчанию
-			ReadFloatConstFromConfig(CreditDecayName, ref s_creditDecayPerTick);
-			return s_creditDecayPerTick;
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm != null && tm.Constants != null)
+			{
+				return Mathf.Max(0f, tm.Constants.creditDecayPerTick);
+			}
+			return 0.01f;
 		}
 
 		private static float GetPopulationDecayPerTick()
 		{
-			if (s_populationDecayPerTick >= 0f) return s_populationDecayPerTick;
-
-			s_populationDecayPerTick = 0.05f; // значение по умолчанию
-			ReadFloatConstFromConfig(PopulationDecayName, ref s_populationDecayPerTick);
-			return s_populationDecayPerTick;
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm != null && tm.Constants != null)
+			{
+				return Mathf.Max(0f, tm.Constants.populationDecayPerTick);
+			}
+			return 0.05f;
 		}
 
 		private static float GetReserveTicksAhead()
 		{
-			if (s_reserveTicksAhead >= 0f) return s_reserveTicksAhead;
-
-			s_reserveTicksAhead = 150f; // значение по умолчанию
-			ReadFloatConstFromConfig(ReserveTicksAheadName, ref s_reserveTicksAhead);
-			return s_reserveTicksAhead;
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm != null && tm.Constants != null)
+			{
+				return Mathf.Max(0f, tm.Constants.reserveTicksAhead);
+			}
+			return 150f;
 		}
 
 		private static float GetReservePenaltyTicksAhead()
 		{
-			if (s_reservePenaltyTicksAhead >= 0f) return s_reservePenaltyTicksAhead;
-
-			s_reservePenaltyTicksAhead = 75f; // значение по умолчанию
-			ReadFloatConstFromConfig(ReservePenaltyTicksAheadName, ref s_reservePenaltyTicksAhead);
-			return s_reservePenaltyTicksAhead;
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm != null && tm.Constants != null)
+			{
+				return Mathf.Max(0f, tm.Constants.reservePenaltyTicksAhead);
+			}
+			return 75f;
 		}
 
-		private static void ReadFloatConstFromConfig(string name, ref float target)
+		private static float GetPriceDecreasePerTick()
 		{
-			try
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm != null && tm.Constants != null)
 			{
-				string fullPath = Path.Combine(Application.dataPath, PlanetConstFileRelative);
-				if (!File.Exists(fullPath))
-				{
-					Debug.LogWarning($"[PlanetController] Не найден файл констант планет: Assets/{PlanetConstFileRelative}");
-					return;
-				}
-
-				var lines = File.ReadAllLines(fullPath);
-				for (int i = 0; i < lines.Length; i++)
-				{
-					if (!lines[i].Contains(name)) continue;
-
-					for (int j = i + 1; j < Mathf.Min(lines.Length, i + 6); j++)
-					{
-						if (!lines[j].Contains("\"Значение\"")) continue;
-						int colonIndex = lines[j].IndexOf(':');
-						if (colonIndex < 0) continue;
-
-						string raw = lines[j].Substring(colonIndex + 1);
-						raw = raw.Replace(",", string.Empty);
-						raw = raw.Replace("\"", string.Empty);
-						raw = raw.Replace("}", string.Empty);
-						raw = raw.Trim();
-
-						if (float.TryParse(raw, System.Globalization.NumberStyles.Float,
-							    System.Globalization.CultureInfo.InvariantCulture, out float parsed))
-						{
-							if (parsed >= 0f)
-								target = parsed;
-							return;
-						}
-					}
-				}
+				return Mathf.Max(0f, tm.Constants.priceDecreasePerTick);
 			}
-			catch (Exception e)
+			return 0.01f;
+		}
+
+		private static float GetPriceIncreasePerTick()
+		{
+			var tm = PlanetTimeManager.TryGetExistingInstance();
+			if (tm != null && tm.Constants != null)
 			{
-				Debug.LogError("[PlanetController] Ошибка чтения planet_const.json: " + e);
+				return Mathf.Max(0f, tm.Constants.priceIncreasePerTick);
 			}
+			return 0.02f;
 		}
 	}
 }

@@ -87,8 +87,10 @@ public class PlanetControllerEditor : Editor
 					var currentProp = element.FindPropertyRelative("currentAmount");
 					var targetProp = element.FindPropertyRelative("targetAmount");
 					var warningProp = element.FindPropertyRelative("warningAmount");
+					var basePriceProp = element.FindPropertyRelative("basePrice"); // оставляем на будущее, но не рисуем отдельно
+					var currentPriceProp = element.FindPropertyRelative("currentPrice");
 
-					if (nameProp == null || currentProp == null || targetProp == null || warningProp == null) continue;
+					if (nameProp == null || currentProp == null || targetProp == null || warningProp == null || currentPriceProp == null) continue;
 
 					float current = currentProp.floatValue;
 					float target = targetProp.floatValue;
@@ -132,6 +134,11 @@ public class PlanetControllerEditor : Editor
 					GUI.enabled = false;
 					EditorGUILayout.FloatField(target, GUILayout.Width(80));
 					GUI.enabled = true;
+
+					// Текущая цена (редактируемая, базовая не показывается отдельно)
+					float currentPrice = currentPriceProp.floatValue;
+					currentPrice = EditorGUILayout.FloatField(currentPrice, GUILayout.Width(80));
+					currentPriceProp.floatValue = Mathf.Max(0f, currentPrice);
 
 					EditorGUILayout.EndHorizontal();
 				}
