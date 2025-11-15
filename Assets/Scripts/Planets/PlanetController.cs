@@ -93,7 +93,8 @@ namespace EveOffline.Planets
 		// ====== Тиковая логика экономики ======
 
 		private Dictionary<string, float> _incomePerTick;
-		private bool _incomeLoaded;
+		private Dictionary<string, float> _consumptionPerTick;
+		private bool _economyLoaded;
 
 		private void OnEnable()
 		{
@@ -118,26 +119,42 @@ namespace EveOffline.Planets
 			if (tickCount == 0) return;
 			if (resources == null || resources.Count == 0) return;
 
-			EnsureIncomePerTickLoaded();
-			if (_incomePerTick == null || _incomePerTick.Count == 0) return;
+			EnsureEconomyPerTickLoaded();
+			if ((_incomePerTick == null || _incomePerTick.Count == 0) &&
+			    (_consumptionPerTick == null || _consumptionPerTick.Count == 0))
+				return;
 
 			for (int i = 0; i < resources.Count; i++)
 			{
 				var r = resources[i];
 				if (r == null || string.IsNullOrEmpty(r.resourceId)) continue;
 
-				if (_incomePerTick.TryGetValue(r.resourceId, out float inc) && Math.Abs(inc) > float.Epsilon)
+				float value = r.currentAmount;
+
+				if (_incomePerTick != null &&
+				    _incomePerTick.TryGetValue(r.resourceId, out float inc) &&
+				    Math.Abs(inc) > float.Epsilon)
 				{
-					r.currentAmount = ClampResourceAmount(r.currentAmount + inc * tickCount);
+					value += inc * tickCount;
 				}
+
+				if (_consumptionPerTick != null &&
+				    _consumptionPerTick.TryGetValue(r.resourceId, out float cons) &&
+				    Math.Abs(cons) > float.Epsilon)
+				{
+					value -= cons * tickCount;
+				}
+
+				r.currentAmount = ClampResourceAmount(value);
 			}
 		}
 
-		private void EnsureIncomePerTickLoaded()
+		private void EnsureEconomyPerTickLoaded()
 		{
-			if (_incomeLoaded) return;
-			_incomeLoaded = true;
+			if (_economyLoaded) return;
+			_economyLoaded = true;
 			_incomePerTick = null;
+			_consumptionPerTick = null;
 
 			if (string.IsNullOrWhiteSpace(planetId)) return;
 
@@ -156,13 +173,25 @@ namespace EveOffline.Planets
 			}
 			if (planetRec == null) return;
 
-			if (string.IsNullOrWhiteSpace(planetRec.baseIncomeTikRaw))
+			// Доходы
+			if (!string.IsNullOrWhiteSpace(planetRec.baseIncomeTikRaw))
+			{
+				_incomePerTick = ParseStartResources(planetRec.baseIncomeTikRaw);
+			}
+			else
 			{
 				_incomePerTick = new Dictionary<string, float>(StringComparer.Ordinal);
-				return;
 			}
 
-			_incomePerTick = ParseStartResources(planetRec.baseIncomeTikRaw);
+			// Базовое потребление
+			if (!string.IsNullOrWhiteSpace(planetRec.baseConsumptionTikRaw))
+			{
+				_consumptionPerTick = ParseStartResources(planetRec.baseConsumptionTikRaw);
+			}
+			else
+			{
+				_consumptionPerTick = new Dictionary<string, float>(StringComparer.Ordinal);
+			}
 		}
 
 #if UNITY_EDITOR
@@ -174,7 +203,7 @@ namespace EveOffline.Planets
 
 		/// <summary>
 		/// Обновляет список процессных слотов на основе PlanetDatabase.
-		/// Существующие значения penaltyPercent не затираются, если слот уже есть.
+		/// Для каждого слота создаётся отдельная запись, чтобы штрафы были индивидуальными.
 		/// </summary>
 		private void EditorUpdateProcessSlotsFromDatabase()
 		{
@@ -201,7 +230,9 @@ namespace EveOffline.Planets
 			var counts = SplitCsv(found.processSlotCountRaw);
 			var penalties = SplitCsv(found.processSlotBasePenaltyRaw);
 
-			var desiredNames = new HashSet<string>(StringComparer.Ordinal);
+			// Будем собирать новый список слотов, переиспользуя старые элементы, где возможно
+			var oldSlots = new List<ProcessSlotInfo>(processSlots);
+			var newSlots = new List<ProcessSlotInfo>();
 
 			int n = Mathf.Min(types.Length, Mathf.Min(counts.Length, penalties.Length));
 			for (int i = 0; i < n; i++)
@@ -213,37 +244,44 @@ namespace EveOffline.Planets
 				if (count <= 0) continue; // слоты с нулевым количеством не создаём
 
 				string slotName = "PS_" + typeName.Trim();
-				desiredNames.Add(slotName);
-
 				float defaultPenalty = ComputeDefaultPenaltyPercent(penalties[i]);
 
-				var existing = processSlots.Find(s => s != null && string.Equals(s.slotName, slotName, StringComparison.Ordinal));
-				if (existing != null)
+				// Для каждого слота этого типа создаём отдельную запись
+				for (int k = 0; k < count; k++)
 				{
-					// Обновляем только количество, штраф оставляем как настроил геймдизайнер
-					existing.slotCount = count;
-				}
-				else
-				{
-					var info = new ProcessSlotInfo
+					ProcessSlotInfo reuse = null;
+					for (int s = 0; s < oldSlots.Count; s++)
 					{
-						slotName = slotName,
-						slotCount = count,
-						penaltyPercent = defaultPenalty
-					};
-					processSlots.Add(info);
+						var candidate = oldSlots[s];
+						if (candidate != null && string.Equals(candidate.slotName, slotName, StringComparison.Ordinal))
+						{
+							reuse = candidate;
+							oldSlots.RemoveAt(s);
+							break;
+						}
+					}
+
+					if (reuse != null)
+					{
+						// Переиспользуем существующий слот, чтобы не терять настроенный штраф
+						reuse.slotName = slotName;
+						reuse.slotCount = 1;
+						newSlots.Add(reuse);
+					}
+					else
+					{
+						var info = new ProcessSlotInfo
+						{
+							slotName = slotName,
+							slotCount = 1,
+							penaltyPercent = defaultPenalty
+						};
+						newSlots.Add(info);
+					}
 				}
 			}
 
-			// Удаляем слоты, которых больше нет в конфиге типа
-			for (int i = processSlots.Count - 1; i >= 0; i--)
-			{
-				var s = processSlots[i];
-				if (s == null || !desiredNames.Contains(s.slotName))
-				{
-					processSlots.RemoveAt(i);
-				}
-			}
+			processSlots = newSlots;
 
 			UnityEditor.EditorUtility.SetDirty(this);
 		}
@@ -387,7 +425,10 @@ namespace EveOffline.Planets
 
 			float minShare = GetMinResourceShare();
 			if (value > 0f && value < minShare)
-				return minShare;
+				value = minShare;
+
+			// Округляем до тысячных, чтобы избежать шлейфа 307.6018 и подобных
+			value = Mathf.Round(value * 1000f) / 1000f;
 
 			return value;
 		}

@@ -39,12 +39,25 @@ public class PlanetControllerEditor : Editor
 
 					// Нередактируемое имя слота
 					GUI.enabled = false;
-					EditorGUILayout.TextField(nameProp.stringValue, GUILayout.MinWidth(120));
+					EditorGUILayout.TextField(nameProp.stringValue, GUILayout.MinWidth(140));
 
-					// Нередактируемое значение штрафа в формате "140%"
+					// Редактируемое значение штрафа в формате "140%"
 					string penaltyText = $"{penaltyProp.floatValue:0.##}%";
-					EditorGUILayout.TextField(penaltyText, GUILayout.Width(80));
 					GUI.enabled = true;
+					string newPenaltyText = EditorGUILayout.TextField(penaltyText, GUILayout.Width(80));
+
+					// Парсим число обратно, допускаем ввод без знака % или с ним
+					if (newPenaltyText != penaltyText && !string.IsNullOrEmpty(newPenaltyText))
+					{
+						string raw = newPenaltyText.Trim();
+						if (raw.EndsWith("%"))
+							raw = raw.Substring(0, raw.Length - 1);
+						if (float.TryParse(raw, System.Globalization.NumberStyles.Float,
+							    System.Globalization.CultureInfo.InvariantCulture, out float parsed))
+						{
+							penaltyProp.floatValue = parsed;
+						}
+					}
 
 					EditorGUILayout.EndHorizontal();
 				}
