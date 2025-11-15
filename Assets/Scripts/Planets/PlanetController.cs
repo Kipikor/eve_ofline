@@ -14,8 +14,16 @@ namespace EveOffline.Planets
 	{
 		private const string PlanetConstFileRelative = "Config/planet_const.json";
 		private const string MinResourceShareName = "Минимальная доля ресурсов";
+		private const string CreditDecayName = "Естественная убыть PR_Credits со счёта каждый тик от доли существующих, касается всех кто может накапливать PR_Credits";
+		private const string PopulationDecayName = "Естественная убыль населения на планетах каждый тик от всех имеющихся";
+		private const string ReserveTicksAheadName = "На сколько тиков вперёд запасает ресурсов планета(целевой запас). Так же планеты не будет продавать ресурс если его текущий запас ниже целевого.";
+		private const string ReservePenaltyTicksAheadName = "Штрафы за отсутствие запасов начинают начисляться если их меньше чем на сколько тиков вперёд";
 
 		private static float s_minResourceShare = -1f;
+		private static float s_creditDecayPerTick = -1f;
+		private static float s_populationDecayPerTick = -1f;
+		private static float s_reserveTicksAhead = -1f;
+		private static float s_reservePenaltyTicksAhead = -1f;
 
 		[Header("Идентификатор планеты")]
 		[Tooltip("ID планеты из конфигов (planet.json / planet_type.json и др.).")]
@@ -58,6 +66,12 @@ namespace EveOffline.Planets
 
 			[Tooltip("Текущее количество ресурса на планете.")]
 			public float currentAmount;
+
+			[Tooltip("Целевой запас ресурса, который планета считает комфортным.")]
+			public float targetAmount;
+
+			[Tooltip("Нижний порог запаса, ниже которого считаем, что ресурса критически мало.")]
+			public float warningAmount;
 		}
 
 		[Header("Ресурсы планеты (генерируется из конфигов)")]
@@ -94,6 +108,7 @@ namespace EveOffline.Planets
 
 		private Dictionary<string, float> _incomePerTick;
 		private Dictionary<string, float> _consumptionPerTick;
+		private Dictionary<string, float> _needAnytimePerPlanet;
 		private bool _economyLoaded;
 
 		private void OnEnable()
@@ -128,24 +143,81 @@ namespace EveOffline.Planets
 			{
 				var r = resources[i];
 				if (r == null || string.IsNullOrEmpty(r.resourceId)) continue;
+				string id = r.resourceId;
 
 				float value = r.currentAmount;
+				float target = 0f;
+				float warning = 0f;
 
 				if (_incomePerTick != null &&
-				    _incomePerTick.TryGetValue(r.resourceId, out float inc) &&
+				    _incomePerTick.TryGetValue(id, out float inc) &&
 				    Math.Abs(inc) > float.Epsilon)
 				{
 					value += inc * tickCount;
 				}
 
 				if (_consumptionPerTick != null &&
-				    _consumptionPerTick.TryGetValue(r.resourceId, out float cons) &&
+				    _consumptionPerTick.TryGetValue(id, out float cons) &&
 				    Math.Abs(cons) > float.Epsilon)
 				{
 					value -= cons * tickCount;
+
+					// Целевой запас по обычным ресурсам = расход за тик * число тиков вперёд
+					float reserveTicks = GetReserveTicksAhead();
+					float penaltyTicks = GetReservePenaltyTicksAhead();
+					if (cons > 0f && reserveTicks > 0f)
+					{
+						target = cons * reserveTicks;
+						if (penaltyTicks > 0f)
+						{
+							warning = cons * penaltyTicks;
+						}
+					}
+				}
+
+				// Естественная убыль кредитов
+				if (string.Equals(id, "PR_Credits", StringComparison.Ordinal))
+				{
+					float decay = GetCreditDecayPerTick();
+					if (decay > 0f)
+					{
+						float factor = Mathf.Pow(1f - Mathf.Clamp01(decay), tickCount);
+						value *= factor;
+					}
+				}
+
+				// Естественная убыль населения (рабочие + инженеры)
+				if (string.Equals(id, "PR_Workers", StringComparison.Ordinal) ||
+				    string.Equals(id, "PR_Engineers", StringComparison.Ordinal))
+				{
+					float decay = GetPopulationDecayPerTick();
+					if (decay > 0f)
+					{
+						float factor = Mathf.Pow(1f - Mathf.Clamp01(decay), tickCount);
+						value *= factor;
+					}
+
+					// Целевой запас населения по формуле из need_anytime
+					if (_needAnytimePerPlanet != null &&
+					    _needAnytimePerPlanet.TryGetValue(id, out float needBase) &&
+					    needBase > 0f)
+					{
+						// Используем горизонты вперёд: полный и штрафной
+						float fullTicks = GetReserveTicksAhead();
+						float shortTicks = GetReservePenaltyTicksAhead();
+						float perTickDecay = GetPopulationDecayPerTick();
+						float baseFactor = 1f - Mathf.Clamp01(perTickDecay);
+						float powerFull = Mathf.Pow(baseFactor, fullTicks);
+						float powerShort = Mathf.Pow(baseFactor, shortTicks);
+						// target = need * (1 + (1 - baseFactor^ticks))
+						target = needBase * (1f + (1f - powerFull));
+						warning = needBase * (1f + (1f - powerShort));
+					}
 				}
 
 				r.currentAmount = ClampResourceAmount(value);
+				r.targetAmount = ClampResourceAmount(target);
+				r.warningAmount = ClampResourceAmount(warning);
 			}
 		}
 
@@ -155,6 +227,7 @@ namespace EveOffline.Planets
 			_economyLoaded = true;
 			_incomePerTick = null;
 			_consumptionPerTick = null;
+			_needAnytimePerPlanet = null;
 
 			if (string.IsNullOrWhiteSpace(planetId)) return;
 
@@ -191,6 +264,16 @@ namespace EveOffline.Planets
 			else
 			{
 				_consumptionPerTick = new Dictionary<string, float>(StringComparer.Ordinal);
+			}
+
+			// Базовая потребность (need_anytime) — используется для расчёта целевого населения
+			if (!string.IsNullOrWhiteSpace(planetRec.needAnytimeRaw))
+			{
+				_needAnytimePerPlanet = ParseStartResources(planetRec.needAnytimeRaw);
+			}
+			else
+			{
+				_needAnytimePerPlanet = new Dictionary<string, float>(StringComparer.Ordinal);
 			}
 		}
 
@@ -438,19 +521,61 @@ namespace EveOffline.Planets
 			if (s_minResourceShare > 0f) return s_minResourceShare;
 
 			s_minResourceShare = 0.001f; // значение по умолчанию
+			ReadFloatConstFromConfig(MinResourceShareName, ref s_minResourceShare);
+			return s_minResourceShare;
+		}
+
+		private static float GetCreditDecayPerTick()
+		{
+			if (s_creditDecayPerTick >= 0f) return s_creditDecayPerTick;
+
+			s_creditDecayPerTick = 0.01f; // значение по умолчанию
+			ReadFloatConstFromConfig(CreditDecayName, ref s_creditDecayPerTick);
+			return s_creditDecayPerTick;
+		}
+
+		private static float GetPopulationDecayPerTick()
+		{
+			if (s_populationDecayPerTick >= 0f) return s_populationDecayPerTick;
+
+			s_populationDecayPerTick = 0.05f; // значение по умолчанию
+			ReadFloatConstFromConfig(PopulationDecayName, ref s_populationDecayPerTick);
+			return s_populationDecayPerTick;
+		}
+
+		private static float GetReserveTicksAhead()
+		{
+			if (s_reserveTicksAhead >= 0f) return s_reserveTicksAhead;
+
+			s_reserveTicksAhead = 150f; // значение по умолчанию
+			ReadFloatConstFromConfig(ReserveTicksAheadName, ref s_reserveTicksAhead);
+			return s_reserveTicksAhead;
+		}
+
+		private static float GetReservePenaltyTicksAhead()
+		{
+			if (s_reservePenaltyTicksAhead >= 0f) return s_reservePenaltyTicksAhead;
+
+			s_reservePenaltyTicksAhead = 75f; // значение по умолчанию
+			ReadFloatConstFromConfig(ReservePenaltyTicksAheadName, ref s_reservePenaltyTicksAhead);
+			return s_reservePenaltyTicksAhead;
+		}
+
+		private static void ReadFloatConstFromConfig(string name, ref float target)
+		{
 			try
 			{
 				string fullPath = Path.Combine(Application.dataPath, PlanetConstFileRelative);
 				if (!File.Exists(fullPath))
 				{
 					Debug.LogWarning($"[PlanetController] Не найден файл констант планет: Assets/{PlanetConstFileRelative}");
-					return s_minResourceShare;
+					return;
 				}
 
 				var lines = File.ReadAllLines(fullPath);
 				for (int i = 0; i < lines.Length; i++)
 				{
-					if (!lines[i].Contains(MinResourceShareName)) continue;
+					if (!lines[i].Contains(name)) continue;
 
 					for (int j = i + 1; j < Mathf.Min(lines.Length, i + 6); j++)
 					{
@@ -464,11 +589,12 @@ namespace EveOffline.Planets
 						raw = raw.Replace("}", string.Empty);
 						raw = raw.Trim();
 
-						if (float.TryParse(raw, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float parsed))
+						if (float.TryParse(raw, System.Globalization.NumberStyles.Float,
+							    System.Globalization.CultureInfo.InvariantCulture, out float parsed))
 						{
-							if (parsed > 0f)
-								s_minResourceShare = parsed;
-							return s_minResourceShare;
+							if (parsed >= 0f)
+								target = parsed;
+							return;
 						}
 					}
 				}
@@ -477,8 +603,6 @@ namespace EveOffline.Planets
 			{
 				Debug.LogError("[PlanetController] Ошибка чтения planet_const.json: " + e);
 			}
-
-			return s_minResourceShare;
 		}
 	}
 }

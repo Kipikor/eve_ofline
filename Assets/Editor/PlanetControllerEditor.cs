@@ -85,8 +85,33 @@ public class PlanetControllerEditor : Editor
 					var idProp = element.FindPropertyRelative("resourceId");
 					var nameProp = element.FindPropertyRelative("resourceName");
 					var currentProp = element.FindPropertyRelative("currentAmount");
+					var targetProp = element.FindPropertyRelative("targetAmount");
+					var warningProp = element.FindPropertyRelative("warningAmount");
 
-					if (nameProp == null || currentProp == null) continue;
+					if (nameProp == null || currentProp == null || targetProp == null || warningProp == null) continue;
+
+					float current = currentProp.floatValue;
+					float target = targetProp.floatValue;
+					float warning = warningProp.floatValue;
+
+					// Выбираем цвет имени ресурса по запасам
+					Color oldColor = GUI.color;
+					if (target > 0f && current >= target)
+					{
+						GUI.color = Color.green;
+					}
+					else
+					{
+						float lowThreshold = warning > 0f ? warning : target;
+						if (lowThreshold > 0f && current < lowThreshold)
+						{
+							GUI.color = Color.red;
+						}
+						else if (target > 0f && current < target)
+						{
+							GUI.color = Color.yellow;
+						}
+					}
 
 					EditorGUILayout.BeginHorizontal();
 
@@ -96,10 +121,17 @@ public class PlanetControllerEditor : Editor
 					EditorGUILayout.TextField(label, GUILayout.MinWidth(140));
 					GUI.enabled = true;
 
+					GUI.color = oldColor;
+
 					// Редактируемое текущее количество
-					float value = currentProp.floatValue;
+					float value = current;
 					value = EditorGUILayout.FloatField(value, GUILayout.Width(80));
 					currentProp.floatValue = value;
+
+					// Нередактируемый целевой запас
+					GUI.enabled = false;
+					EditorGUILayout.FloatField(target, GUILayout.Width(80));
+					GUI.enabled = true;
 
 					EditorGUILayout.EndHorizontal();
 				}
