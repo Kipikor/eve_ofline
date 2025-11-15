@@ -25,6 +25,25 @@ namespace EveOffline.Planets
 
 			[Header("Стартовые ресурсы")]
 			[TextArea] public string startResourceRaw;
+
+			[Header("Параметры типа планеты (из planet_type.json)")]
+			[Tooltip("Типы слотов процессов, как в process_slot_type (например: Universal,Mining,Social,Industrial,Scientific).")]
+			public string processSlotTypeRaw;
+			
+			[Tooltip("Кол-во слотов по типам, как в process_slot_count (например: 1,1,3,1,1).")]
+			public string processSlotCountRaw;
+			
+			[Tooltip("Базовые штрафы по слотам, как в process_slot_base_penalty (например: 30%,30%,0%,40%,30%).")]
+			public string processSlotBasePenaltyRaw;
+			
+			[Tooltip("Базовый доход в тик: base_income_tik.")]
+			public string baseIncomeTikRaw;
+			
+			[Tooltip("Постоянные потребности need_anytime.")]
+			public string needAnytimeRaw;
+			
+			[Tooltip("Базовое потребление в тик: base_consumption_tik.")]
+			public string baseConsumptionTikRaw;
 		}
 
 		[SerializeField] private List<PlanetRecord> planets = new List<PlanetRecord>();

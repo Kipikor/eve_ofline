@@ -132,7 +132,7 @@ public class GalaxyManagerEditor : Editor
 
 		var placedPositions = new List<Vector2>();
 		float safeRadius = Mathf.Max(0f, radius);
-		float minDist = safeRadius * 0.05f; // минимум 1% от радиуса галактики
+		float minDist = safeRadius * 0.05f; // минимум 5% от радиуса галактики
 
 		for (int i = 0; i < records.Count; i++)
 		{

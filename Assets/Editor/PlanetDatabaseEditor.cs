@@ -83,20 +83,38 @@ public class PlanetDatabaseEditor : Editor
 		public List<PlanetJsonRecord> items;
 	}
 
+	[Serializable]
+	private class PlanetTypeJsonRecord
+	{
+		public string planet_type;
+		public string process_slot_type;
+		public string process_slot_count;
+		public string process_slot_base_penalty;
+		public string base_income_tik;
+		public string need_anytime;
+		public string base_consumption_tik;
+	}
+
+	[Serializable]
+	private class PlanetTypeJsonWrapper
+	{
+		public List<PlanetTypeJsonRecord> items;
+	}
+
 	private static void RebuildFromPlanetJson(PlanetDatabase db)
 	{
 		if (db == null) return;
 
 		try
 		{
-			string path = Path.Combine(Application.dataPath, "Config/planet.json");
-			if (!File.Exists(path))
+			string planetsPath = Path.Combine(Application.dataPath, "Config/planet.json");
+			if (!File.Exists(planetsPath))
 			{
 				EditorUtility.DisplayDialog("Planet Database", "Не найден файл: Assets/Config/planet.json", "OK");
 				return;
 			}
 
-			string json = File.ReadAllText(path);
+			string json = File.ReadAllText(planetsPath);
 			// В файле лежит чистый массив, оборачиваем его в объект для JsonUtility
 			string wrapped = "{ \"items\": " + json + " }";
 			var list = JsonUtility.FromJson<PlanetJsonWrapper>(wrapped);
@@ -104,6 +122,36 @@ public class PlanetDatabaseEditor : Editor
 			{
 				EditorUtility.DisplayDialog("Planet Database", "Не удалось распарсить planet.json", "OK");
 				return;
+			}
+
+			// Загружаем типы планет (planet_type.json) и строим карту по имени типа
+			var typeByName = new Dictionary<string, PlanetTypeJsonRecord>(StringComparer.Ordinal);
+			try
+			{
+				string planetTypePath = Path.Combine(Application.dataPath, "Config/planet_type.json");
+				if (File.Exists(planetTypePath))
+				{
+					string typeJson = File.ReadAllText(planetTypePath);
+					string typeWrapped = "{ \"items\": " + typeJson + " }";
+					var typeList = JsonUtility.FromJson<PlanetTypeJsonWrapper>(typeWrapped);
+					if (typeList != null && typeList.items != null)
+					{
+						for (int ti = 0; ti < typeList.items.Count; ti++)
+						{
+							var tr = typeList.items[ti];
+							if (tr == null || string.IsNullOrEmpty(tr.planet_type)) continue;
+							typeByName[tr.planet_type] = tr;
+						}
+					}
+				}
+				else
+				{
+					Debug.LogWarning("PlanetDatabase: Не найден файл типов планет Assets/Config/planet_type.json. Типовые параметры не будут добавлены.");
+				}
+			}
+			catch (Exception eType)
+			{
+				Debug.LogError("[PlanetDatabase] Ошибка чтения planet_type.json: " + eType);
 			}
 
 			var newPlanets = new List<PlanetDatabase.PlanetRecord>(list.items.Count);
@@ -133,6 +181,17 @@ public class PlanetDatabaseEditor : Editor
 					{
 						rec.color = Color.white;
 					}
+				}
+
+				// Подмешиваем параметры типа планеты, если нашли соответствующий шаблон
+				if (!string.IsNullOrEmpty(rec.planetType) && typeByName.TryGetValue(rec.planetType, out var typeRec))
+				{
+					rec.processSlotTypeRaw = typeRec.process_slot_type;
+					rec.processSlotCountRaw = typeRec.process_slot_count;
+					rec.processSlotBasePenaltyRaw = typeRec.process_slot_base_penalty;
+					rec.baseIncomeTikRaw = typeRec.base_income_tik;
+					rec.needAnytimeRaw = typeRec.need_anytime;
+					rec.baseConsumptionTikRaw = typeRec.base_consumption_tik;
 				}
 
 				newPlanets.Add(rec);
