@@ -430,7 +430,7 @@ namespace EveOffline
                     .Select(fitted => OperationService.MiningRangeKm(pilot, hull, Catalog.GetModule(fitted.ModuleId)))
                     .Where(value => value > 0)
                     .ToArray();
-                preferredKm = ranges.Length > 0 ? ranges.Min() * .9d : 54d;
+                preferredKm = ranges.Length > 0 ? ranges.Min() * .9f : 54f;
             }
             return Math.Max(0, distanceKm - preferredKm) / (hull.SpeedMps / 1000d);
         }
