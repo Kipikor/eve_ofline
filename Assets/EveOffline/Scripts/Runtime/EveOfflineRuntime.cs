@@ -21,6 +21,7 @@ namespace EveOffline
         static readonly Color Ink = Hex("d9e7e7");
         static readonly Color Muted = Hex("7f99a2");
         static readonly Color Cyan = Hex("45dac9");
+        static readonly Color ReadyGreen = Hex("68d889");
         static readonly Color MiningBeamBlue = Hex("4db8ff");
         static readonly Color Selection = Hex("fff176");
         static readonly Color Amber = Hex("e9b451");
@@ -854,7 +855,9 @@ namespace EveOffline
                 var role=availableRoles[roleIndex];var capturedRole=role;var roleButton=Button(roleBar,PackageRoleLabel(role),new Vector2(67+roleIndex*126,-20),new Vector2(118,34),()=>{academyCareerRole=capturedRole;BuildStationAgain();},academyCareerRole==role?Cyan:PanelAlt);Pin(roleButton.GetComponent<RectTransform>(),new Vector2(0,1),new Vector2(0,1));
             }
 
-            const float planRowHeight=146f;const float planRowStep=150f;
+            const int massPilotColumns=5;const float massPilotCellHeight=34f;const float massPilotTop=168f;
+            var massPilotRows=Math.Max(1,(save.Characters.Count+massPilotColumns-1)/massPilotColumns);
+            var planRowHeight=massPilotTop+massPilotRows*massPilotCellHeight+48f;var planRowStep=planRowHeight+4f;
             var plansTop=selectorHeight+roleHeight+16;var plansSection=Rect("Career package grades",parent,new Vector2(0,-plansTop-plans.Count*planRowStep),new Vector2(0,-plansTop),new Vector2(0,1),Vector2.one,Color.clear);
             for(var i=0;i<plans.Count;i++)
             {
@@ -874,8 +877,43 @@ namespace EveOffline
                 Text(row,MiningPackageInfoService.YieldSummary(package)+" • минимум допуска → профильные навыки V • без внешних бурстов",10,Cyan,new Vector2(12,-76),new Vector2(-12,18),TextAnchor.MiddleLeft,FontStyle.Bold);
                 Text(row,MiningPackageInfoService.CombatSummary(package),10,Ink,new Vector2(12,-98),new Vector2(-12,18),TextAnchor.MiddleLeft,FontStyle.Bold);
                 Text(row,$"Комплект {packagePrice} • обучение сейчас {FormatIsk(plan.TotalInstantTrainingCostIsk)} • весь переход {FormatIsk(plan.PackagePriceIsk+plan.TotalInstantTrainingCostIsk)}",10,ready?Muted:Amber,new Vector2(12,-120),new Vector2(-12,20),TextAnchor.MiddleLeft,FontStyle.Bold);
+
+                var massPreview=PreparedPackageService.PreviewAssignAll(save,package.Id);
+                Text(row,$"МАССОВАЯ ПОСАДКА • зелёные подходят сейчас • старые станционные корабли останутся в ангаре",9,Muted,new Vector2(12,-145),new Vector2(-12,18),TextAnchor.MiddleLeft,FontStyle.Bold);
+                for(var pilotIndex=0;pilotIndex<massPreview.Pilots.Count;pilotIndex++)
+                {
+                    var pilotPreview=massPreview.Pilots[pilotIndex];var column=pilotIndex%massPilotColumns;var pilotRow=pilotIndex/massPilotColumns;
+                    var cell=Rect("Mass package pilot",row,new Vector2(6,-massPilotTop-massPilotCellHeight-pilotRow*massPilotCellHeight),new Vector2(-6,-massPilotTop-pilotRow*massPilotCellHeight),new Vector2(column/(float)massPilotColumns,1),new Vector2((column+1)/(float)massPilotColumns,1),Color.clear);
+                    var pilotLabel=Text(cell,$"{pilotPreview.PilotName}\n{MassPackagePilotStatus(pilotPreview)}",9,pilotPreview.CanAssign?ReadyGreen:pilotPreview.Status==PreparedPackagePilotAssignmentStatus.UnsafeCurrentShip?Danger:Amber,Vector2.zero,Vector2.zero,TextAnchor.MiddleLeft,FontStyle.Bold);
+                    pilotLabel.rectTransform.anchorMin=Vector2.zero;pilotLabel.rectTransform.anchorMax=Vector2.one;pilotLabel.rectTransform.offsetMin=pilotLabel.rectTransform.offsetMax=Vector2.zero;
+                }
+                var assignableCount=Math.Max(0,massPreview.EligibleCount-massPreview.AlreadyAssignedCount);var capturedPackage=package;
+                var massAction=Button(row,MassPackageActionLabel(massPreview),new Vector2(12,-massPilotTop-massPilotRows*massPilotCellHeight-20),new Vector2(-12,36),()=>AssignPackageToAll(capturedPackage),assignableCount<=0?PanelAlt:massPreview.Affordable?Cyan:Danger);
+                Pin(massAction.GetComponent<RectTransform>(),new Vector2(0,1),Vector2.one);
             }
             parent.GetComponent<RectTransform>().sizeDelta=new Vector2(0,plansTop+plans.Count*planRowStep+8);
+        }
+
+        static string MassPackagePilotStatus(PreparedPackagePilotAssignmentPreview pilot)
+        {
+            if(pilot==null)return "НЕДОСТУПЕН";
+            return pilot.Status switch
+            {
+                PreparedPackagePilotAssignmentStatus.AlreadyAssigned=>"УЖЕ НА КОМПЛЕКТЕ",
+                PreparedPackagePilotAssignmentStatus.MissingSkills=>"НЕ ХВАТАЕТ НАВЫКОВ",
+                PreparedPackagePilotAssignmentStatus.UnsafeCurrentShip=>"СНАЧАЛА ВЕРНУТЬ НА СТАНЦИЮ",
+                _=>pilot.WillUseHangarShip?"ГОТОВ • ИЗ АНГАРА":pilot.WillBuyShip?"ГОТОВ • БУДЕТ КУПЛЕН":"ГОТОВ"
+            };
+        }
+
+        static string MassPackageActionLabel(PreparedPackageMassAssignmentResult preview)
+        {
+            if(preview==null||preview.EligibleCount<=0)return "НЕКОГО БЕЗОПАСНО ПЕРЕСАЖИВАТЬ";
+            var assignable=Math.Max(0,preview.EligibleCount-preview.AlreadyAssignedCount);
+            if(assignable==0)return $"ВСЕ ДОСТУПНЫЕ УЖЕ НА ЭТОМ КОМПЛЕКТЕ ×{preview.AlreadyAssignedCount}";
+            var purchase=preview.PurchasedCount>0?$" • КУПИТЬ {preview.PurchasedCount} ЗА {FormatIsk(preview.PurchaseCostIsk)}":string.Empty;
+            var affordability=!preview.Affordable&&preview.PurchasedCount>0?" • НЕ ХВАТАЕТ ISK":string.Empty;
+            return $"ПОСАДИТЬ ВСЕХ ГОТОВЫХ ×{assignable} • ИЗ АНГАРА {preview.ReusedCount}{purchase}{affordability}";
         }
 
         void QueueCareerPlan(CharacterSave pilot,ShipCareerPlan plan)
@@ -1444,6 +1482,13 @@ namespace EveOffline
                 :PreparedPackageService.TryBuyToHangar(save,package?.Id,out _,out message);
             if(bought)SaveService.Save(save);
             Tell(message);BuildStationAgain();
+        }
+        void AssignPackageToAll(PreparedMiningPackage package)
+        {
+            if(package==null){Tell("Готовый комплект не найден.");return;}
+            var applied=PreparedPackageService.TryAssignAll(save,package.Id,out var result);
+            if(applied&&result.AssignedCount>0)SaveService.Save(save);
+            Tell(result?.Message??"Не удалось подготовить массовую посадку.");BuildStationAgain();
         }
         void BuyItem(string id,double unitPrice,int amount=1){var price=unitPrice*amount;if(price<=0||save.Isk<price){Tell("Не хватает ISK или цена недоступна.");return;}save.Isk-=price;OperationService.AddItem(save.StationInventory,id,amount);Tell($"Куплено: {ItemName(id)} × {amount}.");SaveService.Save(save);BuildStationAgain();}
         void SellOre(InventoryStack stack){var ore=ResourceForItem(stack.ItemId);if(ore==null)return;var income=stack.Quantity*MarketService.OreBuyPerUnit(save,ore);save.Isk+=income;Tell($"Продано {stack.Quantity:N0} {ItemName(stack.ItemId)}: +{income:N0} ISK.");stack.Quantity=0;SaveService.Save(save);BuildStationAgain();}

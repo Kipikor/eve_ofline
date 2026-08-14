@@ -5,11 +5,58 @@ using UnityEngine;
 
 namespace EveOffline
 {
+    public enum PreparedPackagePilotAssignmentStatus
+    {
+        Ready,
+        AlreadyAssigned,
+        MissingSkills,
+        UnsafeCurrentShip
+    }
+
+    public sealed class PreparedPackagePilotAssignmentPreview
+    {
+        public string PilotId;
+        public string PilotName;
+        public PreparedPackagePilotAssignmentStatus Status;
+        public bool CanAssign;
+        public bool SkillsReady;
+        public bool AlreadyAssigned;
+        public bool WillUseHangarShip;
+        public bool WillBuyShip;
+        public string CurrentShipUid;
+        public string PlannedShipUid;
+        public string StatusText;
+    }
+
+    public sealed class PreparedPackageMassAssignmentResult
+    {
+        public bool Success;
+        public bool Affordable;
+        public string Message;
+        public string PackageId;
+        public int EligibleCount;
+        public int AssignedCount;
+        public int AlreadyAssignedCount;
+        public int ReusedCount;
+        public int PurchasedCount;
+        public int SkippedCount;
+        public double PurchaseCostIsk;
+        public List<PreparedPackagePilotAssignmentPreview> Pilots = new();
+    }
+
     /// <summary>Atomic purchase and locked-fit facade for prepared mining packages.</summary>
     public static class PreparedPackageService
     {
         const int BurstSlotBase=100;
         const int CoreSlot=200;
+
+        sealed class PlannedMassAssignment
+        {
+            public CharacterSave Pilot;
+            public ShipSave CurrentShip;
+            public ShipSave ReusedShip;
+            public PreparedPackagePilotAssignmentPreview Preview;
+        }
 
         public static string DisplayName(ShipSave ship)
         {
@@ -165,6 +212,223 @@ namespace EveOffline
             var uid=$"ship-{save.NextShipSerial:000}";var ship=SaveService.CreateShip(uid,hull.Id);ApplyLockedFit(ship,package);
             save.Isk-=price;save.NextShipSerial++;save.Ships.Add(ship);shipUid=uid;
             message=$"Куплен {package.DisplayName}: {price:N0} ISK. Комплект помещён в общий ангар.";return true;
+        }
+
+        /// <summary>
+        /// Builds a deterministic, mutation-free plan for seating every pilot
+        /// who has the complete package skills and whose current ship can be
+        /// released safely. Free exact-package station ships are consumed by
+        /// UID before any purchase is planned.
+        /// </summary>
+        public static PreparedPackageMassAssignmentResult PreviewAssignAll(GameSave save,string packageId)
+        {
+            return BuildMassAssignmentPlan(save,packageId,false,out _,out _);
+        }
+
+        /// <summary>
+        /// Applies the complete preflighted mass-assignment plan or changes
+        /// nothing. Pilots lacking skills and pilots whose current ship is away
+        /// from station or referenced by the active fleet are reported and
+        /// skipped; they do not prevent the safe pilots from being processed.
+        /// </summary>
+        public static bool TryAssignAll(GameSave save,string packageId,out PreparedPackageMassAssignmentResult result)
+        {
+            result=BuildMassAssignmentPlan(save,packageId,true,out var assignments,out var nextShipSerial);
+            if(!result.Success)return false;
+
+            var package=Catalog.GetPackage(packageId);
+            var purchased=new Dictionary<string,ShipSave>(StringComparer.OrdinalIgnoreCase);
+            foreach(var assignment in assignments.Where(candidate=>candidate.Preview.WillBuyShip))
+            {
+                var ship=SaveService.CreateShip(assignment.Preview.PlannedShipUid,package.HullId);
+                ApplyLockedFit(ship,package);
+                purchased.Add(ship.Uid,ship);
+            }
+
+            if(purchased.Count>0)
+            {
+                if(result.PurchaseCostIsk>0)save.Isk=Math.Max(0d,save.Isk-result.PurchaseCostIsk);
+                save.Ships??=new List<ShipSave>();
+                foreach(var ship in purchased.Values)save.Ships.Add(ship);
+                save.NextShipSerial=nextShipSerial;
+            }
+
+            foreach(var assignment in assignments)
+            {
+                var preview=assignment.Preview;
+                if(preview.Status!=PreparedPackagePilotAssignmentStatus.Ready)continue;
+                var replacement=assignment.ReusedShip;
+                if(replacement==null&&!purchased.TryGetValue(preview.PlannedShipUid,out replacement))
+                    throw new InvalidOperationException($"Prepared package assignment lost planned ship {preview.PlannedShipUid}.");
+                if(assignment.CurrentShip!=null)RescaleShieldForPilot(assignment.CurrentShip,assignment.Pilot,null);
+                RescaleShieldForPilot(replacement,null,assignment.Pilot);
+                assignment.Pilot.AssignedShipUid=replacement.Uid;
+                assignment.Pilot.DeployOnLaunch=true;
+                result.AssignedCount++;
+            }
+
+            result.Message=BuildMassAssignmentMessage(result,true);
+            return true;
+        }
+
+        static PreparedPackageMassAssignmentResult BuildMassAssignmentPlan(GameSave save,string packageId,bool requireAffordable,out List<PlannedMassAssignment> assignments,out int nextShipSerial)
+        {
+            assignments=new List<PlannedMassAssignment>();nextShipSerial=save?.NextShipSerial??1;
+            var result=new PreparedPackageMassAssignmentResult{PackageId=packageId??string.Empty};
+            var package=Catalog.GetPackage(packageId);var hull=Catalog.GetShip(package?.HullId);
+            if(save==null||package==null||hull==null)
+            {
+                result.Message="Готовый комплект не найден.";
+                return result;
+            }
+
+            var characters=(save.Characters??new List<CharacterSave>()).Where(pilot=>pilot!=null).ToList();
+            var ships=(save.Ships??new List<ShipSave>()).Where(ship=>ship!=null).ToList();
+            var assignedShipUids=new HashSet<string>(characters.Select(pilot=>pilot.AssignedShipUid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
+            var fleetMembers=(save.Operation?.Fleet??new List<FleetMemberSave>()).Where(member=>member!=null).ToList();
+            var fleetShipUids=new HashSet<string>(fleetMembers.Select(member=>member.ShipUid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
+            var fleetPilotIds=new HashSet<string>(fleetMembers.Select(member=>member.PilotId).Where(id=>!string.IsNullOrWhiteSpace(id)),StringComparer.OrdinalIgnoreCase);
+            var freeExactShips=new Queue<ShipSave>(ships
+                .Where(ship=>!string.IsNullOrWhiteSpace(ship.Uid)&&ship.Location==ShipLocation.Station&&PackageMatches(ship,package.Id)&&!assignedShipUids.Contains(ship.Uid)&&!fleetShipUids.Contains(ship.Uid))
+                .OrderBy(ship=>ship.Uid,StringComparer.Ordinal));
+            var occupiedUids=new HashSet<string>(ships.Select(ship=>ship.Uid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
+            nextShipSerial=Math.Max(1,save.NextShipSerial);
+
+            foreach(var pilot in characters)
+            {
+                var currentShip=string.IsNullOrWhiteSpace(pilot.AssignedShipUid)?null:ships.FirstOrDefault(ship=>string.Equals(ship.Uid,pilot.AssignedShipUid,StringComparison.OrdinalIgnoreCase));
+                var preview=new PreparedPackagePilotAssignmentPreview
+                {
+                    PilotId=pilot.Id??string.Empty,
+                    PilotName=pilot.Name??string.Empty,
+                    CurrentShipUid=pilot.AssignedShipUid??string.Empty,
+                    PlannedShipUid=string.Empty,
+                    SkillsReady=CanUsePackage(pilot,package)
+                };
+                var assignment=new PlannedMassAssignment{Pilot=pilot,CurrentShip=currentShip,Preview=preview};
+                assignments.Add(assignment);result.Pilots.Add(preview);
+
+                if(!preview.SkillsReady)
+                {
+                    SetPilotStatus(preview,PreparedPackagePilotAssignmentStatus.MissingSkills,"не хватает навыков полного комплекта");
+                    result.SkippedCount++;
+                    continue;
+                }
+                if(PackageMatches(currentShip,package.Id))
+                {
+                    preview.PlannedShipUid=currentShip.Uid;
+                    SetPilotStatus(preview,PreparedPackagePilotAssignmentStatus.AlreadyAssigned,"уже назначен этот комплект");
+                    result.EligibleCount++;result.AlreadyAssignedCount++;
+                    continue;
+                }
+                if(fleetPilotIds.Contains(pilot.Id)||(currentShip!=null&&(currentShip.Location!=ShipLocation.Station||fleetShipUids.Contains(currentShip.Uid))))
+                {
+                    SetPilotStatus(preview,PreparedPackagePilotAssignmentStatus.UnsafeCurrentShip,"текущий корабль занят активной операцией или находится не на станции");
+                    result.SkippedCount++;
+                    continue;
+                }
+
+                SetPilotStatus(preview,PreparedPackagePilotAssignmentStatus.Ready,"можно назначить");
+                result.EligibleCount++;
+                if(freeExactShips.Count>0)
+                {
+                    assignment.ReusedShip=freeExactShips.Dequeue();
+                    preview.PlannedShipUid=assignment.ReusedShip.Uid;
+                    preview.WillUseHangarShip=true;
+                    preview.StatusText="готов: свободный комплект из ангара";
+                    result.ReusedCount++;
+                }
+                else
+                {
+                    if(!TryPlanShipUid(occupiedUids,ref nextShipSerial,out var plannedUid))
+                    {
+                        result.Message="Не удалось зарезервировать UID для покупки кораблей.";
+                        return result;
+                    }
+                    preview.PlannedShipUid=plannedUid;
+                    preview.WillBuyShip=true;
+                    preview.StatusText="готов: будет куплен новый комплект";
+                    result.PurchasedCount++;
+                }
+            }
+
+            var unitPrice=result.PurchasedCount>0?PackagePrice(save,package):0d;
+            result.PurchaseCostIsk=unitPrice*result.PurchasedCount;
+            if(!IsFinite(unitPrice)||unitPrice<0||!IsFinite(result.PurchaseCostIsk)||result.PurchaseCostIsk<0)
+            {
+                result.Message="Не удалось рассчитать корректную стоимость готовых комплектов.";
+                return result;
+            }
+            result.Affordable=result.PurchasedCount==0||save.Isk+1e-6>=result.PurchaseCostIsk;
+            if(requireAffordable&&!result.Affordable)
+            {
+                result.Message=$"Для покупки {result.PurchasedCount} комплектов нужно {result.PurchaseCostIsk:N0} ISK, в кошельке {save.Isk:N0} ISK. Ничего не изменено.";
+                return result;
+            }
+            if(result.EligibleCount==0)
+            {
+                result.Message="Нет пилотов, которым сейчас можно безопасно назначить этот комплект.";
+                return result;
+            }
+            result.Success=true;
+            result.Message=BuildMassAssignmentMessage(result,false);
+            return result;
+        }
+
+        static bool PackageMatches(ShipSave ship,string packageId)
+        {
+            return ship!=null&&!string.IsNullOrWhiteSpace(packageId)&&string.Equals(ship.PackageId,packageId,StringComparison.OrdinalIgnoreCase);
+        }
+
+        static bool IsFinite(double value)
+        {
+            return !double.IsNaN(value)&&!double.IsInfinity(value);
+        }
+
+        static void SetPilotStatus(PreparedPackagePilotAssignmentPreview preview,PreparedPackagePilotAssignmentStatus status,string statusText)
+        {
+            preview.Status=status;
+            preview.CanAssign=status is PreparedPackagePilotAssignmentStatus.Ready or PreparedPackagePilotAssignmentStatus.AlreadyAssigned;
+            preview.AlreadyAssigned=status==PreparedPackagePilotAssignmentStatus.AlreadyAssigned;
+            preview.StatusText=statusText;
+        }
+
+        static bool TryPlanShipUid(ISet<string> occupiedUids,ref int nextShipSerial,out string uid)
+        {
+            uid=string.Empty;
+            while(nextShipSerial>0)
+            {
+                var candidate=$"ship-{nextShipSerial:000}";
+                if(!occupiedUids.Contains(candidate))
+                {
+                    uid=candidate;occupiedUids.Add(candidate);
+                    if(nextShipSerial<int.MaxValue)nextShipSerial++;
+                    else nextShipSerial=0;
+                    return true;
+                }
+                if(nextShipSerial==int.MaxValue){nextShipSerial=0;return false;}
+                nextShipSerial++;
+            }
+            return false;
+        }
+
+        static string BuildMassAssignmentMessage(PreparedPackageMassAssignmentResult result,bool applied)
+        {
+            var prefix=applied?$"Назначено {result.AssignedCount}":$"Можно назначить {Math.Max(0,result.EligibleCount-result.AlreadyAssignedCount)}";
+            var already=result.AlreadyAssignedCount>0?$", уже на комплекте {result.AlreadyAssignedCount}":string.Empty;
+            var reused=result.ReusedCount>0?$", из ангара {result.ReusedCount}":string.Empty;
+            var purchased=result.PurchasedCount>0?$", купить {result.PurchasedCount} за {result.PurchaseCostIsk:N0} ISK":string.Empty;
+            var skipped=result.SkippedCount>0?$", пропущено {result.SkippedCount}":string.Empty;
+            var affordability=!result.Affordable&&result.PurchasedCount>0?" • не хватает ISK":string.Empty;
+            return prefix+already+reused+purchased+skipped+affordability+".";
+        }
+
+        static void RescaleShieldForPilot(ShipSave ship,CharacterSave oldPilot,CharacterSave newPilot)
+        {
+            if(ship==null)return;
+            var oldMaximum=Math.Max(1f,MaxShieldHp(ship,oldPilot));
+            var healthFraction=Math.Clamp(ship.ShieldHp/oldMaximum,0f,1f);
+            ship.ShieldHp=MaxShieldHp(ship,newPilot)*healthFraction;
         }
 
         public static void ApplyLockedFit(ShipSave ship,PreparedMiningPackage package,bool preserveRuntimeState=false)

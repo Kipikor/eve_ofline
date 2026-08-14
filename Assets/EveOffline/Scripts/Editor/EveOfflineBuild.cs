@@ -69,6 +69,7 @@ public static class EveOfflineBuild
         SmokeV10MiningSiteMigration();
         SmokeV12IceMigration();
         SmokePreparedPackagesAndMigration();
+        SmokePreparedPackageMassAssignment();
         SmokePreparedPackageCombatEstimates();
         SmokeBurstLoadoutAndTransfers();
         SmokePaidRepair();
@@ -91,7 +92,7 @@ public static class EveOfflineBuild
 
         Debug.Log(
             "EVE_OFFLINE_SMOKE_OK roster/deployment; persistent mining; 5+10+5 return warp; " +
-            "automatic unload/retarget by m3; Large/Small injectors; live ESI shield prerequisites; validated queue reordering; copied worker skill plans; Jita fallbacks and warehouse ore valuation; queued industrial cores; core-gated lossless fleet compression; NPC ETA/destruction; official ore grades; 73-system/677-belt highsec catalog with lazy static state; real persistent belts/anomalies with downtime and offline catch-up; locked prepared packages + guarded legacy/v13 migration; package EHP and shared combat-drone DPS estimates; ordered three-effect global bursts; exact ice compatibility and six-hour Clear Icicle lifecycle; gas extractors, skills, barge/exhumer cycles, bursts, unload and persistence; deep-core Mercoxit; atomic local-warp rejection; persisted manual/local travel; security-floor global auto-route with lossless cross-system travel, downtime restart and booster restart; event-driven offline mining; offline mine/unload/route across 11:00, no autosell/double award, full queue and overdue anomaly time beyond the 30-day fleet cap, NPC-free versus hostile risk, simulated-time anomaly respawn, and stable cached world deadlines");
+            "automatic unload/retarget by m3; Large/Small injectors; live ESI shield prerequisites; validated queue reordering; copied worker skill plans; Jita fallbacks and warehouse ore valuation; queued industrial cores; core-gated lossless fleet compression; NPC ETA/destruction; official ore grades; 73-system/677-belt highsec catalog with lazy static state; real persistent belts/anomalies with downtime and offline catch-up; locked prepared packages + guarded legacy/v13 migration; atomic mass package assignment with hangar reuse and exact purchases; package EHP and shared combat-drone DPS estimates; ordered three-effect global bursts; exact ice compatibility and six-hour Clear Icicle lifecycle; gas extractors, skills, barge/exhumer cycles, bursts, unload and persistence; deep-core Mercoxit; atomic local-warp rejection; persisted manual/local travel; security-floor global auto-route with lossless cross-system travel, downtime restart and booster restart; event-driven offline mining; offline mine/unload/route across 11:00, no autosell/double award, full queue and overdue anomaly time beyond the 30-day fleet cap, NPC-free versus hostile risk, simulated-time anomaly respawn, and stable cached world deadlines");
     }
 
     static void SmokeStartingRosterAndDeploymentSelection()
@@ -1823,6 +1824,147 @@ public static class EveOfflineBuild
         Require(exactLegacyJson != JsonUtility.ToJson(legacy), "v10 migration fixture must prove the explicitly authorized starter Venture T0 conversion occurred");
         legacy.Version = SaveService.CurrentVersion;
         for (var index = 0; index < legacy.Ships.Count; index++) { legacy.Ships[index].PackageId = inferredPackages[index]; legacy.Ships[index].TankPresetId = inferredTanks[index]; }
+    }
+
+    static void SmokePreparedPackageMassAssignment()
+    {
+        var save = SaveService.NewGame();
+        var package = Catalog.GetPackage("hulk-ore-t2-a2");
+        Require(package != null && PreparedPackageService.PackagePrice(save, package) > 0,
+            "mass package fixture requires a paid Hulk T2 prepared package");
+        var packageSkills = PreparedPackageService.RequiredSkills(package);
+        var nestedClosureRequirement = packageSkills.Single(requirement => requirement.SkillId == "spaceship-command");
+
+        var readyWithShip = save.Characters[0];
+        var alreadyAssigned = save.Characters[1];
+        var unsafeCurrentShip = save.Characters[2];
+        var readyWithoutShip = save.Characters[3];
+        var missingClosureSkill = save.Characters[4];
+        var readyThird = save.Characters[5];
+        foreach (var pilot in new[] { readyWithShip, alreadyAssigned, unsafeCurrentShip, readyWithoutShip, missingClosureSkill, readyThird })
+            GrantAllSkills(pilot);
+        SetSkillLevel(missingClosureSkill, nestedClosureRequirement.SkillId, nestedClosureRequirement.Level - 1);
+        Require(!PreparedPackageService.CanUsePackage(missingClosureSkill, package),
+            "mass assignment eligibility must honor the complete package prerequisite closure");
+
+        var displacedShipUids = new[] { readyWithShip.AssignedShipUid, readyWithoutShip.AssignedShipUid, readyThird.AssignedShipUid };
+        readyWithoutShip.AssignedShipUid = string.Empty;
+        var ownedExactShip = SaveService.CreateShip("smoke-mass-owned-hulk", package.HullId);
+        PreparedPackageService.ApplyLockedFit(ownedExactShip, package);
+        save.Ships.Add(ownedExactShip);
+        alreadyAssigned.AssignedShipUid = ownedExactShip.Uid;
+
+        var reusableExactShip = SaveService.CreateShip("smoke-mass-free-hulk", package.HullId);
+        PreparedPackageService.ApplyLockedFit(reusableExactShip, package);
+        save.Ships.Add(reusableExactShip);
+        var displacedReadyShip = save.Ships.Single(ship => ship.Uid == readyWithShip.AssignedShipUid);
+        var displacedReadyBaseShield = PreparedPackageService.MaxShieldHp(displacedReadyShip, null);
+        displacedReadyShip.ShieldHp = PreparedPackageService.MaxShieldHp(displacedReadyShip, readyWithShip) * .5f;
+        var reusableSkilledShield = PreparedPackageService.MaxShieldHp(reusableExactShip, readyWithShip);
+        reusableExactShip.ShieldHp = PreparedPackageService.MaxShieldHp(reusableExactShip, null) * .4f;
+        var activeExactShip = SaveService.CreateShip("smoke-mass-active-hulk", package.HullId);
+        PreparedPackageService.ApplyLockedFit(activeExactShip, package);
+        save.Ships.Add(activeExactShip);
+
+        var unsafeShip = save.Ships.Single(ship => ship.Uid == unsafeCurrentShip.AssignedShipUid);
+        unsafeShip.Location = ShipLocation.Belt;
+        save.Operation.Active = true;
+        save.Operation.Fleet.Add(new FleetMemberSave { PilotId = unsafeCurrentShip.Id, ShipUid = unsafeShip.Uid });
+        save.Operation.Fleet.Add(new FleetMemberSave { PilotId = "smoke-orphan-active", ShipUid = activeExactShip.Uid });
+
+        var packagePrice = PreparedPackageService.PackagePrice(save, package);
+        save.Isk = packagePrice * 2d + 77d;
+        var serialBefore = save.NextShipSerial;
+        var shipCountBefore = save.Ships.Count;
+        var previewStateBefore = JsonUtility.ToJson(save);
+        var preview = PreparedPackageService.PreviewAssignAll(save, package.Id);
+        Require(JsonUtility.ToJson(save) == previewStateBefore,
+            "mass package preview must be mutation-free");
+        Require(preview.Success && preview.Affordable && preview.EligibleCount == 4 && preview.AlreadyAssignedCount == 1 &&
+                preview.ReusedCount == 1 && preview.PurchasedCount == 2 && preview.SkippedCount == 6,
+            "mass package preview must count ready, already assigned, reusable, purchased and skipped pilots exactly");
+        RequireNearly(preview.PurchaseCostIsk, packagePrice * 2d, .001d,
+            "mass package preview must price only the exact missing ship count");
+        Require(preview.Pilots.Count == save.Characters.Count && preview.Pilots.All(candidate =>
+                    candidate.SkillsReady == PreparedPackageService.CanUsePackage(save.Characters.Single(pilot => pilot.Id == candidate.PilotId), package)),
+            "public mass package preview must expose eligibility from the complete package skill closure for every pilot");
+
+        var readyPreview = preview.Pilots.Single(candidate => candidate.PilotId == readyWithShip.Id);
+        var alreadyPreview = preview.Pilots.Single(candidate => candidate.PilotId == alreadyAssigned.Id);
+        var unsafePreview = preview.Pilots.Single(candidate => candidate.PilotId == unsafeCurrentShip.Id);
+        var emptyPreview = preview.Pilots.Single(candidate => candidate.PilotId == readyWithoutShip.Id);
+        var closurePreview = preview.Pilots.Single(candidate => candidate.PilotId == missingClosureSkill.Id);
+        var thirdPreview = preview.Pilots.Single(candidate => candidate.PilotId == readyThird.Id);
+        Require(readyPreview.Status == PreparedPackagePilotAssignmentStatus.Ready && readyPreview.CanAssign &&
+                readyPreview.WillUseHangarShip && readyPreview.PlannedShipUid == reusableExactShip.Uid,
+            "the first green eligible pilot must deterministically reuse the free exact station package");
+        Require(alreadyPreview.Status == PreparedPackagePilotAssignmentStatus.AlreadyAssigned && alreadyPreview.CanAssign &&
+                alreadyPreview.AlreadyAssigned && alreadyPreview.PlannedShipUid == ownedExactShip.Uid,
+            "a pilot already on the exact package must remain green without planning another ship");
+        Require(unsafePreview.Status == PreparedPackagePilotAssignmentStatus.UnsafeCurrentShip && !unsafePreview.CanAssign && unsafePreview.SkillsReady,
+            "a fully trained pilot whose current ship is active must not be offered a destructive replacement");
+        Require(closurePreview.Status == PreparedPackagePilotAssignmentStatus.MissingSkills && !closurePreview.CanAssign && !closurePreview.SkillsReady,
+            "a pilot missing one nested prerequisite must not appear green in the package window");
+        Require(emptyPreview.Status == PreparedPackagePilotAssignmentStatus.Ready && emptyPreview.CanAssign && emptyPreview.WillBuyShip &&
+                thirdPreview.Status == PreparedPackagePilotAssignmentStatus.Ready && thirdPreview.CanAssign && thirdPreview.WillBuyShip,
+            "remaining green eligible pilots must plan exactly the missing purchases");
+        var greenPilotIds = preview.Pilots.Where(candidate => candidate.CanAssign).Select(candidate => candidate.PilotId).ToHashSet(StringComparer.Ordinal);
+        Require(greenPilotIds.SetEquals(new[] { readyWithShip.Id, alreadyAssigned.Id, readyWithoutShip.Id, readyThird.Id }),
+            "the public preview must identify exactly the pilots rendered green by the package UI");
+        Require(preview.Pilots.Where(candidate => candidate.Status == PreparedPackagePilotAssignmentStatus.Ready)
+                    .All(candidate => candidate.PlannedShipUid != ownedExactShip.Uid && candidate.PlannedShipUid != activeExactShip.Uid),
+            "mass assignment must never steal another pilot's exact package or an exact package referenced by the active fleet");
+
+        var poorSave = JsonUtility.FromJson<GameSave>(JsonUtility.ToJson(save));
+        poorSave.Isk = preview.PurchaseCostIsk - 1d;
+        var poorStateBefore = JsonUtility.ToJson(poorSave);
+        Require(!PreparedPackageService.TryAssignAll(poorSave, package.Id, out var poorResult) && !poorResult.Success && !poorResult.Affordable &&
+                poorResult.AssignedCount == 0 && poorResult.PurchasedCount == 2,
+            "insufficient ISK must reject the complete mass package transaction before the first assignment");
+        Require(JsonUtility.ToJson(poorSave) == poorStateBefore,
+            "an unaffordable mass package transaction must leave the complete save byte-for-byte unchanged");
+
+        var plannedAssignments = preview.Pilots
+            .Where(candidate => candidate.Status == PreparedPackagePilotAssignmentStatus.Ready)
+            .ToDictionary(candidate => candidate.PilotId, candidate => candidate.PlannedShipUid, StringComparer.Ordinal);
+        Require(PreparedPackageService.TryAssignAll(save, package.Id, out var applied) && applied.Success,
+            "an affordable preflighted mass package transaction must apply atomically");
+        Require(applied.AssignedCount == 3 && applied.AlreadyAssignedCount == 1 && applied.ReusedCount == 1 && applied.PurchasedCount == 2,
+            "mass package result must report every reused, purchased, assigned and already assigned ship exactly once");
+        RequireNearly(applied.PurchaseCostIsk, packagePrice * 2d, .001d,
+            "applied mass package transaction must retain the preflight purchase cost");
+        RequireNearly(save.Isk, 77d, .001d,
+            "mass package transaction must debit the wallet exactly once for only the missing ships");
+        Require(save.NextShipSerial == serialBefore + 2 && save.Ships.Count == shipCountBefore + 2,
+            "mass package transaction must create and serialize exactly two missing ships");
+        Require(plannedAssignments.All(pair => save.Characters.Single(pilot => pilot.Id == pair.Key).AssignedShipUid == pair.Value),
+            "every ready pilot must receive the exact ship reserved by preview without a partial assignment");
+        Require(new[] { readyWithShip, alreadyAssigned, readyWithoutShip, readyThird }.All(pilot =>
+                    save.Ships.Any(ship => ship.Uid == pilot.AssignedShipUid && ship.PackageId == package.Id)),
+            "all green pilots must finish on the selected exact prepared package");
+        RequireNearly(displacedReadyShip.ShieldHp, displacedReadyBaseShield * .5d, .001d,
+            "releasing a damaged current ship must preserve its shield fraction against the unpiloted base maximum");
+        RequireNearly(reusableExactShip.ShieldHp, reusableSkilledShield * .4d, .001d,
+            "assigning a damaged hangar package must preserve its shield fraction against the new pilot's skilled maximum");
+        foreach (var pilot in new[] { readyWithoutShip, readyThird })
+        {
+            var purchasedShip = save.Ships.Single(ship => ship.Uid == pilot.AssignedShipUid);
+            RequireNearly(purchasedShip.ShieldHp, PreparedPackageService.MaxShieldHp(purchasedShip, pilot), .001d,
+                "a newly purchased mass-assignment ship must begin at the assigned pilot's full skilled shield maximum");
+        }
+        Require(unsafeCurrentShip.AssignedShipUid == unsafeShip.Uid && unsafeShip.Location == ShipLocation.Belt &&
+                save.Operation.Fleet.Any(member => member.ShipUid == unsafeShip.Uid),
+            "mass package assignment must preserve an unsafe pilot and active ship unchanged");
+        Require(alreadyAssigned.AssignedShipUid == ownedExactShip.Uid &&
+                !save.Characters.Any(pilot => pilot.Id != alreadyAssigned.Id && pilot.AssignedShipUid == ownedExactShip.Uid) &&
+                !save.Characters.Any(pilot => pilot.AssignedShipUid == activeExactShip.Uid) &&
+                save.Operation.Fleet.Any(member => member.ShipUid == activeExactShip.Uid),
+            "assigned and active exact-package ships must remain exclusively with their original owner or operation");
+        Require(displacedShipUids.All(uid => save.Ships.Any(ship => ship.Uid == uid && ship.Location == ShipLocation.Station) &&
+                    !save.Characters.Any(pilot => pilot.AssignedShipUid == uid)) &&
+                save.Characters.Select(pilot => pilot.AssignedShipUid).Where(uid => !string.IsNullOrWhiteSpace(uid)).Distinct(StringComparer.OrdinalIgnoreCase).Count() ==
+                save.Characters.Count(pilot => !string.IsNullOrWhiteSpace(pilot.AssignedShipUid)),
+            "replaced station ships must remain in the common hangar and final pilot assignments must stay unique");
     }
 
     static void SmokePreparedPackageCombatEstimates()
