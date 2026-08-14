@@ -387,8 +387,10 @@ namespace EveOffline
         public static bool ModuleAcceptsCrystal(MiningModuleDefinition module, MiningCrystalDefinition crystal)
         {
             if (!CrystalCapable(module) || crystal == null) return false;
-            var mercoxit = crystal.OreIds?.Any(id => string.Equals(id, "mercoxit", StringComparison.OrdinalIgnoreCase)) == true;
-            return mercoxit ? module.AcceptsMercoxitCrystals : module.AcceptsRegularCrystals;
+            // Mercoxit crystals use the same compatibility contract as every
+            // other asteroid-ore family. The legacy capability flag remains on
+            // definitions only so older catalog/save data can still be read.
+            return module.AcceptsRegularCrystals;
         }
 
         static bool CrystalCapable(MiningModuleDefinition module) => module?.AcceptsRegularCrystals == true || module?.AcceptsMercoxitCrystals == true;

@@ -531,7 +531,7 @@ namespace EveOffline
             if(resource==null){member.Order=FleetOrder.Idle;member.TargetAsteroidId=string.Empty;return;}
             var miningModules=ship.Modules.Where(fitted=>CanMineResource(fitted,resource)).OrderBy(fitted=>fitted.Slot).ToArray();
             var miningDrone = Catalog.GetDrone(ship.MiningDroneId);
-            var hasMiningDrones = resource?.Kind == ResourceKind.Ore && !Catalog.IsMercoxitFamily(resource) && miningDrone?.Mining == true && ship.MiningDroneCount > 0 && SkillService.GetLevel(pilot, "drones") > 0;
+            var hasMiningDrones = resource?.Kind == ResourceKind.Ore && miningDrone?.Mining == true && ship.MiningDroneCount > 0 && SkillService.GetLevel(pilot, "drones") > 0;
             if (miningModules.Length == 0 && !hasMiningDrones) { member.Order = FleetOrder.Idle; member.TargetAsteroidId = string.Empty; return; }
             var heldVolumeM3=HoldVolume(ship.MiningHold);
             var freeHoldM3=MiningHoldCapacity(pilot,hull)-heldVolumeM3;
@@ -585,7 +585,7 @@ namespace EveOffline
             var critChance = ore.Kind==ResourceKind.Gas?0:MiningCriticalChance(pilot,hull,module,save,memberSave);
             var critical = Random.NextDouble() < critChance;
             var standardRatio=Math.Min(standardVolume,freeM3)/ore.UnitVolumeM3;
-            var standardUnits=Math.Min(Catalog.IsMercoxitFamily(ore)?Math.Floor(standardRatio):StochasticUnits(standardRatio),asteroid.RemainingUnits);
+            var standardUnits=Math.Min(StochasticUnits(standardRatio),asteroid.RemainingUnits);
             if(standardUnits<=0)return;
             var bonusUnits=0d;
             if(critical)
@@ -593,7 +593,7 @@ namespace EveOffline
                 var bonusMultiplier=MiningCriticalBonusYield(pilot,hull,module);
                 var remainingFreeM3=Math.Max(0,freeM3-standardUnits*ore.UnitVolumeM3);
                 var bonusRatio=Math.Min(standardVolume*bonusMultiplier,remainingFreeM3)/ore.UnitVolumeM3;
-                bonusUnits=Catalog.IsMercoxitFamily(ore)?Math.Floor(bonusRatio):StochasticUnits(bonusRatio);
+                bonusUnits=StochasticUnits(bonusRatio);
             }
             AddItem(ship.MiningHold,ore.Id,standardUnits+bonusUnits);asteroid.RemainingUnits-=standardUnits;
             var residueChance = MiningResidueChance(module,crystal,burstStrength);
@@ -1042,7 +1042,6 @@ namespace EveOffline
             if(crystal?.SupportsOre(oreFamilyId)==true&&FittingService.ModuleAcceptsCrystal(module,crystal))return crystal;
             var package=Catalog.GetPackage(ship?.PackageId);var level=package?.ImplicitUniversalTypeALevel??0;
             if(level<=0||!string.Equals(package.MinerModuleId,module?.Id,StringComparison.OrdinalIgnoreCase))return null;
-            if(package.Role==PreparedPackageRole.Mercoxit&&!Catalog.IsMercoxitFamily(oreId))return null;
             var suffix=level==1?"a-i":"a-ii";
             return Catalog.Crystals.FirstOrDefault(candidate=>candidate.Id.EndsWith(suffix,StringComparison.OrdinalIgnoreCase)&&candidate.SupportsOre(oreFamilyId));
         }
@@ -1435,7 +1434,6 @@ namespace EveOffline
             if(module==null||resource==null)return false;
             if(resource.Kind==ResourceKind.Ice)return module.Kind is ModuleKind.IceMiningLaser or ModuleKind.IceHarvester;
             if(resource.Kind==ResourceKind.Gas)return module.Kind is ModuleKind.GasCloudScoop or ModuleKind.GasCloudHarvester;
-            if(Catalog.IsMercoxitFamily(resource))return module.CanMineMercoxit;
             return module.Kind is ModuleKind.MiningLaser or ModuleKind.StripMiner;
         }
         public static bool CanMineResource(FittedModuleSave fitted,OreDefinition resource)
@@ -1448,7 +1446,7 @@ namespace EveOffline
         {
             var resource=Catalog.GetOre(resourceId);if(ship==null||resource==null)return false;
             if(ship.Modules.Any(fitted=>CanMineResource(fitted,resource)))return true;
-            return resource.Kind==ResourceKind.Ore&&!Catalog.IsMercoxitFamily(resource)&&Catalog.GetDrone(ship.MiningDroneId)?.Mining==true&&ship.MiningDroneCount>0;
+            return resource.Kind==ResourceKind.Ore&&Catalog.GetDrone(ship.MiningDroneId)?.Mining==true&&ship.MiningDroneCount>0;
         }
         public static bool LocationSupportsShip(LocationDefinition location,ShipSave ship,ShipDefinition hull)
         {

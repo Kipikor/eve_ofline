@@ -9,7 +9,7 @@ namespace EveOffline
 {
     public static class SaveService
     {
-        public const int CurrentVersion = 13;
+        public const int CurrentVersion = 14;
         public const double StartingIsk = 1_000_000d;
         public const int StartingCharacterCount = 10;
         public const int StartingShipCount = 9;
@@ -169,7 +169,7 @@ namespace EveOffline
         static bool TryReadCompatible(string path, out GameSave save, out string error)
         {
             if (!TryRead(path, out save, out error)) return false;
-            if (save.Version is 5 or 6 or 7 or 8 or 9 or 10 or 11 or 12 or CurrentVersion) return true;
+            if (save.Version is 5 or 6 or 7 or 8 or 9 or 10 or 11 or 12 or 13 or CurrentVersion) return true;
             save = null;
             error = "Несовместимая версия сохранения.";
             return false;
@@ -287,7 +287,65 @@ namespace EveOffline
                 MiningSiteService.MigrateV13CompactPristineStaticStates(save);
             }
 
+            if (save.Version <= 13)
+            {
+                MigrateLegacyMercoxit(save);
+            }
+
             save.Version = CurrentVersion;
+        }
+
+        static void MigrateLegacyMercoxit(GameSave save)
+        {
+            // Prepared Mercoxit fits became ordinary Ore fits. Rebuild only
+            // ships carrying the retired package identity; custom legacy fits
+            // and inventory items stay intact and readable.
+            foreach (var ship in save.Ships ?? Enumerable.Empty<ShipSave>())
+            {
+                if (ship == null || string.IsNullOrWhiteSpace(ship.PackageId)) continue;
+                const string marker = "-mercoxit-";
+                var markerIndex = ship.PackageId.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+                if (markerIndex < 0) continue;
+                var replacementId = ship.PackageId.Substring(0, markerIndex) + "-ore-" + ship.PackageId.Substring(markerIndex + marker.Length);
+                var replacement = Catalog.GetPackage(replacementId);
+                if (replacement == null || !string.Equals(replacement.HullId, ship.HullId, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Never leave a retired identity that would make an otherwise
+                    // readable legacy ship impossible to deploy.
+                    ship.PackageId = string.Empty;
+                    continue;
+                }
+
+                var shieldHp = ship.ShieldHp;
+                var armorHp = ship.ArmorHp;
+                var structureHp = ship.StructureHp;
+                PreparedPackageService.ApplyLockedFit(ship, replacement, true);
+                // ApplyLockedFit intentionally clamps against an unpiloted max;
+                // migration must preserve the exact live damage/skill-scaled HP.
+                ship.ShieldHp = shieldHp;
+                ship.ArmorHp = armorHp;
+                ship.StructureHp = structureHp;
+            }
+
+            var retiredSkills = new HashSet<string>(new[] { "deep-core-mining", "mercoxit-ore-processing" }, StringComparer.OrdinalIgnoreCase);
+            foreach (var pilot in save.Characters ?? Enumerable.Empty<CharacterSave>())
+            {
+                if (pilot == null) continue;
+                pilot.Skills ??= new List<CharacterSkillSave>();
+                pilot.TrainingQueue ??= new List<SkillQueueEntrySave>();
+                var refund = pilot.Skills
+                    .Where(state => state != null && retiredSkills.Contains(state.SkillId))
+                    .Sum(state => Math.Max(0d, state.SkillPoints));
+                pilot.UnallocatedSkillPoints += refund;
+                pilot.Skills.RemoveAll(state => state == null || retiredSkills.Contains(state.SkillId));
+                pilot.TrainingQueue.RemoveAll(entry => entry == null || retiredSkills.Contains(entry.SkillId));
+                if (retiredSkills.Contains(pilot.TrainingSkillId))
+                {
+                    pilot.TrainingSkillId = string.Empty;
+                    pilot.TrainingTargetLevel = 0;
+                }
+                SkillService.NormalizeQueue(pilot);
+            }
         }
 
         static bool IsMigratingStarterVenture(ShipSave ship)

@@ -86,12 +86,14 @@ namespace EveOffline
                 .Select(Catalog.GetModule)
                 .Where(module=>module?.Kind==ModuleKind.Compressor)
                 .Aggregate(CompressionKind.None,(combined,module)=>combined|module.CompressionKind);
+            // Old catalog entries may still carry the retired Mercoxit bit. It
+            // is ordinary asteroid ore now and is shown under the shared label.
+            if((kinds&CompressionKind.Mercoxit)!=0)kinds|=CompressionKind.Ore;
             if(kinds==CompressionKind.None)return "Сжатие: нет";
             var labels=new List<string>();
             if((kinds&CompressionKind.Ore)!=0)labels.Add("руда");
             if((kinds&CompressionKind.Ice)!=0)labels.Add("лёд");
             if((kinds&CompressionKind.Gas)!=0)labels.Add("газ");
-            if((kinds&CompressionKind.Mercoxit)!=0)labels.Add("Mercoxit");
             return "Сжатие: "+string.Join(" / ",labels);
         }
 
@@ -145,14 +147,10 @@ namespace EveOffline
             if(package.ImplicitUniversalTypeALevel>0)
             {
                 var processingLevel=package.ImplicitUniversalTypeALevel==1?3:4;
-                if(package.Role==PreparedPackageRole.Mercoxit)AddRequirement(new SkillRequirement("mercoxit-ore-processing",processingLevel));
-                else
-                {
-                    AddRequirement(new SkillRequirement("simple-ore-processing",processingLevel));
-                    AddRequirement(new SkillRequirement("coherent-ore-processing",processingLevel));
-                    AddRequirement(new SkillRequirement("variegated-ore-processing",processingLevel));
-                    AddRequirement(new SkillRequirement("complex-ore-processing",processingLevel));
-                }
+                AddRequirement(new SkillRequirement("simple-ore-processing",processingLevel));
+                AddRequirement(new SkillRequirement("coherent-ore-processing",processingLevel));
+                AddRequirement(new SkillRequirement("variegated-ore-processing",processingLevel));
+                AddRequirement(new SkillRequirement("complex-ore-processing",processingLevel));
             }
             // Gas Cloud Harvesting permits one active Scoop per trained level.
             // The module's own requirement (notably T2 at V) remains in the
@@ -215,7 +213,8 @@ namespace EveOffline
         }
 
         /// <summary>
-        /// Builds a deterministic, mutation-free plan for seating every pilot
+        /// Builds a deterministic, mutation-free plan for seating every worker pilot
+        /// (all saved characters except the first, who is the independent leader)
         /// who has the complete package skills and whose current ship can be
         /// released safely. Free exact-package station ships are consumed by
         /// UID before any purchase is planned.
@@ -282,9 +281,13 @@ namespace EveOffline
                 return result;
             }
 
-            var characters=(save.Characters??new List<CharacterSave>()).Where(pilot=>pilot!=null).ToList();
+            var allCharacters=save.Characters??new List<CharacterSave>();
+            // Character order is the roster contract: index 0 is the independent
+            // leader and must never appear in, or be changed by, a mass assignment.
+            var workerPilots=allCharacters.Skip(1).Where(pilot=>pilot!=null).ToList();
             var ships=(save.Ships??new List<ShipSave>()).Where(ship=>ship!=null).ToList();
-            var assignedShipUids=new HashSet<string>(characters.Select(pilot=>pilot.AssignedShipUid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
+            // Keep the leader's ship reserved even though the leader is not a candidate.
+            var assignedShipUids=new HashSet<string>(allCharacters.Where(pilot=>pilot!=null).Select(pilot=>pilot.AssignedShipUid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
             var fleetMembers=(save.Operation?.Fleet??new List<FleetMemberSave>()).Where(member=>member!=null).ToList();
             var fleetShipUids=new HashSet<string>(fleetMembers.Select(member=>member.ShipUid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
             var fleetPilotIds=new HashSet<string>(fleetMembers.Select(member=>member.PilotId).Where(id=>!string.IsNullOrWhiteSpace(id)),StringComparer.OrdinalIgnoreCase);
@@ -294,7 +297,7 @@ namespace EveOffline
             var occupiedUids=new HashSet<string>(ships.Select(ship=>ship.Uid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
             nextShipSerial=Math.Max(1,save.NextShipSerial);
 
-            foreach(var pilot in characters)
+            foreach(var pilot in workerPilots)
             {
                 var currentShip=string.IsNullOrWhiteSpace(pilot.AssignedShipUid)?null:ships.FirstOrDefault(ship=>string.Equals(ship.Uid,pilot.AssignedShipUid,StringComparison.OrdinalIgnoreCase));
                 var preview=new PreparedPackagePilotAssignmentPreview

@@ -69,13 +69,14 @@ public static class EveOfflineBuild
         SmokeV10MiningSiteMigration();
         SmokeV12IceMigration();
         SmokePreparedPackagesAndMigration();
+        SmokeV14OrdinaryMercoxitMigration();
         SmokePreparedPackageMassAssignment();
         SmokePreparedPackageCombatEstimates();
         SmokeBurstLoadoutAndTransfers();
         SmokePaidRepair();
         SmokePerseveranceIceMining();
         SmokeGasMining();
-        SmokeDeepCoreMercoxit();
+        SmokeOrdinaryMercoxit();
         SmokeSameSystemBeltWarp();
         SmokeManualSecurityFloor();
         SmokeGlobalAutomaticBeltRoute();
@@ -92,7 +93,7 @@ public static class EveOfflineBuild
 
         Debug.Log(
             "EVE_OFFLINE_SMOKE_OK roster/deployment; persistent mining; 5+10+5 return warp; " +
-            "automatic unload/retarget by m3; Large/Small injectors; live ESI shield prerequisites; validated queue reordering; copied worker skill plans; Jita fallbacks and warehouse ore valuation; queued industrial cores; core-gated lossless fleet compression; NPC ETA/destruction; official ore grades; 73-system/677-belt highsec catalog with lazy static state; real persistent belts/anomalies with downtime and offline catch-up; locked prepared packages + guarded legacy/v13 migration; atomic mass package assignment with hangar reuse and exact purchases; package EHP and shared combat-drone DPS estimates; ordered three-effect global bursts; exact ice compatibility and six-hour Clear Icicle lifecycle; gas extractors, skills, barge/exhumer cycles, bursts, unload and persistence; deep-core Mercoxit; atomic local-warp rejection; persisted manual/local travel; security-floor global auto-route with lossless cross-system travel, downtime restart and booster restart; event-driven offline mining; offline mine/unload/route across 11:00, no autosell/double award, full queue and overdue anomaly time beyond the 30-day fleet cap, NPC-free versus hostile risk, simulated-time anomaly respawn, and stable cached world deadlines");
+            "automatic unload/retarget by m3; Large/Small injectors; live ESI shield prerequisites; validated queue reordering; copied worker skill plans; Jita fallbacks and warehouse ore valuation; queued industrial cores; core-gated lossless fleet compression; NPC ETA/destruction; official ore grades; 73-system/677-belt highsec catalog with lazy static state; real persistent belts/anomalies with downtime and offline catch-up; locked prepared packages + guarded legacy/v14 migration; atomic mass package assignment with hangar reuse and exact purchases; package EHP and shared combat-drone DPS estimates; ordered three-effect global bursts; exact ice compatibility and six-hour Clear Icicle lifecycle; gas extractors, skills, barge/exhumer cycles, bursts, unload and persistence; ordinary-ore Mercoxit with shared miners, drones, Complex profile and compression; atomic local-warp rejection; persisted manual/local travel; security-floor global auto-route with lossless cross-system travel, downtime restart and booster restart; event-driven offline mining; offline mine/unload/route across 11:00, no autosell/double award, full queue and overdue anomaly time beyond the 30-day fleet cap, NPC-free versus hostile risk, simulated-time anomaly respawn, and stable cached world deadlines");
     }
 
     static void SmokeStartingRosterAndDeploymentSelection()
@@ -659,12 +660,16 @@ public static class EveOfflineBuild
         var commanderSave = SaveService.NewGame();
         var commander = commanderSave.Characters[0];
         var commanderWorker = commanderSave.Characters[1];
+        var nonTemplateWorker = commanderSave.Characters[2];
         Require(SkillService.TryEnqueueToTarget(commander, "mining", 2, out _), "commander-copy smoke must create an individual commander queue");
         Require(SkillService.TryEnqueueToTarget(commanderWorker, "mining-frigate", 2, out _), "commander-copy smoke must create a worker source queue");
+        Require(SkillService.TryEnqueueToTarget(nonTemplateWorker, "mining-frigate", 2, out _), "non-template worker smoke must create a queue that may not become the shared source");
         var commanderSaveBefore = JsonUtility.ToJson(commanderSave);
         Require(!SkillPlanService.TryCopyQueueToOtherWorkers(commanderSave, commander, false, out _), "pilot zero's individual commander plan must never be copied to workers");
+        Require(!SkillPlanService.TryCopyQueueToOtherWorkers(commanderSave, nonTemplateWorker, false, out var nonTemplateResult) && !nonTemplateResult.Success,
+            "only Pilot 02 may be the mass-copy source; another worker must be rejected");
         Require(!SkillPlanService.TryCopyQueue(commanderSave, commanderWorker, commander, false, out _), "pilot zero must never receive a copied worker plan");
-        Require(JsonUtility.ToJson(commanderSave) == commanderSaveBefore, "rejected commander plan copies must leave all queues and the wallet unchanged");
+        Require(JsonUtility.ToJson(commanderSave) == commanderSaveBefore, "rejected commander/non-template plan copies must leave all queues and the wallet unchanged");
 
         var paidSave = SaveService.NewGame();
         var paidCommander = paidSave.Characters[0];
@@ -858,12 +863,20 @@ public static class EveOfflineBuild
             new[] { 62622, 62624 });
         RequireCompressionPackage(
             "orca", "industrial-core-ii",
-            new[] { "large-asteroid-ore-compressor-i", "large-ice-compressor-i", "large-gas-compressor-i", "large-mercoxit-compressor-i" },
-            new[] { 62625, 62628, 62626, 62630 });
+            new[] { "large-asteroid-ore-compressor-i", "large-ice-compressor-i", "large-gas-compressor-i" },
+            new[] { 62625, 62628, 62626 });
         RequireCompressionPackage(
             "rorqual", "capital-industrial-core-ii",
-            new[] { "capital-asteroid-ore-compressor-i", "capital-ice-compressor-i", "capital-gas-compressor-i", "capital-mercoxit-compressor-i" },
-            new[] { 62632, 62633, 62634, 62635 });
+            new[] { "capital-asteroid-ore-compressor-i", "capital-ice-compressor-i", "capital-gas-compressor-i" },
+            new[] { 62632, 62633, 62634 });
+        var retiredMercoxitCompressors = new[] { "large-mercoxit-compressor-i", "capital-mercoxit-compressor-i" };
+        Require(retiredMercoxitCompressors.All(id => Catalog.GetModule(id)?.Kind == ModuleKind.Compressor),
+            "retired Mercoxit compressor IDs must remain readable for legacy saves and inventory");
+        Require(Catalog.Packages.SelectMany(package => package.CompressorModuleIds ?? Array.Empty<string>())
+                .All(id => !retiredMercoxitCompressors.Contains(id, StringComparer.OrdinalIgnoreCase)),
+            "no active Booster package may carry a dedicated Mercoxit compressor");
+        Require(Catalog.Ores.Where(resource => Catalog.IsMercoxitFamily(resource)).All(resource => Catalog.CompressionKindFor(resource) == CompressionKind.Ore),
+            "every Mercoxit grade must use the shared asteroid-ore compression capability");
 
         var outrider = Catalog.GetShip("outrider");
         Require(outrider != null && !outrider.SupportsIndustrialCore, "Outrider must not expose Industrial Core support");
@@ -942,6 +955,18 @@ public static class EveOfflineBuild
         RequireCompressedQuantity(restoredRecipient, "mercoxit", 10d);
         RequireCompressedQuantity(restoredRecipient, "clear-icicle", 3d);
         RequireCompressedQuantity(restoredRecipient, "fullerite-c50", 100d);
+
+        foreach (var hullId in new[] { "porpoise", "orca", "rorqual" })
+        {
+            var sharedOreCompression = NewCompressionOperation(out var source, out var carrier, hullId);
+            OperationService.AddItem(carrier.MiningHold, "mercoxit", 4d);
+            Require(OperationService.ToggleCore(sharedOreCompression, source.Uid, out _),
+                $"{hullId} shared-ore compression fixture must activate its Industrial Core");
+            Require(OperationService.TryCompressFleetMiningHolds(sharedOreCompression, source.Uid, out var sharedResult, out _) &&
+                    sharedResult.StacksCompressed == 1 && sharedResult.UnitsCompressed == 4d,
+                $"{hullId} asteroid-ore compressor must compress Mercoxit without a dedicated module");
+            RequireCompressedQuantity(carrier, "mercoxit", 4d);
+        }
     }
 
     static void RequireCompressionPackage(string hullId, string coreId, string[] compressorIds, int[] typeIds)
@@ -966,14 +991,14 @@ public static class EveOfflineBuild
         }
     }
 
-    static GameSave NewCompressionOperation(out ShipSave compressor, out ShipSave recipient)
+    static GameSave NewCompressionOperation(out ShipSave compressor, out ShipSave recipient, string compressorHullId = "rorqual")
     {
         var save = SaveService.NewGame();
         foreach (var pilot in save.Characters) pilot.DeployOnLaunch = false;
         var compressorPilot = save.Characters[9];
         GrantAllSkills(compressorPilot);
-        compressor = SaveService.CreateShip("smoke-compression-rorqual", "rorqual");
-        PreparedPackageService.ApplyLockedFit(compressor, Catalog.GetPackage("rorqual-booster-t2"));
+        compressor = SaveService.CreateShip($"smoke-compression-{compressorHullId}", compressorHullId);
+        PreparedPackageService.ApplyLockedFit(compressor, Catalog.GetPackage($"{compressorHullId}-booster-t2"));
         save.Ships.Add(compressor);
         compressorPilot.AssignedShipUid = compressor.Uid;
         compressorPilot.DeployOnLaunch = true;
@@ -1263,15 +1288,24 @@ public static class EveOfflineBuild
         }
 
         var miningDroneOnly = new ShipSave { Uid = "grade-drone-only", HullId = "venture", MiningDroneId = "mining-drone-i", MiningDroneCount = 2 };
-        var deepCore = Catalog.GetModule("modulated-deep-core-miner-ii");
-        var deepCrystal = Catalog.GetCrystal("mercoxit-crystal-a-i");
-        Require(deepCore != null && deepCrystal != null, "Mercoxit grade compatibility fixture is incomplete");
-        var deepCoreFitting = new FittedModuleSave { ModuleId = deepCore.Id, ChargeId = deepCrystal.Id };
+        var ordinaryMercoxitModules = new[] { "miner-i", "miner-ii", "ore-miner", "strip-miner-i", "modulated-strip-miner-ii", "ore-strip-miner" }
+            .Select(Catalog.GetModule).ToArray();
+        var complexCrystal = Catalog.GetCrystal("complex-a-i");
+        var legacyMercoxitCrystal = Catalog.GetCrystal("mercoxit-crystal-a-i");
+        Require(ordinaryMercoxitModules.All(module => module != null) && complexCrystal != null && legacyMercoxitCrystal != null,
+            "ordinary Mercoxit module/crystal compatibility fixture is incomplete");
+        var complexFitting = new FittedModuleSave { ModuleId = "modulated-strip-miner-ii", ChargeId = complexCrystal.Id };
+        var legacyCrystalFitting = new FittedModuleSave { ModuleId = "modulated-strip-miner-ii", ChargeId = legacyMercoxitCrystal.Id };
         foreach (var mercoxit in Catalog.Ores.Where(ore => Catalog.IsMercoxitFamily(ore)))
         {
-            Require(!OperationService.CanMineResource(miningDroneOnly, mercoxit.Id), $"mining drones must reject {mercoxit.Id}");
-            Require(OperationService.CanMineResource(deepCore, mercoxit) && deepCrystal.SupportsOre(mercoxit.Id) && OperationService.CanMineResource(deepCoreFitting, mercoxit),
-                $"deep-core module/crystal must accept {mercoxit.Id}");
+            Require(ordinaryMercoxitModules.All(module => OperationService.CanMineResource(module, mercoxit)),
+                $"every ordinary laser/strip tier must mine {mercoxit.Id}");
+            Require(OperationService.CanMineResource(miningDroneOnly, mercoxit.Id),
+                $"ordinary mining drones must mine {mercoxit.Id}");
+            Require(complexCrystal.SupportsOre(mercoxit.Id) && OperationService.CanMineResource(complexFitting, mercoxit),
+                $"Complex ore crystal/profile must accept {mercoxit.Id}");
+            Require(legacyMercoxitCrystal.SupportsOre(mercoxit.Id) && OperationService.CanMineResource(legacyCrystalFitting, mercoxit),
+                $"legacy Mercoxit crystal ID must remain readable and usable on an ordinary modulated strip miner for {mercoxit.Id}");
         }
 
         const long deterministicNow = 4_089_765_600;
@@ -1634,8 +1668,8 @@ public static class EveOfflineBuild
 
         SaveService.MigrateToCurrentVersion(deserialized);
 
-        Require(deserialized.Version == SaveService.CurrentVersion && SaveService.CurrentVersion == 13,
-            "legacy ice migration must preserve its v12 repair and advance the save to schema v13");
+        Require(deserialized.Version == SaveService.CurrentVersion && SaveService.CurrentVersion == 14,
+            "legacy ice migration must preserve its v12 repair and advance the save through schema v14");
         foreach (var expected in preservedShips)
         {
             var migratedShip = deserialized.Ships.Single(ship => ship.Uid == expected.Uid);
@@ -1668,8 +1702,11 @@ public static class EveOfflineBuild
 
     static void SmokePreparedPackagesAndMigration()
     {
-        Require(Catalog.Packages.Count > Catalog.Ships.Count, "prepared package catalog must expose meaningful ore/ice/gas/Mercoxit/booster choices");
+        Require(Catalog.Packages.Count > Catalog.Ships.Count, "prepared package catalog must expose meaningful ore/ice/gas/booster choices");
         Require(Catalog.Packages.Select(package => package.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() == Catalog.Packages.Count, "prepared package IDs must be unique");
+        Require(Catalog.Packages.All(package => package.Role != PreparedPackageRole.Mercoxit &&
+                                               package.Id.IndexOf("-mercoxit-", StringComparison.OrdinalIgnoreCase) < 0),
+            "active catalog must not expose dedicated Mercoxit packages");
         foreach (var package in Catalog.Packages)
         {
             var hull = Catalog.GetShip(package.HullId);
@@ -1721,12 +1758,14 @@ public static class EveOfflineBuild
         Require(JsonUtility.ToJson(bought) == lockedFitBefore, "rejected manual refit must leave the locked prepared package byte-for-byte unchanged");
 
         SmokeImplicitUniversalPackageYield(hulkPackage, "veldspar", expectBonus: true);
-        var mercoxitPackage = Catalog.GetPackage("hulk-mercoxit-t2-a2");
-        Require(mercoxitPackage != null && mercoxitPackage.ImplicitUniversalTypeA2, "Hulk Mercoxit T2 package must expose its implicit specialized Type A II profile");
-        var mercoxitPackageSkills = PreparedPackageService.RequiredSkills(mercoxitPackage);
-        Require(mercoxitPackageSkills.Any(requirement => requirement.SkillId == "mercoxit-ore-processing" && requirement.Level >= 4) && !mercoxitPackageSkills.Any(requirement => requirement.SkillId == "simple-ore-processing"), "Mercoxit Type A II package must require only its specialized processing family, not ordinary universal families");
-        SmokeImplicitUniversalPackageYield(mercoxitPackage, "mercoxit", expectBonus: true);
-        SmokeImplicitUniversalPackageYield(mercoxitPackage, "bistot", expectBonus: false);
+        SmokeImplicitUniversalPackageYield(hulkPackage, "mercoxit", expectBonus: true);
+        SmokeImplicitUniversalPackageYield(hulkPackage, "bistot", expectBonus: true);
+        Require(Catalog.GetPackage("hulk-mercoxit-t2-a2") == null,
+            "retired dedicated Mercoxit package IDs must not remain purchasable");
+        Require(Catalog.Skills.All(skill => skill.Id != "deep-core-mining" && skill.Id != "mercoxit-ore-processing"),
+            "retired Mercoxit-only skills must not remain visible in the active Academy catalog");
+        Require(Catalog.GetSkill("deep-core-mining") != null && Catalog.GetSkill("mercoxit-ore-processing") != null,
+            "retired Mercoxit skill IDs must remain resolvable long enough to migrate legacy saves safely");
 
         var ambiguousLegacyHulk = SaveService.CreateShip("legacy-hulk-without-proven-a-crystal", hulkPackage.HullId);
         PreparedPackageService.ApplyLockedFit(ambiguousLegacyHulk, hulkPackage);
@@ -1826,6 +1865,156 @@ public static class EveOfflineBuild
         for (var index = 0; index < legacy.Ships.Count; index++) { legacy.Ships[index].PackageId = inferredPackages[index]; legacy.Ships[index].TankPresetId = inferredTanks[index]; }
     }
 
+    static void SmokeV14OrdinaryMercoxitMigration()
+    {
+        var save = SaveService.NewGame();
+        save.Version = 13;
+        save.Isk = 456_789_123d;
+
+        var packageMappings = new[]
+        {
+            new[] { "venture-mercoxit-t1", "venture-ore-t1", "deep-core-mining-laser-i" },
+            new[] { "venture-mercoxit-t2-a2", "venture-ore-t2-a2", "modulated-deep-core-miner-ii" },
+            new[] { "venture-mercoxit-ore", "venture-ore-ore", "ore-deep-core-mining-laser" },
+            new[] { "hulk-mercoxit-t2-a2", "hulk-ore-t2-a2", "modulated-deep-core-strip-miner-ii" }
+        };
+        var retiredMinerIds = new HashSet<string>(packageMappings.Select(mapping => mapping[2]), StringComparer.OrdinalIgnoreCase);
+        var migratedShips = new List<ShipSave>();
+        foreach (var mapping in packageMappings)
+        {
+            var replacement = Catalog.GetPackage(mapping[1]);
+            Require(replacement != null, $"v14 Mercoxit migration fixture is missing replacement package {mapping[1]}");
+            var ship = SaveService.CreateShip($"v13-{mapping[0]}", replacement.HullId);
+            PreparedPackageService.ApplyLockedFit(ship, replacement);
+            foreach (var fitted in ship.Modules.Where(module => string.Equals(module.ModuleId, replacement.MinerModuleId, StringComparison.OrdinalIgnoreCase)))
+                fitted.ModuleId = mapping[2];
+            ship.PackageId = mapping[0];
+            save.Ships.Add(ship);
+            migratedShips.Add(ship);
+        }
+
+        var liveShip = migratedShips.Last();
+        liveShip.Location = ShipLocation.Belt;
+        liveShip.ShieldHp = 1234.5f;
+        liveShip.ArmorHp = 987.5f;
+        liveShip.StructureHp = 876.5f;
+        OperationService.AddItem(liveShip.MiningHold, "mercoxit-iii-grade", 7d);
+        OperationService.AddItem(liveShip.CargoHold, Catalog.CompressedItemId("mercoxit-iii-grade"), 5d);
+        OperationService.AddItem(liveShip.FuelHold, "heavy-water", 11d);
+        var liveRuntimeBefore = StarterRuntimeSignature(liveShip);
+        save.Operation = new OperationSave
+        {
+            Active = true,
+            LocationId = "y-zxio-belt-1",
+            Fleet = new List<FleetMemberSave>
+            {
+                new()
+                {
+                    PilotId = save.Characters[2].Id,
+                    ShipUid = liveShip.Uid,
+                    Order = FleetOrder.Mining,
+                    TargetAsteroidId = "v13-live-mercoxit-rock",
+                    MiningCycles = new List<MiningCycleSave> { new() { Slot = 0, ProgressSeconds = 12.5f } }
+                }
+            },
+            Asteroids = new List<AsteroidSave>
+            {
+                new() { Id = "v13-live-mercoxit-rock", OreId = "mercoxit-iii-grade", RemainingUnits = 4321d, X = 1, Y = 2, Z = 3, Scale = 4 }
+            }
+        };
+        save.Characters[2].AssignedShipUid = liveShip.Uid;
+        var operationBefore = JsonUtility.ToJson(save.Operation);
+
+        var custom = SaveService.CreateShip("v13-custom-deep-core", "venture");
+        custom.PackageId = string.Empty;
+        custom.Modules.Add(new FittedModuleSave
+        {
+            Slot = 0,
+            ModuleId = "modulated-deep-core-miner-ii",
+            ChargeId = "mercoxit-crystal-a-i",
+            ChargeUid = "v13-custom-crystal",
+            ChargeDamage = .42f,
+            Active = true
+        });
+        OperationService.AddItem(custom.MiningHold, "mercoxit", 3d);
+        save.Ships.Add(custom);
+        var customBefore = JsonUtility.ToJson(custom);
+
+        OperationService.AddItem(save.StationInventory, "deep-core-mining-laser-i", 2d);
+        OperationService.AddItem(save.StationInventory, "large-mercoxit-compressor-i", 1d);
+        OperationService.AddItem(save.StationInventory, "mercoxit", 9d);
+        OperationService.AddItem(save.StationInventory, Catalog.CompressedItemId("mercoxit"), 8d);
+        save.StationItemInstances.Add(new ItemInstanceSave
+        {
+            Uid = "v13-station-mercoxit-crystal",
+            ItemId = "mercoxit-crystal-a-ii",
+            Damage = .73f
+        });
+        var inventoryBefore = string.Join("|", save.StationInventory.Select(stack => $"{stack.ItemId}:{stack.Quantity:R}"));
+        var instancesBefore = string.Join("|", save.StationItemInstances.Select(instance => $"{instance.Uid}:{instance.ItemId}:{instance.Damage:R}"));
+
+        var pilot = save.Characters[3];
+        var deepCoreSp = SkillService.RequiredSp("deep-core-mining", 3) + 17.25d;
+        var processingSp = SkillService.RequiredSp("mercoxit-ore-processing", 2) + 9.5d;
+        var deepCoreState = SkillService.GetState(pilot, "deep-core-mining", true);
+        deepCoreState.BookOwned = true;
+        deepCoreState.SkillPoints = deepCoreSp;
+        var processingState = SkillService.GetState(pilot, "mercoxit-ore-processing", true);
+        processingState.BookOwned = true;
+        processingState.SkillPoints = processingSp;
+        var retainedState = SkillService.GetState(pilot, "industry", true);
+        retainedState.BookOwned = true;
+        retainedState.SkillPoints = 0;
+        pilot.UnallocatedSkillPoints = 321.75d;
+        pilot.TrainingQueue = new List<SkillQueueEntrySave>
+        {
+            new() { SkillId = "deep-core-mining", TargetLevel = 4 },
+            new() { SkillId = "industry", TargetLevel = 1 },
+            new() { SkillId = "mercoxit-ore-processing", TargetLevel = 3 }
+        };
+        pilot.TrainingSkillId = "deep-core-mining";
+        pilot.TrainingTargetLevel = 4;
+        var totalSpBefore = SkillService.TotalSp(pilot);
+        var freeSpBefore = pilot.UnallocatedSkillPoints;
+        var walletBefore = save.Isk;
+
+        SaveService.MigrateToCurrentVersion(save);
+
+        Require(save.Version == 14 && save.Version == SaveService.CurrentVersion,
+            "v13 ordinary-Mercoxit migration must advance the save to schema v14");
+        for (var index = 0; index < packageMappings.Length; index++)
+        {
+            var mapping = packageMappings[index];
+            var ship = migratedShips[index];
+            var replacement = Catalog.GetPackage(mapping[1]);
+            var hull = Catalog.GetShip(ship.HullId);
+            Require(ship.PackageId == replacement.Id &&
+                    ship.Modules.Count(module => string.Equals(module.ModuleId, replacement.MinerModuleId, StringComparison.OrdinalIgnoreCase)) == hull.MiningHighSlots &&
+                    ship.Modules.All(module => !retiredMinerIds.Contains(module.ModuleId)),
+                $"v14 migration must replace {mapping[0]} with the complete ordinary package {mapping[1]}");
+        }
+        Require(StarterRuntimeSignature(liveShip) == liveRuntimeBefore && JsonUtility.ToJson(save.Operation) == operationBefore,
+            "v14 prepared-package refit must preserve exact live HP, location, holds, asteroid, target and cycle progress");
+        Require(OperationService.ItemQuantity(liveShip.MiningHold, "mercoxit-iii-grade") == 7d &&
+                OperationService.ItemQuantity(liveShip.CargoHold, Catalog.CompressedItemId("mercoxit-iii-grade")) == 5d,
+            "v14 package migration must preserve raw and already-compressed Mercoxit stacks exactly");
+        Require(JsonUtility.ToJson(custom) == customBefore,
+            "v14 migration must not refit or rewrite a custom legacy deep-core ship without a retired package identity");
+        Require(string.Join("|", save.StationInventory.Select(stack => $"{stack.ItemId}:{stack.Quantity:R}")) == inventoryBefore &&
+                string.Join("|", save.StationItemInstances.Select(instance => $"{instance.Uid}:{instance.ItemId}:{instance.Damage:R}")) == instancesBefore,
+            "v14 migration must keep legacy modules, compressor items, crystals and raw/compressed inventory readable and exact");
+        RequireNearly(pilot.UnallocatedSkillPoints, freeSpBefore + deepCoreSp + processingSp, .0001d,
+            "v14 migration must refund every positive SP invested in both retired Mercoxit-only skills");
+        RequireNearly(SkillService.TotalSp(pilot), totalSpBefore, .0001d,
+            "v14 retired-skill migration must preserve the pilot's total SP exactly");
+        Require(SkillService.GetState(pilot, "deep-core-mining") == null && SkillService.GetState(pilot, "mercoxit-ore-processing") == null,
+            "v14 migration must remove both retired Mercoxit-only skill states after refunding them");
+        Require(TrainingQueueSignature(pilot) == "industry:1" && pilot.TrainingSkillId == "industry" && pilot.TrainingTargetLevel == 1,
+            "v14 migration must remove retired queue entries and normalize the surviving active-entry mirror");
+        RequireNearly(save.Isk, walletBefore, .0001d,
+            "v14 retired-skill migration must refund SP without inventing or deleting wallet ISK");
+    }
+
     static void SmokePreparedPackageMassAssignment()
     {
         var save = SaveService.NewGame();
@@ -1835,14 +2024,17 @@ public static class EveOfflineBuild
         var packageSkills = PreparedPackageService.RequiredSkills(package);
         var nestedClosureRequirement = packageSkills.Single(requirement => requirement.SkillId == "spaceship-command");
 
-        var readyWithShip = save.Characters[0];
+        var independentLeader = save.Characters[0];
         var alreadyAssigned = save.Characters[1];
-        var unsafeCurrentShip = save.Characters[2];
-        var readyWithoutShip = save.Characters[3];
-        var missingClosureSkill = save.Characters[4];
-        var readyThird = save.Characters[5];
-        foreach (var pilot in new[] { readyWithShip, alreadyAssigned, unsafeCurrentShip, readyWithoutShip, missingClosureSkill, readyThird })
+        var readyWithShip = save.Characters[2];
+        var unsafeCurrentShip = save.Characters[3];
+        var readyWithoutShip = save.Characters[4];
+        var missingClosureSkill = save.Characters[5];
+        var readyThird = save.Characters[6];
+        foreach (var pilot in new[] { independentLeader, alreadyAssigned, readyWithShip, unsafeCurrentShip, readyWithoutShip, missingClosureSkill, readyThird })
             GrantAllSkills(pilot);
+        Require(PreparedPackageService.CanUsePackage(independentLeader, package),
+            "mass assignment leader fixture must be fully eligible so exclusion is proven independently of skills");
         SetSkillLevel(missingClosureSkill, nestedClosureRequirement.SkillId, nestedClosureRequirement.Level - 1);
         Require(!PreparedPackageService.CanUsePackage(missingClosureSkill, package),
             "mass assignment eligibility must honor the complete package prerequisite closure");
@@ -1876,18 +2068,23 @@ public static class EveOfflineBuild
         save.Isk = packagePrice * 2d + 77d;
         var serialBefore = save.NextShipSerial;
         var shipCountBefore = save.Ships.Count;
+        var leaderAssignedShipUidBefore = independentLeader.AssignedShipUid;
+        var leaderShip = save.Ships.Single(ship => ship.Uid == leaderAssignedShipUidBefore);
+        var leaderStateBefore = JsonUtility.ToJson(independentLeader);
+        var leaderShipStateBefore = JsonUtility.ToJson(leaderShip);
         var previewStateBefore = JsonUtility.ToJson(save);
         var preview = PreparedPackageService.PreviewAssignAll(save, package.Id);
         Require(JsonUtility.ToJson(save) == previewStateBefore,
             "mass package preview must be mutation-free");
         Require(preview.Success && preview.Affordable && preview.EligibleCount == 4 && preview.AlreadyAssignedCount == 1 &&
-                preview.ReusedCount == 1 && preview.PurchasedCount == 2 && preview.SkippedCount == 6,
+                preview.ReusedCount == 1 && preview.PurchasedCount == 2 && preview.SkippedCount == 5,
             "mass package preview must count ready, already assigned, reusable, purchased and skipped pilots exactly");
         RequireNearly(preview.PurchaseCostIsk, packagePrice * 2d, .001d,
             "mass package preview must price only the exact missing ship count");
-        Require(preview.Pilots.Count == save.Characters.Count && preview.Pilots.All(candidate =>
+        Require(preview.Pilots.Count == save.Characters.Count - 1 &&
+                preview.Pilots.All(candidate => candidate.PilotId != independentLeader.Id) && preview.Pilots.All(candidate =>
                     candidate.SkillsReady == PreparedPackageService.CanUsePackage(save.Characters.Single(pilot => pilot.Id == candidate.PilotId), package)),
-            "public mass package preview must expose eligibility from the complete package skill closure for every pilot");
+            "public mass package preview must exclude Pilot 01 and expose complete package eligibility for every worker");
 
         var readyPreview = preview.Pilots.Single(candidate => candidate.PilotId == readyWithShip.Id);
         var alreadyPreview = preview.Pilots.Single(candidate => candidate.PilotId == alreadyAssigned.Id);
@@ -1960,6 +2157,9 @@ public static class EveOfflineBuild
                 !save.Characters.Any(pilot => pilot.AssignedShipUid == activeExactShip.Uid) &&
                 save.Operation.Fleet.Any(member => member.ShipUid == activeExactShip.Uid),
             "assigned and active exact-package ships must remain exclusively with their original owner or operation");
+        Require(independentLeader.AssignedShipUid == leaderAssignedShipUidBefore &&
+                JsonUtility.ToJson(independentLeader) == leaderStateBefore && JsonUtility.ToJson(leaderShip) == leaderShipStateBefore,
+            "mass package assignment must leave Pilot 01 and the leader's independently managed ship unchanged");
         Require(displacedShipUids.All(uid => save.Ships.Any(ship => ship.Uid == uid && ship.Location == ShipLocation.Station) &&
                     !save.Characters.Any(pilot => pilot.AssignedShipUid == uid)) &&
                 save.Characters.Select(pilot => pilot.AssignedShipUid).Where(uid => !string.IsNullOrWhiteSpace(uid)).Distinct(StringComparer.OrdinalIgnoreCase).Count() ==
@@ -2053,7 +2253,7 @@ public static class EveOfflineBuild
         ship.PackageId = string.Empty;
         var withoutProfile = OperationService.MiningYieldM3(pilot, hull, miner, save, member);
         if (expectBonus) Require(withProfile > withoutProfile, $"{package.Id} implicit Type A profile must increase {oreId} yield");
-        else RequireNearly(withProfile, withoutProfile, .001d, $"{package.Id} specialized Mercoxit profile must not bonus ordinary {oreId}");
+        else RequireNearly(withProfile, withoutProfile, .001d, $"{package.Id} implicit universal profile unexpectedly changed {oreId} yield");
     }
 
     static void SmokeBurstLoadoutAndTransfers()
@@ -3174,36 +3374,51 @@ public static class EveOfflineBuild
             "a destination availability race must return the persisted travel roster safely to station");
     }
 
-    static void SmokeDeepCoreMercoxit()
+    static void SmokeOrdinaryMercoxit()
     {
-        var small = Catalog.GetModule("modulated-deep-core-miner-ii");
-        var strip = Catalog.GetModule("modulated-deep-core-strip-miner-ii");
-        Require(small?.TypeId == 18068 && strip?.TypeId == 24305, "deep-core module IDs mismatch");
-        Require(small.CanMineMercoxit && strip.CanMineMercoxit, "deep-core modules must explicitly unlock Mercoxit");
-        RequireNearly(small.BaseYieldM3, 30, .001d, "small deep-core yield mismatch");
-        RequireNearly(strip.BaseYieldM3, 80, .001d, "deep-core strip yield mismatch");
-        Require(Catalog.GetSkill("deep-core-mining").Prerequisites.Any(requirement => requirement.SkillId == "mining" && requirement.Level == 5), "Deep Core Mining must require Mining V");
+        var small = Catalog.GetModule("miner-i");
+        var strip = Catalog.GetModule("modulated-strip-miner-ii");
+        Require(small?.Kind == ModuleKind.MiningLaser && strip?.Kind == ModuleKind.StripMiner,
+            "ordinary Mercoxit runtime fixture requires the normal laser and strip-miner families");
+        var retiredModules = new[]
+        {
+            "deep-core-mining-laser-i", "ore-deep-core-mining-laser",
+            "modulated-deep-core-miner-ii", "modulated-deep-core-strip-miner-ii"
+        };
+        Require(retiredModules.All(id => Catalog.GetModule(id) != null),
+            "retired deep-core module IDs must remain readable for legacy ships and inventories");
+        Require(Catalog.Packages.All(package => !retiredModules.Contains(package.MinerModuleId, StringComparer.OrdinalIgnoreCase)),
+            "no active prepared package may fit a dedicated deep-core miner");
+        Require(Catalog.Modules.Where(module => !retiredModules.Contains(module.Id, StringComparer.OrdinalIgnoreCase))
+                .SelectMany(module => module.Requirements ?? Array.Empty<SkillRequirement>())
+                .All(requirement => requirement.SkillId != "deep-core-mining"),
+            "ordinary active modules must not require the retired Deep Core Mining skill");
 
         var save = SaveService.NewGame();
         foreach (var candidate in save.Characters) candidate.DeployOnLaunch = false;
         var pilot = save.Characters[9]; GrantAllSkills(pilot);
-        var ship = SaveService.CreateShip("smoke-deep-hulk", "hulk");
-        var mercoxitPackage = Catalog.GetPackage("hulk-mercoxit-t2-a2");
-        Require(mercoxitPackage != null, "Hulk must expose a prepared Mercoxit T2 package");
-        PreparedPackageService.ApplyLockedFit(ship, mercoxitPackage);
+        var ship = SaveService.CreateShip("smoke-ordinary-mercoxit-hulk", "hulk");
+        var orePackage = Catalog.GetPackage("hulk-ore-t2-a2");
+        Require(orePackage != null && orePackage.Role == PreparedPackageRole.Ore,
+            "Hulk ordinary Ore T2 package must replace the retired Mercoxit package");
+        PreparedPackageService.ApplyLockedFit(ship, orePackage);
         save.Ships.Add(ship); pilot.AssignedShipUid = ship.Uid; pilot.DeployOnLaunch = true;
-        Require(ship.Modules.Count(module => module.ModuleId == strip.Id) == 2, "Hulk Mercoxit package must materialize both deep-core strips");
-        Require(ship.Modules.Where(module => module.ModuleId == strip.Id).All(module => string.IsNullOrWhiteSpace(module.ChargeId)), "Mercoxit Type A profile must remain implicit and wear-free");
-        Require(OperationService.CanMineResource(ship, "mercoxit"), "deep-core Hulk must be able to target Mercoxit");
-        Require(!OperationService.CanMineResource(save.Ships[0], "mercoxit"), "ordinary Venture and mining drones must reject Mercoxit");
+        Require(ship.Modules.Count(module => module.ModuleId == strip.Id) == 2,
+            "Hulk ordinary Ore T2 package must materialize both normal modulated strips");
+        Require(ship.Modules.Where(module => module.ModuleId == strip.Id).All(module => string.IsNullOrWhiteSpace(module.ChargeId)),
+            "ordinary universal Type A profile must remain implicit and wear-free for Mercoxit");
+        Require(OperationService.CanMineResource(ship, "mercoxit") && OperationService.CanMineResource(save.Ships[0], "mercoxit"),
+            "both a normal Hulk Ore package and the starter Venture must be allowed to target Mercoxit");
 
         OperationService.Start(save, "y-zxio-belt-1");
-        var asteroid = save.Operation.Asteroids.First(candidate => candidate.OreId == "mercoxit");
+        var asteroid = save.Operation.Asteroids.First(candidate => Catalog.IsMercoxitFamily(candidate.OreId));
         var member = save.Operation.Fleet.Single();
-        Require(OperationService.AssignTarget(save, ship.Uid, asteroid.Id), "deep-core Hulk must accept a Mercoxit target");
+        Require(OperationService.AssignTarget(save, ship.Uid, asteroid.Id),
+            "ordinary Ore Hulk must accept a Mercoxit target without a dedicated skill or miner");
         member.X = asteroid.X; member.Y = asteroid.Y; member.Z = asteroid.Z;
         OperationService.Tick(save, OperationService.MiningCycleSeconds(pilot, Catalog.GetShip("hulk"), strip, save, member) + .01f);
-        Require(OperationService.ItemQuantity(ship.MiningHold, "mercoxit") >= 1, "deep-core cycle must deliver whole 40 m3 Mercoxit units");
+        Require(OperationService.ItemQuantity(ship.MiningHold, asteroid.OreId) >= 1,
+            "ordinary modulated-strip cycle must deliver Mercoxit through the normal ore path");
     }
 
     static LocationDefinition ExpectedAutomaticBeltByContract(GameSave save, bool includeCurrent = false)

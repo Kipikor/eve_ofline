@@ -28,7 +28,7 @@ namespace EveOffline
     }
 
     /// <summary>
-    /// Copies one worker pilot's current queue as a replace-all training plan.
+    /// Copies Pilot 02's current queue to Pilots 03-10 as a replace-all training plan.
     /// Character zero is the fleet commander and deliberately never participates.
     /// Every public apply operation is preflighted completely before ISK, books,
     /// or a live target queue are changed.
@@ -67,9 +67,10 @@ namespace EveOffline
             plans = new();
             if (save?.Characters == null || save.Characters.Count < 2)
                 return Failure("Нет рабочих пилотов для копирования плана.");
-            if (source == null || IsCommander(save, source))
-                return Failure("План руководителя всегда индивидуальный и не копируется.");
-            var targets = save.Characters.Skip(1).Where(pilot => pilot != null && !SamePilot(pilot, source)).ToArray();
+            var workerTemplate = save.Characters[1];
+            if (source == null || workerTemplate == null || !SamePilot(source, workerTemplate))
+                return Failure("Общую очередь рабочих можно копировать только от Пилота 02 к Пилотам 03–10.");
+            var targets = save.Characters.Skip(2).Where(pilot => pilot != null).ToArray();
             return BuildPlan(save, source, targets, buyMissingBooks, requireAffordable, out plans);
         }
 

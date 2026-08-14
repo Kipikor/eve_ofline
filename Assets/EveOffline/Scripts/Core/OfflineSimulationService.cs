@@ -371,7 +371,7 @@ namespace EveOffline
 
             var pilot = save?.Characters?.Find(candidate => candidate != null && candidate.Id == member.PilotId);
             var miningDrone = Catalog.GetDrone(ship.MiningDroneId);
-            var hasMiningDrones = resource.Kind == ResourceKind.Ore && !Catalog.IsMercoxitFamily(resource) &&
+            var hasMiningDrones = resource.Kind == ResourceKind.Ore &&
                                   miningDrone?.Mining == true && ship.MiningDroneCount > 0 &&
                                   SkillService.GetLevel(pilot, "drones") > 0;
             if ((operation.Enemies?.Count ?? 0) == 0 && hasMiningDrones)
@@ -398,7 +398,7 @@ namespace EveOffline
             var hasExtractor = (ship.Modules ?? new List<FittedModuleSave>())
                 .Any(fitted => fitted != null && OperationService.CanMineResource(fitted, resource));
             var miningDrone = Catalog.GetDrone(ship.MiningDroneId);
-            var hasMiningDrones = resource.Kind == ResourceKind.Ore && !Catalog.IsMercoxitFamily(resource) &&
+            var hasMiningDrones = resource.Kind == ResourceKind.Ore &&
                                   miningDrone?.Mining == true && ship.MiningDroneCount > 0 &&
                                   SkillService.GetLevel(pilot, "drones") > 0;
             if (!hasExtractor && !hasMiningDrones) return true;

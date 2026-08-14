@@ -707,17 +707,17 @@ namespace EveOffline
 
         void BuildAcademy(RectTransform content)
         {
-            Title(content,"НАВЫКИ И КАРЬЕРА","Слева выбери пилота • реальное обучение 2700 SP/час • книги, очередь и стоимость допуска к готовым комплектам");
+            Title(content,"НАВЫКИ И КАРЬЕРА","Пилот 01 живёт отдельно • Пилот 02 задаёт очередь рабочих • реальное обучение 2700 SP/час");
             var selector=Rect("Pilot select",content,new Vector2(18,18),new Vector2(210,-94),Vector2.zero,new Vector2(0,1),Panel);
             Text(selector,"ПИЛОТЫ • ВЫБЕРИ, КОГО СМОТРИМ",10,Cyan,new Vector2(10,-8),new Vector2(-10,24),TextAnchor.MiddleLeft,FontStyle.Bold);
             for(var i=0;i<save.Characters.Count;i++)
             {
-                var p=save.Characters[i];var id=p.Id;var selected=id==selectedPilotId;var queueCount=SkillService.GetTrainingQueue(p).Count;var role=i==0?"РУКОВОДИТЕЛЬ • ИНДИВИД.":"РАБОЧИЙ";
+                var p=save.Characters[i];var id=p.Id;var selected=id==selectedPilotId;var queueCount=SkillService.GetTrainingQueue(p).Count;var role=i==0?"НЕЗАВИСИМЫЙ • ИНДИВИД.":i==1?"ЭТАЛОН РАБОЧИХ":"РАБОЧИЙ";
                 var label=$"{(selected?"▶ ":string.Empty)}{p.Name}\n{role} • очередь {queueCount}";var y=-58-i*52;
                 var button=Button(selector,label,new Vector2(0,y),new Vector2(-16,44),()=>{selectedPilotId=id;queueCopyConfirmationPilotId=string.Empty;BuildStationAgain();},selected?Cyan:PanelAlt);Pin(button.GetComponent<RectTransform>(),new Vector2(0,1),Vector2.one);
             }
             var pilot=FindPilot(selectedPilotId)??save.Characters.FirstOrDefault();if(pilot==null)return;selectedPilotId=pilot.Id;
-            var pilotIndex=save.Characters.IndexOf(pilot);var pilotRole=pilotIndex==0?"РУКОВОДИТЕЛЬ • индивидуальный план":"РАБОЧИЙ • план можно копировать";var pilotShip=FindShip(pilot.AssignedShipUid);
+            var pilotIndex=save.Characters.IndexOf(pilot);var pilotRole=pilotIndex==0?"НЕЗАВИСИМЫЙ • индивидуальный план":pilotIndex==1?"ЭТАЛОН • его очередь копируется рабочим":"РАБОЧИЙ • получает очередь Пилота 02";var pilotShip=FindShip(pilot.AssignedShipUid);
             Text(selector,"СЕЙЧАС СМОТРИМ",10,Amber,new Vector2(10,-570),new Vector2(-10,20),TextAnchor.MiddleLeft,FontStyle.Bold);
             Text(selector,$"{pilot.Name}\n{pilotRole}\nКомплект: {(pilotShip==null?"не назначен":ShipDisplayName(pilotShip))}",10,Ink,new Vector2(10,-594),new Vector2(-10,64),TextAnchor.UpperLeft,FontStyle.Bold);
             var injector=Rect("Injector",content,new Vector2(228,-132),new Vector2(-18,-94),new Vector2(0,1),Vector2.one,Panel);
@@ -730,25 +730,26 @@ namespace EveOffline
             if(academyShowsCareerPlans)BuildCareerPlans(scroll.content,pilot);
             else
             {
-                var isCommander=save.Characters.Count>0&&pilot.Id==save.Characters[0].Id;var copyArmed=!isCommander&&queue.Count>0&&queueCopyConfirmationPilotId==pilot.Id;
+                var isCommander=pilotIndex==0;var isWorkerTemplate=pilotIndex==1;var copyArmed=isWorkerTemplate&&queue.Count>0&&queueCopyConfirmationPilotId==pilot.Id;
                 const float queueHeaderHeight=46f;const float copyPanelHeight=82f;const float queueRowHeight=82f;const float queueRowStep=86f;const float rightControlMargin=8f;var queueBodyTop=queueHeaderHeight+(copyArmed?copyPanelHeight:0);var queueBodyHeight=queue.Count>0?queue.Count*queueRowStep:38f;var queueSectionHeight=queueBodyTop+queueBodyHeight;
                 var queueSection=Rect("Training queue",scroll.content,new Vector2(0,-queueSectionHeight),Vector2.zero,new Vector2(0,1),Vector2.one,Color.clear);
-                Text(queueSection,isCommander?"ОЧЕРЕДЬ РУКОВОДИТЕЛЯ • ИНДИВИДУАЛЬНЫЙ ПЛАН":"ОЧЕРЕДЬ ОБУЧЕНИЯ • ШАБЛОН РАБОЧИХ ПИЛОТОВ",12,Cyan,new Vector2(12,-8),new Vector2(430,28),TextAnchor.MiddleLeft,FontStyle.Bold);
+                var queueTitle=isCommander?"ОЧЕРЕДЬ ПИЛОТА 01 • ТОЛЬКО ЕГО":isWorkerTemplate?"ОЧЕРЕДЬ ПИЛОТА 02 • ЭТАЛОН РАБОЧИХ":"ОЧЕРЕДЬ РАБОЧЕГО • ПОЛУЧАТЕЛЬ ПЛАНА ПИЛОТА 02";
+                Text(queueSection,queueTitle,12,Cyan,new Vector2(12,-8),new Vector2(500,28),TextAnchor.MiddleLeft,FontStyle.Bold);
                 if(queue.Count>0)
                 {
                     const float clearWidth=70f;var clear=Button(queueSection,"ОЧИСТИТЬ",new Vector2(-rightControlMargin-clearWidth*.5f,-queueHeaderHeight*.5f),new Vector2(clearWidth,32),()=>{if(SkillService.TryClearTrainingQueue(pilot,out var msg))SaveService.Save(save);Tell(msg);BuildStationAgain();},Danger);Pin(clear.GetComponent<RectTransform>(),Vector2.one,Vector2.one);
-                    if(!isCommander)
+                    if(isWorkerTemplate)
                     {
-                        const float copyWidth=180f;var recipientCount=Math.Max(0,save.Characters.Count-2);var copy=Button(queueSection,copyArmed?"ОТМЕНИТЬ КОПИРОВАНИЕ":$"КОПИРОВАТЬ ОСТАЛЬНЫМ ×{recipientCount}",new Vector2(-rightControlMargin-clearWidth-8-copyWidth*.5f,-queueHeaderHeight*.5f),new Vector2(copyWidth,32),()=>{queueCopyConfirmationPilotId=copyArmed?string.Empty:pilot.Id;BuildStationAgain();},copyArmed?Amber:Cyan);Pin(copy.GetComponent<RectTransform>(),Vector2.one,Vector2.one);
+                        const float copyWidth=214f;var recipientCount=Math.Max(0,save.Characters.Count-2);var copy=Button(queueSection,copyArmed?"ОТМЕНИТЬ КОПИРОВАНИЕ":$"КОПИРОВАТЬ ОЧЕРЕДЬ РАБОЧИМ ×{recipientCount}",new Vector2(-rightControlMargin-clearWidth-8-copyWidth*.5f,-queueHeaderHeight*.5f),new Vector2(copyWidth,32),()=>{queueCopyConfirmationPilotId=copyArmed?string.Empty:pilot.Id;BuildStationAgain();},copyArmed?Amber:Cyan);Pin(copy.GetComponent<RectTransform>(),Vector2.one,Vector2.one);
                     }
                     if(copyArmed)
                     {
                         var withBooks=SkillPlanService.PreviewCopyQueueToOtherWorkers(save,pilot,true);var withoutBooks=SkillPlanService.PreviewCopyQueueToOtherWorkers(save,pilot,false);
                         var confirm=Rect("Copy queue confirmation",queueSection,new Vector2(0,-queueHeaderHeight-copyPanelHeight),new Vector2(0,-queueHeaderHeight),new Vector2(0,1),Vector2.one,Panel);
-                        Text(confirm,$"ПОЛНАЯ ЗАМЕНА очередей у {withBooks.TargetCount} других рабочих пилотов",11,Amber,new Vector2(12,-5),new Vector2(620,22),TextAnchor.MiddleLeft,FontStyle.Bold);
-                        Text(confirm,$"С книгами: {withBooks.BooksPurchased} шт. • {withBooks.BookCostIsk:N0} ISK.  Без покупки будет пропущено пунктов: {withoutBooks.EntriesSkipped}.",9,Muted,new Vector2(12,-27),new Vector2(-12,18),TextAnchor.MiddleLeft);
-                        var buyAndCopy=Button(confirm,$"КУПИТЬ КНИГИ И КОПИРОВАТЬ • {withBooks.BookCostIsk:N0} ISK",new Vector2(152,-47),new Vector2(280,30),()=>ApplyWorkerPlan(pilot,true),save.Isk+.001>=withBooks.BookCostIsk?Amber:Danger);Pin(buyAndCopy.GetComponent<RectTransform>(),new Vector2(0,1),new Vector2(0,1));
-                        var copyOnly=Button(confirm,$"БЕЗ ПОКУПКИ • ПРОПУСК {withoutBooks.EntriesSkipped}",new Vector2(415,-47),new Vector2(230,30),()=>ApplyWorkerPlan(pilot,false),Border);Pin(copyOnly.GetComponent<RectTransform>(),new Vector2(0,1),new Vector2(0,1));
+                        Text(confirm,$"ПОЛНАЯ ЗАМЕНА очередей у {withBooks.TargetCount} рабочих (Пилоты 03–10) • Пилот 01 не участвует",11,Amber,new Vector2(12,-5),new Vector2(-12,22),TextAnchor.MiddleLeft,FontStyle.Bold);
+                        Text(confirm,$"Копируется только очередь, не изученные SP. Книг: {withBooks.BooksPurchased} на {withBooks.BookCostIsk:N0} ISK; без покупки пропусков: {withoutBooks.EntriesSkipped}.",9,Muted,new Vector2(12,-27),new Vector2(-12,18),TextAnchor.MiddleLeft);
+                        var buyAndCopy=Button(confirm,$"КНИГИ + КОПИЯ ОЧЕРЕДИ • {withBooks.BookCostIsk:N0} ISK",new Vector2(152,-47),new Vector2(280,30),()=>ApplyWorkerPlan(pilot,true),save.Isk+.001>=withBooks.BookCostIsk?Amber:Danger);Pin(buyAndCopy.GetComponent<RectTransform>(),new Vector2(0,1),new Vector2(0,1));
+                        var copyOnly=Button(confirm,$"ТОЛЬКО ОЧЕРЕДЬ • ПРОПУСК {withoutBooks.EntriesSkipped}",new Vector2(415,-47),new Vector2(230,30),()=>ApplyWorkerPlan(pilot,false),Border);Pin(copyOnly.GetComponent<RectTransform>(),new Vector2(0,1),new Vector2(0,1));
                     }
                     for(var queueIndex=0;queueIndex<queue.Count;queueIndex++)
                     {
@@ -793,6 +794,8 @@ namespace EveOffline
 
         void ApplyWorkerPlan(CharacterSave source,bool buyMissingBooks)
         {
+            var workerTemplate=save?.Characters?.Skip(1).FirstOrDefault();
+            if(source==null||workerTemplate==null||!string.Equals(source.Id,workerTemplate.Id,StringComparison.OrdinalIgnoreCase)){Tell("Копировать общую очередь можно только от Пилота 02 к Пилотам 03–10.");BuildStationAgain();return;}
             if(SkillPlanService.TryCopyQueueToOtherWorkers(save,source,buyMissingBooks,out var result)){queueCopyConfirmationPilotId=string.Empty;SaveService.Save(save);}
             Tell(result.Message);BuildStationAgain();
         }
@@ -813,7 +816,7 @@ namespace EveOffline
             if(rebuildWhenQueueChanged&&!string.IsNullOrEmpty(academyQueueSignature)&&signature!=academyQueueSignature){BuildStationAgain();return false;}
             if(academyPilotSummaryText)
             {
-                var role=save.Characters.IndexOf(pilot)==0?"РУКОВОДИТЕЛЬ • индивидуальный план":"РАБОЧИЙ • копируемый план";
+                var pilotIndex=save.Characters.IndexOf(pilot);var role=pilotIndex==0?"НЕЗАВИСИМЫЙ • индивидуальный план":pilotIndex==1?"ЭТАЛОН • очередь для рабочих":"РАБОЧИЙ • получает очередь Пилота 02";
                 academyPilotSummaryText.text=$"СМОТРИМ: {pilot.Name} • {role}\n{SkillService.TotalSp(pilot):N0} SP • свободно {pilot.UnallocatedSkillPoints:N0} • очередь {SkillService.GetTrainingQueue(pilot).Count}/{SkillService.MaxTrainingQueueEntries} • ETA {FormatDuration(SkillService.TotalTrainingSecondsLeft(pilot))}";
             }
             foreach(var view in academyQueueViews)
@@ -856,7 +859,7 @@ namespace EveOffline
             }
 
             const int massPilotColumns=5;const float massPilotCellHeight=34f;const float massPilotTop=168f;
-            var massPilotRows=Math.Max(1,(save.Characters.Count+massPilotColumns-1)/massPilotColumns);
+            var workerPilotCount=Math.Max(0,save.Characters.Count-1);var massPilotRows=Math.Max(1,(workerPilotCount+massPilotColumns-1)/massPilotColumns);
             var planRowHeight=massPilotTop+massPilotRows*massPilotCellHeight+48f;var planRowStep=planRowHeight+4f;
             var plansTop=selectorHeight+roleHeight+16;var plansSection=Rect("Career package grades",parent,new Vector2(0,-plansTop-plans.Count*planRowStep),new Vector2(0,-plansTop),new Vector2(0,1),Vector2.one,Color.clear);
             for(var i=0;i<plans.Count;i++)
@@ -879,10 +882,11 @@ namespace EveOffline
                 Text(row,$"Комплект {packagePrice} • обучение сейчас {FormatIsk(plan.TotalInstantTrainingCostIsk)} • весь переход {FormatIsk(plan.PackagePriceIsk+plan.TotalInstantTrainingCostIsk)}",10,ready?Muted:Amber,new Vector2(12,-120),new Vector2(-12,20),TextAnchor.MiddleLeft,FontStyle.Bold);
 
                 var massPreview=PreparedPackageService.PreviewAssignAll(save,package.Id);
-                Text(row,$"МАССОВАЯ ПОСАДКА • зелёные подходят сейчас • старые станционные корабли останутся в ангаре",9,Muted,new Vector2(12,-145),new Vector2(-12,18),TextAnchor.MiddleLeft,FontStyle.Bold);
-                for(var pilotIndex=0;pilotIndex<massPreview.Pilots.Count;pilotIndex++)
+                Text(row,$"МАССОВАЯ ПОСАДКА РАБОЧИХ • Пилот 01 исключён • зелёные подходят сейчас",9,Muted,new Vector2(12,-145),new Vector2(-12,18),TextAnchor.MiddleLeft,FontStyle.Bold);
+                var independentPilotId=save.Characters.FirstOrDefault()?.Id;var workerPreviews=massPreview.Pilots.Where(candidate=>candidate!=null&&!string.Equals(candidate.PilotId,independentPilotId,StringComparison.OrdinalIgnoreCase)).ToList();
+                for(var pilotIndex=0;pilotIndex<workerPreviews.Count;pilotIndex++)
                 {
-                    var pilotPreview=massPreview.Pilots[pilotIndex];var column=pilotIndex%massPilotColumns;var pilotRow=pilotIndex/massPilotColumns;
+                    var pilotPreview=workerPreviews[pilotIndex];var column=pilotIndex%massPilotColumns;var pilotRow=pilotIndex/massPilotColumns;
                     var cell=Rect("Mass package pilot",row,new Vector2(6,-massPilotTop-massPilotCellHeight-pilotRow*massPilotCellHeight),new Vector2(-6,-massPilotTop-pilotRow*massPilotCellHeight),new Vector2(column/(float)massPilotColumns,1),new Vector2((column+1)/(float)massPilotColumns,1),Color.clear);
                     var pilotLabel=Text(cell,$"{pilotPreview.PilotName}\n{MassPackagePilotStatus(pilotPreview)}",9,pilotPreview.CanAssign?ReadyGreen:pilotPreview.Status==PreparedPackagePilotAssignmentStatus.UnsafeCurrentShip?Danger:Amber,Vector2.zero,Vector2.zero,TextAnchor.MiddleLeft,FontStyle.Bold);
                     pilotLabel.rectTransform.anchorMin=Vector2.zero;pilotLabel.rectTransform.anchorMax=Vector2.one;pilotLabel.rectTransform.offsetMin=pilotLabel.rectTransform.offsetMax=Vector2.zero;
@@ -908,12 +912,12 @@ namespace EveOffline
 
         static string MassPackageActionLabel(PreparedPackageMassAssignmentResult preview)
         {
-            if(preview==null||preview.EligibleCount<=0)return "НЕКОГО БЕЗОПАСНО ПЕРЕСАЖИВАТЬ";
+            if(preview==null||preview.EligibleCount<=0)return "НЕКОГО ИЗ РАБОЧИХ БЕЗОПАСНО ПЕРЕСАЖИВАТЬ";
             var assignable=Math.Max(0,preview.EligibleCount-preview.AlreadyAssignedCount);
-            if(assignable==0)return $"ВСЕ ДОСТУПНЫЕ УЖЕ НА ЭТОМ КОМПЛЕКТЕ ×{preview.AlreadyAssignedCount}";
+            if(assignable==0)return $"ВСЕ ДОСТУПНЫЕ РАБОЧИЕ УЖЕ НА ЭТОМ КОМПЛЕКТЕ ×{preview.AlreadyAssignedCount}";
             var purchase=preview.PurchasedCount>0?$" • КУПИТЬ {preview.PurchasedCount} ЗА {FormatIsk(preview.PurchaseCostIsk)}":string.Empty;
             var affordability=!preview.Affordable&&preview.PurchasedCount>0?" • НЕ ХВАТАЕТ ISK":string.Empty;
-            return $"ПОСАДИТЬ ВСЕХ ГОТОВЫХ ×{assignable} • ИЗ АНГАРА {preview.ReusedCount}{purchase}{affordability}";
+            return $"ПОСАДИТЬ ГОТОВЫХ РАБОЧИХ ×{assignable} • ИЗ АНГАРА {preview.ReusedCount}{purchase}{affordability}";
         }
 
         void QueueCareerPlan(CharacterSave pilot,ShipCareerPlan plan)
@@ -1404,7 +1408,7 @@ namespace EveOffline
                 parts.Add($"Комплекс ×{laserCount} • цикл {cyclePrefix}{Mathf.FloorToInt(progress01*combinedCycle)}/{Mathf.CeilToInt(combinedCycle)}с • {totalYieldM3:N1}м³/ц • {totalRateM3PerSecond:N2}м³/с");
             }
             var drone=Catalog.GetDrone(ship.MiningDroneId);
-            var hasMiningDrones=resource.Kind==ResourceKind.Ore&&!string.Equals(resource.Id,"mercoxit",StringComparison.OrdinalIgnoreCase)&&drone?.Mining==true&&ship.MiningDroneCount>0&&SkillService.GetLevel(pilot,"drones")>0;
+            var hasMiningDrones=resource.Kind==ResourceKind.Ore&&drone?.Mining==true&&ship.MiningDroneCount>0&&SkillService.GetLevel(pilot,"drones")>0;
             if(hasMiningDrones)
             {
                 if(save.Operation.Enemies.Count>0)parts.Add("Дроны: пауза (NPC)");
@@ -1468,7 +1472,7 @@ namespace EveOffline
             var hasMiningDrones=miningDrone?.Mining==true&&ship.MiningDroneCount>0&&SkillService.GetLevel(pilot,"drones")>0;
             if(!hasMiner&&!hasMiningDrones){Tell("На корабле нет рабочего добывающего модуля или mining drones.");return;}
             if(OperationService.AssignTarget(save,selectedShipUid,selectedAsteroidId))Tell("Корабль подойдёт на рабочую дальность и начнёт цикл.");
-            else Tell(asteroid.OreId=="mercoxit"?"Для Mercoxit нужен Modulated Deep Core Miner; обычные лазеры и mining drones его не добывают.":"Приказ не принят: рудные, ледовые и газовые добывающие модули работают только со своим ресурсом.");
+            else Tell("Приказ не принят: рудные, ледовые и газовые добывающие модули работают только со своим ресурсом.");
             RefreshBeltFleetHud();
         }
 
@@ -1608,7 +1612,7 @@ namespace EveOffline
             if(ship==null)return "—";var displayName=PreparedPackageService.DisplayName(ship);
             return Catalog.GetPackage(ship.PackageId)!=null?displayName:$"{displayName} • LEGACY CUSTOM";
         }
-        static string PackageRoleLabel(PreparedPackageRole role)=>role switch{PreparedPackageRole.Ore=>"РУДА",PreparedPackageRole.Ice=>"ЛЁД",PreparedPackageRole.Gas=>"ГАЗ",PreparedPackageRole.Mercoxit=>"MERCOXIT",PreparedPackageRole.Booster=>"БУСТЕР",_=>role.ToString().ToUpperInvariant()};
+        static string PackageRoleLabel(PreparedPackageRole role)=>role switch{PreparedPackageRole.Ore=>"РУДА",PreparedPackageRole.Ice=>"ЛЁД",PreparedPackageRole.Gas=>"ГАЗ",PreparedPackageRole.Mercoxit=>"РУДА",PreparedPackageRole.Booster=>"БУСТЕР",_=>role.ToString().ToUpperInvariant()};
         string LocationResourceSummary(LocationDefinition location)
         {
             var resources=(location?.OreIds??Array.Empty<string>()).Select(Catalog.GetOre).Where(resource=>resource!=null).ToList();

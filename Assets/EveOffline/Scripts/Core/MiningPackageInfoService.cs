@@ -41,8 +41,8 @@ namespace EveOffline
             ["skiff"] = "Защитный Exhumer: максимальная живучесть среди малых добывающих кораблей.",
             ["hulk"] = "Флотский Exhumer с небольшим трюмом: большая дальность и лучший ледовый темп; по руде его прямой поток сейчас равен другим Exhumer.",
             ["porpoise"] = "Малый руководитель флота: 2 mining bursts, Medium Industrial Core и сжатие астероидной руды/газа; сам лазерами не копает.",
-            ["orca"] = "Крупный highsec-руководитель: 3 mining bursts, Large Industrial Core и сжатие руды, Mercoxit, льда/газа; сам лазерами не копает.",
-            ["rorqual"] = "Капитальный руководитель: 3 встроенных mining burst-эффекта, четвёртый слот пуст; Capital Industrial Core и сжатие руды, Mercoxit, льда/газа; сам лазерами не копает."
+            ["orca"] = "Крупный highsec-руководитель: 3 mining bursts, Large Industrial Core и общее сжатие руды, льда/газа; сам лазерами не копает.",
+            ["rorqual"] = "Капитальный руководитель: 3 встроенных mining burst-эффекта, четвёртый слот пуст; Capital Industrial Core и общее сжатие руды, льда/газа; сам лазерами не копает."
         };
 
         public static string HullDescription(ShipDefinition hull)
@@ -60,7 +60,7 @@ namespace EveOffline
             var compression = hull.Id == "porpoise"
                 ? " • сжатие: руда/газ"
                 : hull.Id is "orca" or "rorqual"
-                    ? " • сжатие: руда/Mercoxit/лёд/газ"
+                    ? " • сжатие: руда/лёд/газ"
                     : string.Empty;
             var empty = emptySlots > 0 ? $" • пустых слотов: {emptySlots}" : string.Empty;
             return $"Бурсты: {effectCount} • весь флот{empty}{core}{compression}";
@@ -160,8 +160,6 @@ namespace EveOffline
                 standard *= Catalog.PerfectOreLaserYieldImplantMultiplier;
             }
 
-            var mercoxit = package.Role == PreparedPackageRole.Mercoxit;
-            if (mercoxit) standard = Math.Floor(standard / 40d) * 40d;
             var expected = standard;
             if (!gas)
             {
@@ -171,7 +169,6 @@ namespace EveOffline
                 var criticalBonusMultiplier = module.CriticalBonusYield * (1d + .05d * Level("mining-exploitation"));
                 criticalBonusMultiplier *= 1d + hull.CriticalBonusYieldPerLevel * Level(hull.BonusSkillId);
                 var criticalBonus = standard * criticalBonusMultiplier;
-                if (mercoxit) criticalBonus = Math.Floor(criticalBonus / 40d) * 40d;
                 expected += criticalChance * criticalBonus;
             }
             return Math.Max(0, expected * hull.MiningHighSlots / cycleSeconds);

@@ -362,7 +362,6 @@ namespace EveOffline
             new("ice-harvesting", "Ice Harvesting", 16281, 1, 400_000, "-5% к длительности цикла ледовых добывающих модулей за уровень.", R("mining", 4)),
             new("gas-cloud-harvesting", "Gas Cloud Harvesting", 25544, 1, 30_000_000, "Каждый уровень позволяет использовать ещё один Gas Cloud Scoop; также открывает Gas Cloud Harvesters.", R("mining",4)),
             new("mining-upgrades", "Mining Upgrades", 22578, 4, 80_000, "Позволяет ставить Mining Laser Upgrade и улучшает fitting.", R("mining", 3)),
-            new("deep-core-mining", "Deep Core Mining", 11395, 6, 500_000, "Модули и кристаллы для Mercoxit.", R("mining", 5), R("astrogeology", 5)),
             new("mining-precision", "Mining Precision", 90727, 2, 1_500_000, "+10% к базовому шансу mining critical за уровень.", R("mining", 3)),
             new("mining-exploitation", "Mining Exploitation", 90728, 6, 12_000_000, "+5% к бонусной добыче critical за уровень.", R("mining", 5), R("mining-precision", 4), R("astrogeology", 3)),
             new("drones", "Drones", 3436, 1, 25_000, "+1 одновременно управляемый дрон за уровень."),
@@ -385,9 +384,19 @@ namespace EveOffline
             ,new("simple-ore-processing", "Simple Ore Processing", 60377, 3, 1_000_000, "Кристаллы Veldspar, Scordite, Pyroxeres и Plagioclase.", R("science",3), R("reprocessing",4))
             ,new("coherent-ore-processing", "Coherent Ore Processing", 60378, 6, 4_000_000, "Кристаллы Omber, Kernite, Jaspet, Hemorphite и Hedbergite.", R("science",3), R("reprocessing",5))
             ,new("variegated-ore-processing", "Variegated Ore Processing", 60379, 9, 9_000_000, "Кристаллы Gneiss, Dark Ochre и Crokite.", R("metallurgy",3), R("reprocessing-efficiency",4))
-            ,new("complex-ore-processing", "Complex Ore Processing", 60380, 11, 15_000_000, "Кристаллы Bistot, Arkonor и Spodumain.", R("metallurgy",4), R("reprocessing-efficiency",5))
-            ,new("mercoxit-ore-processing", "Mercoxit Ore Processing", 12189, 5, 6_000_000, "Кристаллы Mercoxit.", R("metallurgy",4), R("reprocessing-efficiency",5))
+            ,new("complex-ore-processing", "Complex Ore Processing", 60380, 11, 15_000_000, "Кристаллы Bistot, Arkonor, Spodumain и Mercoxit.", R("metallurgy",4), R("reprocessing-efficiency",5))
         }.AsReadOnly();
+
+        // These definitions only keep old saves, queues and inventory references
+        // readable. Mercoxit is an ordinary ore in this project, so neither skill
+        // is offered in the active academy catalog or required by new equipment.
+        static readonly IReadOnlyList<SkillDefinition> LegacyMercoxitSkills = new List<SkillDefinition>
+        {
+            new("deep-core-mining", "Deep Core Mining [legacy]", 11395, 6, 500_000, "Устаревший навык: Mercoxit теперь добывается обычными рудными модулями.", R("mining", 5), R("astrogeology", 5)),
+            new("mercoxit-ore-processing", "Mercoxit Ore Processing [legacy]", 12189, 5, 6_000_000, "Устаревший навык: Mercoxit использует Complex Ore Processing.", R("metallurgy",4), R("reprocessing-efficiency",5))
+        }.AsReadOnly();
+
+        static readonly IReadOnlyList<SkillDefinition> AllSkillDefinitions = Skills.Concat(LegacyMercoxitSkills).ToArray();
 
         static void AddOreFamily(List<OreDefinition> ores, string id, string name, int baseTypeId, int grade2TypeId, int grade3TypeId, int grade4TypeId, float unitVolumeM3, int units, double buy, double sell, Color color)
         {
@@ -444,16 +453,18 @@ namespace EveOffline
 
         public static readonly IReadOnlyList<MiningModuleDefinition> Modules = new List<MiningModuleDefinition>
         {
-            new("miner-i", "Miner I", 483, ModuleKind.MiningLaser, 1, 10, 15, 10, 0, 0, 35_000, R("mining", 1)),
-            new("miner-ii", "Miner II", 482, ModuleKind.MiningLaser, 2, 15, 15, 12, .34f, 1, 750_000, R("mining", 4)),
-            new("ore-miner", "ORE Miner", 28750, ModuleKind.MiningLaser, 1, 21, 15, 16, 0, 0, 65_000_000, R("mining", 1)),
-            new("deep-core-mining-laser-i", "Deep Core Mining Laser I", 12108, ModuleKind.MiningLaser, 1, 40, 60, 5, 0, 0, 300_000, R("deep-core-mining", 1)) { CanMineMercoxit = true },
-            new("ore-deep-core-mining-laser", "ORE Deep Core Mining Laser", 28748, ModuleKind.MiningLaser, 1, 40, 60, 7, 0, 0, 110_000_000, R("deep-core-mining", 1)) { CanMineMercoxit = true },
-            new("strip-miner-i", "Strip Miner I", 17482, ModuleKind.StripMiner, 1, 150, 45, 15, 0, 0, 1_500_000, R("mining", 4), R("astrogeology", 1)),
-            new("modulated-strip-miner-ii", "Modulated Strip Miner II", 17912, ModuleKind.StripMiner, 2, 120, 45, 15, .34f, 1, 4_500_000, R("mining", 5)) { AcceptsRegularCrystals = true },
-            new("ore-strip-miner", "ORE Strip Miner", 28754, ModuleKind.StripMiner, 1, 200, 45, 18.75f, 0, 0, 190_000_000, R("mining", 4), R("astrogeology", 1)),
-            new("modulated-deep-core-miner-ii", "Modulated Deep Core Miner II", 18068, ModuleKind.MiningLaser, 2, 30, 45, 10, .34f, 1, 1_847_000, R("mining", 5), R("deep-core-mining", 2)) { CanMineMercoxit = true, AcceptsRegularCrystals = true, AcceptsMercoxitCrystals = true },
-            new("modulated-deep-core-strip-miner-ii", "Modulated Deep Core Strip Miner II", 24305, ModuleKind.StripMiner, 2, 80, 45, 15, .34f, 1, 5_000_000, R("mining", 5), R("deep-core-mining", 2)) { CanMineMercoxit = true, AcceptsRegularCrystals = true, AcceptsMercoxitCrystals = true },
+            new("miner-i", "Miner I", 483, ModuleKind.MiningLaser, 1, 10, 15, 10, 0, 0, 35_000, R("mining", 1)) { CanMineMercoxit = true },
+            new("miner-ii", "Miner II", 482, ModuleKind.MiningLaser, 2, 15, 15, 12, .34f, 1, 750_000, R("mining", 4)) { CanMineMercoxit = true },
+            new("ore-miner", "ORE Miner", 28750, ModuleKind.MiningLaser, 1, 21, 15, 16, 0, 0, 65_000_000, R("mining", 1)) { CanMineMercoxit = true },
+            // Legacy deep-core IDs stay resolvable for old ships and inventories,
+            // but they now use the same ordinary ore skills and compatibility.
+            new("deep-core-mining-laser-i", "Deep Core Mining Laser I [legacy]", 12108, ModuleKind.MiningLaser, 1, 40, 60, 5, 0, 0, 300_000, R("mining", 1)) { CanMineMercoxit = true },
+            new("ore-deep-core-mining-laser", "ORE Deep Core Mining Laser [legacy]", 28748, ModuleKind.MiningLaser, 1, 40, 60, 7, 0, 0, 110_000_000, R("mining", 1)) { CanMineMercoxit = true },
+            new("strip-miner-i", "Strip Miner I", 17482, ModuleKind.StripMiner, 1, 150, 45, 15, 0, 0, 1_500_000, R("mining", 4), R("astrogeology", 1)) { CanMineMercoxit = true },
+            new("modulated-strip-miner-ii", "Modulated Strip Miner II", 17912, ModuleKind.StripMiner, 2, 120, 45, 15, .34f, 1, 4_500_000, R("mining", 5)) { CanMineMercoxit = true, AcceptsRegularCrystals = true, AcceptsMercoxitCrystals = true },
+            new("ore-strip-miner", "ORE Strip Miner", 28754, ModuleKind.StripMiner, 1, 200, 45, 18.75f, 0, 0, 190_000_000, R("mining", 4), R("astrogeology", 1)) { CanMineMercoxit = true },
+            new("modulated-deep-core-miner-ii", "Modulated Deep Core Miner II [legacy]", 18068, ModuleKind.MiningLaser, 2, 30, 45, 10, .34f, 1, 1_847_000, R("mining", 5)) { CanMineMercoxit = true, AcceptsRegularCrystals = true, AcceptsMercoxitCrystals = true },
+            new("modulated-deep-core-strip-miner-ii", "Modulated Deep Core Strip Miner II [legacy]", 24305, ModuleKind.StripMiner, 2, 80, 45, 15, .34f, 1, 5_000_000, R("mining", 5)) { CanMineMercoxit = true, AcceptsRegularCrystals = true, AcceptsMercoxitCrystals = true },
             new("ice-mining-laser-i", "Ice Mining Laser I", 37450, ModuleKind.IceMiningLaser, 1, 1000, 360, 7, 0, 0, 597_900, R("ice-harvesting", 1)),
             new("ice-mining-laser-ii", "Ice Mining Laser II", 37451, ModuleKind.IceMiningLaser, 2, 1000, 300, 8, .34f, 1, 1_340_000, R("ice-harvesting", 5)),
             new("ore-ice-mining-laser", "ORE Ice Mining Laser", 37452, ModuleKind.IceMiningLaser, 1, 1000, 300, 11, 0, 0, 83_500_000, R("ice-harvesting", 1)),
@@ -482,11 +493,11 @@ namespace EveOffline
             new("large-asteroid-ore-compressor-i", "Large Asteroid Ore Compressor I", 62625, ModuleKind.Compressor, 1, 0, 60, 83, 0, 0, 12_000_000, R("shipboard-compression-technology", 1)) { VolumeM3 = 1000, CompressionKind = CompressionKind.Ore },
             new("large-ice-compressor-i", "Large Ice Compressor I", 62628, ModuleKind.Compressor, 1, 0, 60, 83, 0, 0, 30_000_000, R("shipboard-compression-technology", 2)) { VolumeM3 = 1000, CompressionKind = CompressionKind.Ice },
             new("large-gas-compressor-i", "Large Gas Compressor I", 62626, ModuleKind.Compressor, 1, 0, 60, 83, 0, 0, 60_000_000, R("shipboard-compression-technology", 3)) { VolumeM3 = 1000, CompressionKind = CompressionKind.Gas },
-            new("large-mercoxit-compressor-i", "Large Mercoxit Compressor I", 62630, ModuleKind.Compressor, 1, 0, 60, 83, 0, 0, 45_000_000, R("shipboard-compression-technology", 4)) { VolumeM3 = 1000, CompressionKind = CompressionKind.Mercoxit },
+            new("large-mercoxit-compressor-i", "Large Mercoxit Compressor I [legacy]", 62630, ModuleKind.Compressor, 1, 0, 60, 83, 0, 0, 45_000_000, R("shipboard-compression-technology", 1)) { VolumeM3 = 1000, CompressionKind = CompressionKind.Ore },
             new("capital-asteroid-ore-compressor-i", "Capital Asteroid Ore Compressor I", 62632, ModuleKind.Compressor, 1, 0, 60, 144, 0, 0, 24_340_000, R("capital-shipboard-compression-technology", 1)) { VolumeM3 = 2000, CompressionKind = CompressionKind.Ore },
             new("capital-ice-compressor-i", "Capital Ice Compressor I", 62633, ModuleKind.Compressor, 1, 0, 60, 144, 0, 0, 60_000_000, R("capital-shipboard-compression-technology", 2)) { VolumeM3 = 2000, CompressionKind = CompressionKind.Ice },
             new("capital-gas-compressor-i", "Capital Gas Compressor I", 62634, ModuleKind.Compressor, 1, 0, 60, 144, 0, 0, 121_000_000, R("capital-shipboard-compression-technology", 3)) { VolumeM3 = 2000, CompressionKind = CompressionKind.Gas },
-            new("capital-mercoxit-compressor-i", "Capital Mercoxit Compressor I", 62635, ModuleKind.Compressor, 1, 0, 60, 144, 0, 0, 91_280_000, R("capital-shipboard-compression-technology", 4)) { VolumeM3 = 2000, CompressionKind = CompressionKind.Mercoxit }
+            new("capital-mercoxit-compressor-i", "Capital Mercoxit Compressor I [legacy]", 62635, ModuleKind.Compressor, 1, 0, 60, 144, 0, 0, 91_280_000, R("capital-shipboard-compression-technology", 1)) { VolumeM3 = 2000, CompressionKind = CompressionKind.Ore }
         }.AsReadOnly();
 
         public static readonly IReadOnlyList<DroneDefinition> Drones = new List<DroneDefinition>
@@ -569,8 +580,10 @@ namespace EveOffline
             Family("Simple Asteroid Mining Crystal","simple","simple-ore-processing",new[]{"veldspar","scordite","pyroxeres","plagioclase"},new[]{60276,60281,60279,60283,60280,60284});
             Family("Coherent Asteroid Mining Crystal","coherent","coherent-ore-processing",new[]{"omber","kernite","jaspet","hemorphite","hedbergite"},new[]{60285,60288,60286,60289,60287,60290});
             Family("Variegated Asteroid Mining Crystal","variegated","variegated-ore-processing",new[]{"gneiss","dark-ochre","crokite"},new[]{60291,60294,60292,60295,60293,60296});
-            Family("Complex Asteroid Mining Crystal","complex","complex-ore-processing",new[]{"bistot","arkonor","spodumain"},new[]{60297,60300,60298,60301,60299,60302});
-            Family("Mercoxit Asteroid Mining Crystal","mercoxit-crystal","mercoxit-ore-processing",new[]{"mercoxit"},new[]{18054,18608,60309,60311,60310,60312});
+            Family("Complex Asteroid Mining Crystal","complex","complex-ore-processing",new[]{"bistot","arkonor","spodumain","mercoxit"},new[]{60297,60300,60298,60301,60299,60302});
+            // Legacy crystal IDs remain usable, but share the ordinary complex
+            // ore skill instead of requiring a Mercoxit-only processing skill.
+            Family("Mercoxit Asteroid Mining Crystal [legacy]","mercoxit-crystal","complex-ore-processing",new[]{"mercoxit"},new[]{18054,18608,60309,60311,60310,60312});
             return result.AsReadOnly();
         }
 
@@ -684,16 +697,12 @@ namespace EveOffline
                         AddMining(hull,PreparedPackageRole.Ore,PreparedPackageGrade.T1,"strip-miner-i");
                         AddMining(hull,PreparedPackageRole.Ore,PreparedPackageGrade.T2,"modulated-strip-miner-ii",true);
                         AddMining(hull,PreparedPackageRole.Ore,PreparedPackageGrade.ORE,"ore-strip-miner");
-                        AddMining(hull,PreparedPackageRole.Mercoxit,PreparedPackageGrade.T2,"modulated-deep-core-strip-miner-ii",true);
                     }
                     else
                     {
                         AddMining(hull,PreparedPackageRole.Ore,PreparedPackageGrade.T1,"miner-i");
                         AddMining(hull,PreparedPackageRole.Ore,PreparedPackageGrade.T2,"miner-ii",true);
                         AddMining(hull,PreparedPackageRole.Ore,PreparedPackageGrade.ORE,"ore-miner");
-                        AddMining(hull,PreparedPackageRole.Mercoxit,PreparedPackageGrade.T1,"deep-core-mining-laser-i");
-                        AddMining(hull,PreparedPackageRole.Mercoxit,PreparedPackageGrade.T2,"modulated-deep-core-miner-ii",true);
-                        AddMining(hull,PreparedPackageRole.Mercoxit,PreparedPackageGrade.ORE,"ore-deep-core-mining-laser");
                     }
                 }
                 if(hull.SupportsIceMiningLasers)
@@ -727,8 +736,8 @@ namespace EveOffline
                 var compressors=hull.Id switch
                 {
                     "porpoise"=>new[]{"medium-asteroid-ore-compressor-i","medium-gas-compressor-i"},
-                    "orca"=>new[]{"large-asteroid-ore-compressor-i","large-ice-compressor-i","large-gas-compressor-i","large-mercoxit-compressor-i"},
-                    "rorqual"=>new[]{"capital-asteroid-ore-compressor-i","capital-ice-compressor-i","capital-gas-compressor-i","capital-mercoxit-compressor-i"},
+                    "orca"=>new[]{"large-asteroid-ore-compressor-i","large-ice-compressor-i","large-gas-compressor-i"},
+                    "rorqual"=>new[]{"capital-asteroid-ore-compressor-i","capital-ice-compressor-i","capital-gas-compressor-i"},
                     _=>Array.Empty<string>()
                 };
                 foreach(var grade in new[]{PreparedPackageGrade.T1,PreparedPackageGrade.T2})
@@ -869,7 +878,7 @@ namespace EveOffline
             return locations.AsReadOnly();
         }
 
-        static readonly Dictionary<string, SkillDefinition> SkillsById = Skills.ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
+        static readonly Dictionary<string, SkillDefinition> SkillsById = AllSkillDefinitions.ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
         static readonly Dictionary<string, OreDefinition> OresById = Ores.ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
         static readonly Dictionary<int, OreDefinition> OresByTypeId = Ores.ToDictionary(x => x.TypeId);
         static readonly Dictionary<string, MiningModuleDefinition> ModulesById = Modules.ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
@@ -894,7 +903,7 @@ namespace EveOffline
         public static OreDefinition GetOreByTypeId(int typeId) => OresByTypeId.TryGetValue(typeId, out var value) ? value : null;
         public static ShipDefinition GetShipByTypeId(int typeId) => Ships.FirstOrDefault(x => x.TypeId == typeId);
         public static MiningModuleDefinition GetModuleByTypeId(int typeId) => Modules.FirstOrDefault(x => x.TypeId == typeId);
-        public static SkillDefinition GetSkillByTypeId(int typeId) => Skills.FirstOrDefault(x => x.TypeId == typeId);
+        public static SkillDefinition GetSkillByTypeId(int typeId) => AllSkillDefinitions.FirstOrDefault(x => x.TypeId == typeId);
         public static DroneDefinition GetDroneByTypeId(int typeId) => Drones.FirstOrDefault(x => x.TypeId == typeId);
         public static MiningCrystalDefinition GetCrystalByTypeId(int typeId)=>Crystals.FirstOrDefault(x=>x.TypeId==typeId);
         public static BurstChargeDefinition GetBurstChargeByTypeId(int typeId)=>BurstCharges.FirstOrDefault(x=>x.TypeId==typeId);
@@ -918,7 +927,7 @@ namespace EveOffline
             if (resource == null) return CompressionKind.None;
             if (resource.Kind == ResourceKind.Ice) return CompressionKind.Ice;
             if (resource.Kind == ResourceKind.Gas) return CompressionKind.Gas;
-            return IsMercoxitFamily(resource) ? CompressionKind.Mercoxit : CompressionKind.Ore;
+            return CompressionKind.Ore;
         }
 
         public static string GetOreFamilyId(string oreId)
