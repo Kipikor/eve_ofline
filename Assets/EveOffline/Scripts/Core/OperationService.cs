@@ -510,7 +510,9 @@ namespace EveOffline
             }
             if (save.Operation.AutoRetarget && member.Order == FleetOrder.Idle && !member.CoreReturnQueued)
             {
-                TryAssignAutomaticTarget(save, member, notify);
+                // Assignment happens at this tick boundary. Never grant the new
+                // target the dt that elapsed before it was selected.
+                if (TryAssignAutomaticTarget(save, member, notify)) return;
                 if (member.Order is FleetOrder.UnloadAndReturn or FleetOrder.DockAndStay || string.IsNullOrEmpty(member.TargetAsteroidId)) return;
             }
             var canStartPendingAutoUnload=member.Order==FleetOrder.Idle&&save.Operation.AutoUnload&&!member.CoreReturnQueued&&!string.IsNullOrEmpty(member.TargetAsteroidId);
@@ -519,8 +521,11 @@ namespace EveOffline
             if (asteroid == null)
             {
                 member.Order = FleetOrder.Idle; member.TargetAsteroidId = string.Empty;
-                if(save.Operation.AutoRetarget&&TryAssignAutomaticTarget(save,member,notify))asteroid=save.Operation.Asteroids.Find(item=>item.Id==member.TargetAsteroidId);
-                if(asteroid==null)return;
+                // Another fleet member may have depleted the old target at the
+                // end of this same interval. Retarget now, but start moving or
+                // mining only in the next tick so the old dt is never reused.
+                if(save.Operation.AutoRetarget)TryAssignAutomaticTarget(save,member,notify);
+                return;
             }
             var resource = Catalog.GetOre(asteroid.OreId);
             if(resource==null){member.Order=FleetOrder.Idle;member.TargetAsteroidId=string.Empty;return;}

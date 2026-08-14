@@ -15,6 +15,7 @@ namespace EveOffline
     public static class MiningSiteService
     {
         const int DowntimeHourUtc = 11;
+        const int MaxOverdueAnomalyAttemptsPerTick = 4096;
 
         sealed class SiteIndex
         {
@@ -110,8 +111,29 @@ namespace EveOffline
                                 RefreshStatic(state, location, nowUnix);
                             continue;
                         }
-                        if (state.Lifecycle == MiningSiteLifecycle.Cooldown && state.RespawnUnix > 0 && state.RespawnUnix <= nowUnix)
-                            RespawnAnomaly(state, location, nowUnix);
+                        var attempts = 0;
+                        while (state.Lifecycle == MiningSiteLifecycle.Cooldown &&
+                               state.RespawnUnix > 0 && state.RespawnUnix <= nowUnix &&
+                               attempts++ < MaxOverdueAnomalyAttemptsPerTick)
+                        {
+                            var eventUnix = state.RespawnUnix;
+                            RespawnAnomaly(state, location, eventUnix);
+                            if (state.Lifecycle == MiningSiteLifecycle.Cooldown && state.RespawnUnix <= eventUnix)
+                            {
+                                // A malformed or future data rule must never
+                                // leave Tick spinning on a non-forward deadline.
+                                StartAnomalyCooldown(state, location, nowUnix);
+                                break;
+                            }
+                        }
+                        if (state.Lifecycle == MiningSiteLifecycle.Cooldown &&
+                            state.RespawnUnix > 0 && state.RespawnUnix <= nowUnix)
+                        {
+                            // Extremely long gaps or pathological bad-luck
+                            // streaks are bounded. Keep the serialized serial and
+                            // move its next attempt safely beyond this Tick.
+                            StartAnomalyCooldown(state, location, nowUnix);
+                        }
                     }
                     MarkDeadlinesDirty(index);
                     EnsureDeadlineCache(save, index, nowUnix);

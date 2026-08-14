@@ -81,15 +81,17 @@ public static class EveOfflineBuild
         SmokeAutomaticRouteDowntimeRestart();
         SmokeAutomaticRouteCoreAndBurstRestart();
         SmokeOfflineMiningUnloadRoute();
+        SmokeOfflineMiningPerformance();
         SmokeOfflineTrainingAndTruncation();
         SmokeOfflineNpcRisk();
         SmokeOfflineDynamicAnomalyChronology();
+        SmokeOfflineRareAnomalyBeyondFleetCap();
         SmokeMiningSiteDeadlineCache();
         SmokeTravelLifecycle();
 
         Debug.Log(
             "EVE_OFFLINE_SMOKE_OK roster/deployment; persistent mining; 5+10+5 return warp; " +
-            "automatic unload/retarget by m3; Large/Small injectors; live ESI shield prerequisites; validated queue reordering; copied worker skill plans; Jita fallbacks and warehouse ore valuation; queued industrial cores; core-gated lossless fleet compression; NPC ETA/destruction; official ore grades; 73-system/677-belt highsec catalog with lazy static state; real persistent belts/anomalies with downtime and offline catch-up; locked prepared packages + guarded legacy/v13 migration; package EHP and shared combat-drone DPS estimates; ordered three-effect global bursts; exact ice compatibility and six-hour Clear Icicle lifecycle; gas extractors, skills, barge/exhumer cycles, bursts, unload and persistence; deep-core Mercoxit; atomic local-warp rejection; persisted manual/local travel; security-floor global auto-route with lossless cross-system travel, downtime restart and booster restart; offline mine/unload/route across 11:00, no autosell/double award, full queue time beyond the 30-day fleet cap, NPC-free versus hostile risk, simulated-time anomaly respawn, and stable cached world deadlines");
+            "automatic unload/retarget by m3; Large/Small injectors; live ESI shield prerequisites; validated queue reordering; copied worker skill plans; Jita fallbacks and warehouse ore valuation; queued industrial cores; core-gated lossless fleet compression; NPC ETA/destruction; official ore grades; 73-system/677-belt highsec catalog with lazy static state; real persistent belts/anomalies with downtime and offline catch-up; locked prepared packages + guarded legacy/v13 migration; package EHP and shared combat-drone DPS estimates; ordered three-effect global bursts; exact ice compatibility and six-hour Clear Icicle lifecycle; gas extractors, skills, barge/exhumer cycles, bursts, unload and persistence; deep-core Mercoxit; atomic local-warp rejection; persisted manual/local travel; security-floor global auto-route with lossless cross-system travel, downtime restart and booster restart; event-driven offline mining; offline mine/unload/route across 11:00, no autosell/double award, full queue and overdue anomaly time beyond the 30-day fleet cap, NPC-free versus hostile risk, simulated-time anomaly respawn, and stable cached world deadlines");
     }
 
     static void SmokeStartingRosterAndDeploymentSelection()
@@ -2729,6 +2731,39 @@ public static class EveOfflineBuild
             "the persisted LastSaveUnix checkpoint must make a repeated catch-up at the same time a strict no-op");
     }
 
+    static void SmokeOfflineMiningPerformance()
+    {
+        var offlineStart = new DateTimeOffset(2099, 8, 13, 12, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+        const long elapsed = 6L * 60L * 60L;
+        var save = NewSinglePilotOperation("kakakela-belt-1", offlineStart);
+        save.Operation.AutoUnload = true;
+        save.Operation.AutoRetarget = false;
+        save.Operation.AutoNextBelt = false;
+        save.Operation.RaidTimerSeconds = 99_999f;
+
+        var member = save.Operation.Fleet.Single();
+        var ship = save.Ships.Single(candidate => candidate.Uid == member.ShipUid);
+        var target = save.Operation.Asteroids.First(asteroid =>
+            asteroid.RemainingUnits > 0 && OperationService.CanMineResource(ship, asteroid.OreId));
+        foreach (var asteroid in save.Operation.Asteroids) asteroid.RemainingUnits = 0;
+        target.RemainingUnits = 1_000_000_000d;
+        Require(OperationService.AssignTarget(save, ship.Uid, target.Id),
+            "offline performance fixture must assign its effectively inexhaustible target");
+        member.X = target.X;
+        member.Y = target.Y;
+        member.Z = target.Z;
+        member.Order = FleetOrder.Mining;
+        member.MiningCycles.Clear();
+        save.LastSaveUnix = offlineStart;
+
+        var report = OfflineSimulationService.CatchUp(save, offlineStart + elapsed);
+        Require(!report.Failed && !report.Truncated && report.OreAddedM3 > 0 &&
+                Math.Abs(report.SimulatedSeconds - elapsed) < .01d,
+            "six-hour offline mining must complete without truncation or loss of production");
+        Require(report.SimulationSteps > 0 && report.SimulationSteps < 2_000,
+            "event-boundary offline mining must not regress to five-second polling across the full six-hour interval");
+    }
+
     static void SmokeOfflineTrainingAndTruncation()
     {
         var offlineStart = new DateTimeOffset(2099, 8, 13, 12, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
@@ -2874,6 +2909,48 @@ public static class EveOfflineBuild
                 MiningSiteService.RemainingM3(save.Operation.Asteroids) > 0 &&
                 !save.Operation.TravelActive && !save.Operation.BeltWarpActive && respawnReport.RouteLegs == 0,
             "anomaly respawn must reload the open operation in place without an anomaly auto-route");
+    }
+
+    static void SmokeOfflineRareAnomalyBeyondFleetCap()
+    {
+        const string anomalyId = "korsiki-hidden-omber";
+        const long fleetSimulationCap = 30L * 24L * 60L * 60L;
+        const long requestedElapsed = 40L * 24L * 60L * 60L;
+        const long secondAttemptDelay = 59_695L;
+        var offlineStart = new DateTimeOffset(2099, 8, 13, 12, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+        var firstAttemptUnix = offlineStart + 31L * 24L * 60L * 60L;
+        var secondAttemptUnix = firstAttemptUnix + secondAttemptDelay;
+        var offlineEnd = offlineStart + requestedElapsed;
+        var location = Catalog.GetLocation(anomalyId);
+        Require(location?.SiteKind == MiningSiteKind.DynamicAnomaly &&
+                Math.Abs(location.AnomalyInitialSpawnChance - .05f) < .0001f &&
+                Math.Abs(location.AnomalyRespawnMinSeconds - 12 * 60 * 60) < .001f &&
+                Math.Abs(location.AnomalyRespawnMaxSeconds - 24 * 60 * 60) < .001f,
+            "rare-anomaly fixture requires the deterministic 5% Hidden Omber lifecycle");
+        Require(firstAttemptUnix > offlineStart + fleetSimulationCap && secondAttemptUnix < offlineEnd,
+            "both deterministic rare-anomaly attempts must lie beyond the fleet cap but before launch time");
+
+        var save = SaveService.NewGame();
+        MiningSiteService.Tick(save, offlineStart);
+        var state = save.MiningSites.Single(candidate => candidate.LocationId == anomalyId);
+        // For this location/time pair serial 11 deterministically fails, then
+        // serial 12 succeeds at the next authored deadline 59,695 seconds later.
+        state.InstanceSerial = 10;
+        state.Lifecycle = MiningSiteLifecycle.Cooldown;
+        state.Asteroids.Clear();
+        state.RespawnUnix = firstAttemptUnix;
+        state.NextRefreshUnix = 0;
+        MiningSiteService.Normalize(save, offlineStart);
+        save.LastSaveUnix = offlineStart;
+
+        var report = OfflineSimulationService.CatchUp(save, offlineEnd);
+        Require(!report.Failed && report.Truncated &&
+                Math.Abs(report.SimulatedSeconds - fleetSimulationCap) < .01d,
+            "rare-anomaly fixture must leave both attempts to the post-cap world-clock catch-up");
+        Require(state.Lifecycle == MiningSiteLifecycle.Available && state.InstanceSerial == 12 &&
+                state.RespawnUnix == 0 && state.LastRefreshUnix == secondAttemptUnix &&
+                MiningSiteService.RemainingM3(state.Asteroids) > 0,
+            "post-cap world catch-up must replay a failed rare spawn and its successful retry at historical deadlines");
     }
 
     static void SmokeMiningSiteDeadlineCache()

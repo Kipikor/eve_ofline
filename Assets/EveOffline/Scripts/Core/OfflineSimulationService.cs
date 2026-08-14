@@ -10,6 +10,7 @@ namespace EveOffline
         public long ToUnix;
         public double SimulatedSeconds;
         public double IgnoredSeconds;
+        public int SimulationSteps;
         public bool Truncated;
         public double OreAddedM3;
         public int CompletedTrainingEntries;
@@ -116,11 +117,12 @@ namespace EveOffline
                 MiningSiteService.Tick(save, checkpointUnix);
                 while (cursorUnix + MinimumStepSeconds < simulationEndUnix)
                 {
-                    if (++steps > MaximumSteps)
+                    if (steps >= MaximumSteps)
                     {
                         report.Truncated = true;
                         break;
                     }
+                    steps++;
 
                     var simulatedNowUnix = ToSimulationSecond(cursorUnix);
                     MiningSiteService.Tick(save, simulatedNowUnix);
@@ -187,6 +189,7 @@ namespace EveOffline
             }
             finally
             {
+                report.SimulationSteps = steps;
                 report.IskWasCorrected = double.IsNaN(save.Isk) || double.IsInfinity(save.Isk) ||
                                          Math.Abs(save.Isk - iskBefore) > .000001d;
                 // Assignment is unconditional: even a sub-cent floating-point
@@ -288,6 +291,11 @@ namespace EveOffline
                         ConsiderImmediateOrDeadline(ref step, member.WarpPhaseSecondsLeft);
                         continue;
                     }
+                    if (RequiresImmediateMemberStep(save, member))
+                    {
+                        step = Math.Min(step, MinimumStepSeconds);
+                        continue;
+                    }
                     if (member.Order == FleetOrder.Approaching)
                         ConsiderImmediateOrDeadline(ref step, ApproachSecondsLeft(save, member));
                     if (member.Order == FleetOrder.Mining)
@@ -306,14 +314,12 @@ namespace EveOffline
             if (operation == null) return false;
             if (operation.TravelActive || operation.BeltWarpActive) return false;
             if (!operation.Active) return false;
-            var hasBeltShip = HasBeltShip(save, operation);
-            if ((operation.AutoRestartIndustrialCore && hasBeltShip &&
-                 MiningSiteService.RemainingM3(operation.Asteroids) > 0) ||
-                ((operation.Enemies?.Count ?? 0) > 0 && hasBeltShip)) return true;
-            return operation.Fleet?.Any(member => member != null &&
-                ((member.Order is FleetOrder.Approaching or FleetOrder.Mining) ||
-                 operation.AutoUnload && member.Order == FleetOrder.Idle &&
-                 !string.IsNullOrWhiteSpace(member.TargetAsteroidId))) == true;
+            // Approach, extraction, unload warp, core, burst and raid-spawn
+            // boundaries are all represented explicitly in NextStepSeconds.
+            // Only live NPC combat still needs a bounded integration step for
+            // movement, incoming damage and drone damage.
+            return HasBeltShip(save, operation) &&
+                   operation.Enemies?.Any(enemy => enemy != null && enemy.StructureHp > 0) == true;
         }
 
         static bool ShouldTickOperation(GameSave save)
@@ -322,6 +328,12 @@ namespace EveOffline
             if (operation?.Active != true || operation.TravelActive || operation.BeltWarpActive) return false;
             if (RequiresFineStep(save) || operation.IndustrialCoreActive || operation.BurstsActive || operation.StopAfterFleetWarp ||
                 operation.BurstEffects?.Any(effect => effect != null && effect.SecondsLeft > 0) == true) return true;
+            if (operation.AutoRestartIndustrialCore && HasBeltShip(save, operation) &&
+                MiningSiteService.RemainingM3(operation.Asteroids) > 0) return true;
+            if (operation.Fleet?.Any(member => member != null &&
+                    (member.Order is FleetOrder.Approaching or FleetOrder.Mining ||
+                     operation.AutoUnload && member.Order == FleetOrder.Idle &&
+                     !string.IsNullOrWhiteSpace(member.TargetAsteroidId))) == true) return true;
             if (operation.Fleet?.Any(member => member != null &&
                     (member.Order is FleetOrder.UnloadAndReturn or FleetOrder.DockAndStay)) == true) return true;
             var location = Catalog.GetLocation(operation.LocationId);
@@ -341,7 +353,11 @@ namespace EveOffline
             var ship = save?.Ships?.Find(candidate => candidate != null && candidate.Uid == member.ShipUid);
             var target = operation?.Asteroids?.Find(candidate => candidate != null && candidate.Id == member.TargetAsteroidId && candidate.RemainingUnits > 0);
             var resource = Catalog.GetOre(target?.OreId);
-            if (ship == null || resource == null) return;
+            if (ship == null || resource == null)
+            {
+                step = Math.Min(step, MinimumStepSeconds);
+                return;
+            }
 
             foreach (var fitted in (ship.Modules ?? new List<FittedModuleSave>())
                          .Where(module => module != null && OperationService.CanMineResource(module, resource)))
@@ -353,8 +369,43 @@ namespace EveOffline
                 ConsiderImmediateOrDeadline(ref step, cycleSeconds - progress);
             }
 
-            if ((operation.Enemies?.Count ?? 0) == 0 && ship.MiningDroneCount > 0)
+            var pilot = save?.Characters?.Find(candidate => candidate != null && candidate.Id == member.PilotId);
+            var miningDrone = Catalog.GetDrone(ship.MiningDroneId);
+            var hasMiningDrones = resource.Kind == ResourceKind.Ore && !Catalog.IsMercoxitFamily(resource) &&
+                                  miningDrone?.Mining == true && ship.MiningDroneCount > 0 &&
+                                  SkillService.GetLevel(pilot, "drones") > 0;
+            if ((operation.Enemies?.Count ?? 0) == 0 && hasMiningDrones)
                 ConsiderImmediateOrDeadline(ref step, 60d - Math.Max(0, member.DroneCycleProgressSeconds));
+        }
+
+        static bool RequiresImmediateMemberStep(GameSave save, FleetMemberSave member)
+        {
+            if (save?.Operation == null || member == null) return false;
+            var isExtractorOrder = member.Order is FleetOrder.Approaching or FleetOrder.Mining;
+            var pendingAutoUnload = save.Operation.AutoUnload && member.Order == FleetOrder.Idle &&
+                                    !string.IsNullOrWhiteSpace(member.TargetAsteroidId);
+            if (pendingAutoUnload) return true;
+            if (!isExtractorOrder) return false;
+
+            var ship = save.Ships?.Find(candidate => candidate != null && candidate.Uid == member.ShipUid);
+            var pilot = save.Characters?.Find(candidate => candidate != null && candidate.Id == member.PilotId);
+            var hull = Catalog.GetShip(ship?.HullId);
+            var target = save.Operation.Asteroids?.Find(candidate => candidate != null &&
+                candidate.Id == member.TargetAsteroidId && candidate.RemainingUnits > 0);
+            var resource = Catalog.GetOre(target?.OreId);
+            if (ship == null || pilot == null || hull == null || resource == null) return true;
+
+            var hasExtractor = (ship.Modules ?? new List<FittedModuleSave>())
+                .Any(fitted => fitted != null && OperationService.CanMineResource(fitted, resource));
+            var miningDrone = Catalog.GetDrone(ship.MiningDroneId);
+            var hasMiningDrones = resource.Kind == ResourceKind.Ore && !Catalog.IsMercoxitFamily(resource) &&
+                                  miningDrone?.Mining == true && ship.MiningDroneCount > 0 &&
+                                  SkillService.GetLevel(pilot, "drones") > 0;
+            if (!hasExtractor && !hasMiningDrones) return true;
+
+            var freeHoldM3 = OperationService.MiningHoldCapacity(pilot, hull) -
+                             OperationService.HoldVolume(ship.MiningHold);
+            return freeHoldM3 + 1e-6d < resource.UnitVolumeM3;
         }
 
         static double ApproachSecondsLeft(GameSave save, FleetMemberSave member)
