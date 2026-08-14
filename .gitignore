@@ -33,4 +33,5 @@ Thumbs.db
 # Misc
 sysinfo.txt
 *.unitypackage
+/smoke.log
 
