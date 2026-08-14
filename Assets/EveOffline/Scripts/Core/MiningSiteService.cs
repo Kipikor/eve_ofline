@@ -795,6 +795,9 @@ namespace EveOffline
             operation.Enemies?.Clear();
             foreach (var member in operation.Fleet ?? Enumerable.Empty<FleetMemberSave>())
             {
+                member.CombatDroneTargetEnemyId = string.Empty;
+                member.CombatDroneTravelSecondsLeft = 0;
+                member.CombatDroneTravelSecondsTotal = 0;
                 // A downtime refresh may happen while a ship is already in its
                 // unload/dock warp. That state has no asteroid target and owns a
                 // persisted phase, timer and return origin; replacing only the

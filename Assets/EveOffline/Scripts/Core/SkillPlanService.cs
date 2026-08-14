@@ -27,11 +27,20 @@ namespace EveOffline
         public List<SkillPlanTargetResult> Targets = new();
     }
 
+    public sealed class WorkerSkillStateSyncResult
+    {
+        public bool Success;
+        public string Message;
+        public string SourcePilotId;
+        public string SourcePilotName;
+        public int TargetCount;
+        public int TargetsChanged;
+    }
+
     /// <summary>
-    /// Copies Pilot 02's current queue to Pilots 03-10 as a replace-all training plan.
-    /// Character zero is the fleet commander and deliberately never participates.
-    /// Every public apply operation is preflighted completely before ISK, books,
-    /// or a live target queue are changed.
+    /// Keeps Pilot 01 independent. Pilot 02 may either provide the legacy
+    /// replace-all queue plan or act as the exact learned-skill/SP/queue template
+    /// for Pilots 03-10. Public apply operations are preflighted before mutation.
     /// </summary>
     public static class SkillPlanService
     {
@@ -41,6 +50,38 @@ namespace EveOffline
             public CharacterSave Preview;
             public readonly HashSet<string> Books = new(StringComparer.OrdinalIgnoreCase);
             public SkillPlanTargetResult Result;
+        }
+
+        /// <summary>
+        /// Previews an exact, free skill-state synchronization from Characters[1]
+        /// (Pilot 02) to Characters[2..]. Identity, ship and deployment fields are
+        /// outside the synchronization contract.
+        /// </summary>
+        public static WorkerSkillStateSyncResult PreviewSyncWorkerSkillStateFromPilot02(GameSave save)
+        {
+            return BuildWorkerSkillStateSync(save,out _,out _);
+        }
+
+        /// <summary>
+        /// Replaces every recipient worker's complete skill state with a deep copy
+        /// of Pilot 02: learned skills/books/SP, unallocated SP and the full queue
+        /// including its active-entry mirror. Pilot 01, Pilot 02, wallet, identity,
+        /// assigned ship and deployment flags are never changed.
+        /// </summary>
+        public static bool TrySyncWorkerSkillStateFromPilot02(GameSave save,out WorkerSkillStateSyncResult result)
+        {
+            result=BuildWorkerSkillStateSync(save,out var source,out var targets);
+            if(!result.Success)return false;
+            foreach(var target in targets)
+            {
+                target.Skills=CloneSkillsExact(source.Skills);
+                target.UnallocatedSkillPoints=source.UnallocatedSkillPoints;
+                target.TrainingQueue=CloneQueueExact(source.TrainingQueue);
+                target.TrainingSkillId=source.TrainingSkillId;
+                target.TrainingTargetLevel=source.TrainingTargetLevel;
+            }
+            result.Message=$"Полное состояние навыков Пилота 02 синхронизировано у {result.TargetCount} рабочих пилотов; изменено {result.TargetsChanged}.";
+            return true;
         }
 
         public static SkillPlanCopyResult PreviewCopyQueueToOtherWorkers(GameSave save, CharacterSave source, bool buyMissingBooks) =>
@@ -72,6 +113,32 @@ namespace EveOffline
                 return Failure("Общую очередь рабочих можно копировать только от Пилота 02 к Пилотам 03–10.");
             var targets = save.Characters.Skip(2).Where(pilot => pilot != null).ToArray();
             return BuildPlan(save, source, targets, buyMissingBooks, requireAffordable, out plans);
+        }
+
+        static WorkerSkillStateSyncResult BuildWorkerSkillStateSync(GameSave save,out CharacterSave source,out CharacterSave[] targets)
+        {
+            source=null;targets=Array.Empty<CharacterSave>();
+            var result=new WorkerSkillStateSyncResult();
+            if(save?.Characters==null||save.Characters.Count<2||save.Characters[1]==null)
+            {
+                result.Message="Пилот 02 — шаблон рабочих навыков — не найден.";
+                return result;
+            }
+            source=save.Characters[1];
+            targets=save.Characters.Skip(2).Where(pilot=>pilot!=null).ToArray();
+            if(targets.Length==0)
+            {
+                result.Message="Пилоты 03–10 для синхронизации навыков не найдены.";
+                return result;
+            }
+            result.SourcePilotId=source.Id??string.Empty;
+            result.SourcePilotName=source.Name??string.Empty;
+            result.TargetCount=targets.Length;
+            var template=source;
+            result.TargetsChanged=targets.Count(target=>!SkillStateEquals(template,target));
+            result.Success=true;
+            result.Message=$"Можно синхронизировать полное состояние навыков у {result.TargetCount} рабочих пилотов; изменится {result.TargetsChanged}.";
+            return result;
         }
 
         static SkillPlanCopyResult BuildPlan(GameSave save, CharacterSave source, IReadOnlyCollection<CharacterSave> targets, bool buyMissingBooks, bool requireAffordable, out List<PlannedTarget> plans)
@@ -213,6 +280,65 @@ namespace EveOffline
                 TargetLevel = entry.TargetLevel
             }).ToList()
         };
+
+        static List<CharacterSkillSave> CloneSkillsExact(List<CharacterSkillSave> source)
+        {
+            return source?.Select(state=>state==null?null:new CharacterSkillSave
+            {
+                SkillId=state.SkillId,
+                BookOwned=state.BookOwned,
+                SkillPoints=state.SkillPoints
+            }).ToList();
+        }
+
+        static List<SkillQueueEntrySave> CloneQueueExact(List<SkillQueueEntrySave> source)
+        {
+            return source?.Select(entry=>entry==null?null:new SkillQueueEntrySave
+            {
+                SkillId=entry.SkillId,
+                TargetLevel=entry.TargetLevel
+            }).ToList();
+        }
+
+        static bool SkillStateEquals(CharacterSave source,CharacterSave target)
+        {
+            if(source==null||target==null||!source.UnallocatedSkillPoints.Equals(target.UnallocatedSkillPoints)||
+               !string.Equals(source.TrainingSkillId,target.TrainingSkillId,StringComparison.Ordinal)||
+               source.TrainingTargetLevel!=target.TrainingTargetLevel)return false;
+            var sourceSkills=source.Skills;var targetSkills=target.Skills;
+            if(sourceSkills==null||targetSkills==null)
+            {
+                if(!ReferenceEquals(sourceSkills,targetSkills))return false;
+            }
+            else
+            {
+                if(sourceSkills.Count!=targetSkills.Count)return false;
+                for(var index=0;index<sourceSkills.Count;index++)
+                {
+                    var left=sourceSkills[index];var right=targetSkills[index];
+                    if(left==null||right==null)
+                    {
+                        if(!ReferenceEquals(left,right))return false;
+                        continue;
+                    }
+                    if(!string.Equals(left.SkillId,right.SkillId,StringComparison.Ordinal)||left.BookOwned!=right.BookOwned||!left.SkillPoints.Equals(right.SkillPoints))return false;
+                }
+            }
+            var sourceQueue=source.TrainingQueue;var targetQueue=target.TrainingQueue;
+            if(sourceQueue==null||targetQueue==null)return ReferenceEquals(sourceQueue,targetQueue);
+            if(sourceQueue.Count!=targetQueue.Count)return false;
+            for(var index=0;index<sourceQueue.Count;index++)
+            {
+                var left=sourceQueue[index];var right=targetQueue[index];
+                if(left==null||right==null)
+                {
+                    if(!ReferenceEquals(left,right))return false;
+                    continue;
+                }
+                if(!string.Equals(left.SkillId,right.SkillId,StringComparison.Ordinal)||left.TargetLevel!=right.TargetLevel)return false;
+            }
+            return true;
+        }
 
         static bool IsCommander(GameSave save, CharacterSave pilot) =>
             save?.Characters?.Count > 0 && SamePilot(save.Characters[0], pilot);

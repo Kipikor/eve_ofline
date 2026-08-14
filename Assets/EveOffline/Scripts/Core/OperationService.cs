@@ -22,6 +22,8 @@ namespace EveOffline
         public const float WarpAlignSeconds = 5f;
         public const float WarpTransitSeconds = 10f;
         public const float WarpInSeconds = 5f;
+        public const float CombatDroneLaunchSeconds = 2f;
+        public const float CombatDroneSpeedKmPerSecond = 4f;
         // Position and target coordinates are serialized as floats. A ship can
         // otherwise stop at the requested range while the recomputed distance is
         // a few millimetres larger, leaving it permanently in Approaching.
@@ -305,6 +307,7 @@ namespace EveOffline
                 member.Z = -4 + (index % 2) * 2;
                 member.CycleProgressSeconds = 0;
                 member.DroneCycleProgressSeconds = 0;
+                ClearCombatDroneEngagement(member);
                 member.MiningCycles?.Clear();
                 ClearWarpState(member);
                 if (op.AutoRetarget) TryAssignAutomaticTarget(save, member);
@@ -884,17 +887,87 @@ namespace EveOffline
         static void TickEnemies(GameSave save, float dt, Action<string> notify)
         {
             var op = save.Operation;
-            var combatDps = op.Fleet.Where(member => FindShip(save, member.ShipUid)?.Location == ShipLocation.Belt).Sum(member => ShipDroneDps(save, member.ShipUid));
+            var beltMembers = op.Fleet
+                .Where(member => member != null && FindShip(save, member.ShipUid)?.Location == ShipLocation.Belt)
+                .ToArray();
+            foreach (var member in op.Fleet.Where(member => member != null && !beltMembers.Contains(member)))
+                ClearCombatDroneEngagement(member);
+
+            // Each ship owns one persisted combat-drone squad. A squad must
+            // launch and physically cross the distance to its target before it
+            // can apply DPS; this keeps a newly spawned NPC alive long enough
+            // to exist in the rendered world even at 20x simulation speed.
+            foreach (var member in beltMembers)
+            {
+                var combatDps = ShipDroneDps(save, member.ShipUid);
+                if (combatDps <= 0)
+                {
+                    ClearCombatDroneEngagement(member);
+                    continue;
+                }
+
+                var enemy = op.Enemies.FirstOrDefault(candidate =>
+                    candidate != null && candidate.StructureHp > 0 &&
+                    string.Equals(candidate.Id, member.CombatDroneTargetEnemyId, StringComparison.Ordinal));
+                if (enemy == null)
+                {
+                    enemy = op.Enemies
+                        .Where(candidate => candidate != null && candidate.StructureHp > 0)
+                        .OrderBy(candidate => beltMembers.Count(other => string.Equals(other.CombatDroneTargetEnemyId, candidate.Id, StringComparison.Ordinal)))
+                        .ThenBy(candidate => candidate.Id, StringComparer.Ordinal)
+                        .FirstOrDefault();
+                    if (enemy == null)
+                    {
+                        ClearCombatDroneEngagement(member);
+                        continue;
+                    }
+                    BeginCombatDroneEngagement(member, enemy);
+                }
+
+                var damagingSeconds = dt;
+                if (member.CombatDroneTravelSecondsLeft > 0)
+                {
+                    var travelSeconds = Math.Min(member.CombatDroneTravelSecondsLeft, damagingSeconds);
+                    member.CombatDroneTravelSecondsLeft = Math.Max(0, member.CombatDroneTravelSecondsLeft - travelSeconds);
+                    damagingSeconds -= travelSeconds;
+                }
+                if (damagingSeconds > 0 && enemy.StructureHp > 0)
+                    DamageEnemy(enemy, combatDps * damagingSeconds);
+            }
+
+            foreach (var destroyed in op.Enemies.Where(enemy => enemy == null || enemy.StructureHp <= 0).ToArray())
+            {
+                if (destroyed != null) notify?.Invoke($"NPC уничтожен: {destroyed.Name}.");
+                op.Enemies.Remove(destroyed);
+            }
+            foreach (var member in beltMembers.Where(member => !string.IsNullOrWhiteSpace(member.CombatDroneTargetEnemyId) &&
+                         op.Enemies.All(enemy => !string.Equals(enemy.Id, member.CombatDroneTargetEnemyId, StringComparison.Ordinal))))
+                ClearCombatDroneEngagement(member);
+
             foreach (var enemy in op.Enemies.ToArray())
             {
-                DamageEnemy(enemy, combatDps / Math.Max(1, op.Enemies.Count) * dt);
-                if (enemy.StructureHp <= 0) { op.Enemies.Remove(enemy); continue; }
                 var targetShip = FindShip(save, enemy.TargetShipUid); var targetMember = op.Fleet.Find(x => x.ShipUid == enemy.TargetShipUid);
                 if (targetShip == null || targetShip.Location != ShipLocation.Belt || targetMember == null) { var next = op.Fleet.FirstOrDefault(x => FindShip(save,x.ShipUid)?.Location == ShipLocation.Belt); enemy.TargetShipUid = next?.ShipUid; continue; }
                 var distance = Distance(enemy.X,enemy.Y,enemy.Z,targetMember.X,targetMember.Y,targetMember.Z) * KmPerWorldUnit;
                 if (distance > 8) MoveEnemyToward(enemy, targetMember, enemy.SpeedKmPerSecond * dt / KmPerWorldUnit, 6 / KmPerWorldUnit); else DamageShip(save,targetShip, enemy.Dps * dt);
                 if (targetShip.StructureHp <= 0) DestroyShip(save, targetShip, notify);
             }
+        }
+
+        static void BeginCombatDroneEngagement(FleetMemberSave member, EnemySave enemy)
+        {
+            member.CombatDroneTargetEnemyId = enemy.Id;
+            var distanceKm = Distance(member.X, member.Y, member.Z, enemy.X, enemy.Y, enemy.Z) * KmPerWorldUnit;
+            member.CombatDroneTravelSecondsTotal = CombatDroneLaunchSeconds + distanceKm / CombatDroneSpeedKmPerSecond;
+            member.CombatDroneTravelSecondsLeft = member.CombatDroneTravelSecondsTotal;
+        }
+
+        static void ClearCombatDroneEngagement(FleetMemberSave member)
+        {
+            if (member == null) return;
+            member.CombatDroneTargetEnemyId = string.Empty;
+            member.CombatDroneTravelSecondsLeft = 0;
+            member.CombatDroneTravelSecondsTotal = 0;
         }
 
         static void DestroyShip(GameSave save, ShipSave ship, Action<string> notify)

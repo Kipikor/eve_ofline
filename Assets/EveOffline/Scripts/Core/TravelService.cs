@@ -144,6 +144,9 @@ namespace EveOffline
             {
                 member.Order = FleetOrder.Idle;
                 member.TargetAsteroidId = string.Empty;
+                member.CombatDroneTargetEnemyId = string.Empty;
+                member.CombatDroneTravelSecondsLeft = 0;
+                member.CombatDroneTravelSecondsTotal = 0;
                 member.MiningCycles?.Clear();
                 var ship = save.Ships.Find(candidate => candidate.Uid == member.ShipUid);
                 if (ship == null) continue;

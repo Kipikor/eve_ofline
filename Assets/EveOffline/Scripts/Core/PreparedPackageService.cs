@@ -221,7 +221,17 @@ namespace EveOffline
         /// </summary>
         public static PreparedPackageMassAssignmentResult PreviewAssignAll(GameSave save,string packageId)
         {
-            return BuildMassAssignmentPlan(save,packageId,false,out _,out _);
+            return BuildAssignmentPlan(save,packageId,false,false,out _,out _);
+        }
+
+        /// <summary>
+        /// Builds the same mutation-free package assignment plan as the worker
+        /// action, but exclusively for Characters[0]. The independent leader is
+        /// never inferred from a selected UI pilot or mixed into worker scope.
+        /// </summary>
+        public static PreparedPackageMassAssignmentResult PreviewAssignIndependentLeader(GameSave save,string packageId)
+        {
+            return BuildAssignmentPlan(save,packageId,false,true,out _,out _);
         }
 
         /// <summary>
@@ -232,7 +242,23 @@ namespace EveOffline
         /// </summary>
         public static bool TryAssignAll(GameSave save,string packageId,out PreparedPackageMassAssignmentResult result)
         {
-            result=BuildMassAssignmentPlan(save,packageId,true,out var assignments,out var nextShipSerial);
+            result=BuildAssignmentPlan(save,packageId,true,false,out var assignments,out var nextShipSerial);
+            return ApplyAssignmentPlan(save,packageId,result,assignments,nextShipSerial);
+        }
+
+        /// <summary>
+        /// Atomically seats only Characters[0] in the requested package. Skill,
+        /// active-fleet, station, hangar reuse, purchase and shield rescaling
+        /// rules are identical to the worker assignment path.
+        /// </summary>
+        public static bool TryAssignIndependentLeader(GameSave save,string packageId,out PreparedPackageMassAssignmentResult result)
+        {
+            result=BuildAssignmentPlan(save,packageId,true,true,out var assignments,out var nextShipSerial);
+            return ApplyAssignmentPlan(save,packageId,result,assignments,nextShipSerial);
+        }
+
+        static bool ApplyAssignmentPlan(GameSave save,string packageId,PreparedPackageMassAssignmentResult result,IReadOnlyCollection<PlannedMassAssignment> assignments,int nextShipSerial)
+        {
             if(!result.Success)return false;
 
             var package=Catalog.GetPackage(packageId);
@@ -270,7 +296,7 @@ namespace EveOffline
             return true;
         }
 
-        static PreparedPackageMassAssignmentResult BuildMassAssignmentPlan(GameSave save,string packageId,bool requireAffordable,out List<PlannedMassAssignment> assignments,out int nextShipSerial)
+        static PreparedPackageMassAssignmentResult BuildAssignmentPlan(GameSave save,string packageId,bool requireAffordable,bool independentLeader,out List<PlannedMassAssignment> assignments,out int nextShipSerial)
         {
             assignments=new List<PlannedMassAssignment>();nextShipSerial=save?.NextShipSerial??1;
             var result=new PreparedPackageMassAssignmentResult{PackageId=packageId??string.Empty};
@@ -283,8 +309,15 @@ namespace EveOffline
 
             var allCharacters=save.Characters??new List<CharacterSave>();
             // Character order is the roster contract: index 0 is the independent
-            // leader and must never appear in, or be changed by, a mass assignment.
-            var workerPilots=allCharacters.Skip(1).Where(pilot=>pilot!=null).ToList();
+            // leader; every later character belongs only to worker-wide actions.
+            var selectedPilots=(independentLeader?allCharacters.Take(1):allCharacters.Skip(1))
+                .Where(pilot=>pilot!=null)
+                .ToList();
+            if(selectedPilots.Count==0)
+            {
+                result.Message=independentLeader?"Независимый руководитель не найден.":"Рабочие пилоты не найдены.";
+                return result;
+            }
             var ships=(save.Ships??new List<ShipSave>()).Where(ship=>ship!=null).ToList();
             // Keep the leader's ship reserved even though the leader is not a candidate.
             var assignedShipUids=new HashSet<string>(allCharacters.Where(pilot=>pilot!=null).Select(pilot=>pilot.AssignedShipUid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
@@ -297,7 +330,7 @@ namespace EveOffline
             var occupiedUids=new HashSet<string>(ships.Select(ship=>ship.Uid).Where(uid=>!string.IsNullOrWhiteSpace(uid)),StringComparer.OrdinalIgnoreCase);
             nextShipSerial=Math.Max(1,save.NextShipSerial);
 
-            foreach(var pilot in workerPilots)
+            foreach(var pilot in selectedPilots)
             {
                 var currentShip=string.IsNullOrWhiteSpace(pilot.AssignedShipUid)?null:ships.FirstOrDefault(ship=>string.Equals(ship.Uid,pilot.AssignedShipUid,StringComparison.OrdinalIgnoreCase));
                 var preview=new PreparedPackagePilotAssignmentPreview
@@ -370,7 +403,9 @@ namespace EveOffline
             }
             if(result.EligibleCount==0)
             {
-                result.Message="Нет пилотов, которым сейчас можно безопасно назначить этот комплект.";
+                result.Message=independentLeader
+                    ?"Независимому руководителю сейчас нельзя безопасно назначить этот комплект."
+                    :"Нет рабочих пилотов, которым сейчас можно безопасно назначить этот комплект.";
                 return result;
             }
             result.Success=true;

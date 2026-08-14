@@ -233,6 +233,9 @@ namespace EveOffline
         public float Z;
         public float CycleProgressSeconds;
         public float DroneCycleProgressSeconds;
+        public string CombatDroneTargetEnemyId;
+        public float CombatDroneTravelSecondsLeft;
+        public float CombatDroneTravelSecondsTotal;
         public List<MiningCycleSave> MiningCycles = new();
         public float TransitSecondsLeft;
         public bool ReturnAfterUnload;

@@ -134,6 +134,7 @@ namespace EveOffline
                         stepSeconds = Math.Min(MinimumStepSeconds, remainingSeconds);
                     stepSeconds = Math.Min(stepSeconds, remainingSeconds);
 
+                    ShieldRechargeService.Tick(save, (float)stepSeconds);
                     var operation = save.Operation;
                     if (operation?.TravelActive == true || operation?.BeltWarpActive == true)
                     {

@@ -212,6 +212,7 @@ namespace EveOffline
         public float CargoHoldM3;
         public float FuelHoldM3;
         public float ShieldHp;
+        public float ShieldRechargeSeconds;
         public float ArmorHp;
         public float StructureHp;
         public float SpeedMps;
@@ -255,9 +256,9 @@ namespace EveOffline
         public float TotalEhp => ShieldHp + ArmorHp + StructureHp;
         public bool IsCommandShip => CommandBurstSlots > 0;
 
-        public ShipDefinition(string id, string name, int typeId, ShipClass shipClass, int miningSlots, int lowSlots, bool strips, float miningHold, float cargo, float fuel, float shield, float armor, float structure, float speed, int droneBandwidth, int droneBay, int bursts, bool core, double price, params SkillRequirement[] requirements)
+        public ShipDefinition(string id, string name, int typeId, ShipClass shipClass, int miningSlots, int lowSlots, bool strips, float miningHold, float cargo, float fuel, float shield, float shieldRechargeSeconds, float armor, float structure, float speed, int droneBandwidth, int droneBay, int bursts, bool core, double price, params SkillRequirement[] requirements)
         {
-            Id = id; DisplayName = name; TypeId = typeId; Class = shipClass; MiningHighSlots = miningSlots; LowSlots = lowSlots; UsesStripMiners = strips; MiningHoldM3 = miningHold; CargoHoldM3 = cargo; FuelHoldM3 = fuel; ShieldHp = shield; ArmorHp = armor; StructureHp = structure; SpeedMps = speed; DroneBandwidth = droneBandwidth; DroneBayM3 = droneBay; CommandBurstSlots = bursts; SupportsIndustrialCore = core; FallbackBuyPrice = price; Requirements = requirements ?? Array.Empty<SkillRequirement>();
+            Id = id; DisplayName = name; TypeId = typeId; Class = shipClass; MiningHighSlots = miningSlots; LowSlots = lowSlots; UsesStripMiners = strips; MiningHoldM3 = miningHold; CargoHoldM3 = cargo; FuelHoldM3 = fuel; ShieldHp = shield; ShieldRechargeSeconds = shieldRechargeSeconds; ArmorHp = armor; StructureHp = structure; SpeedMps = speed; DroneBandwidth = droneBandwidth; DroneBayM3 = droneBay; CommandBurstSlots = bursts; SupportsIndustrialCore = core; FallbackBuyPrice = price; Requirements = requirements ?? Array.Empty<SkillRequirement>();
         }
     }
 
@@ -590,56 +591,56 @@ namespace EveOffline
         static IReadOnlyList<ShipDefinition> BuildShips()
         {
             var ships = new List<ShipDefinition>();
-            ShipDefinition S(string id, string name, int typeId, ShipClass c, int slots, int lowSlots, bool strips, float mining, float cargo, float fuel, float shield, float armor, float structure, float speed, int bandwidth, int bay, int bursts, bool core, double price, params SkillRequirement[] req)
-            { var s = new ShipDefinition(id,name,typeId,c,slots,lowSlots,strips,mining,cargo,fuel,shield,armor,structure,speed,bandwidth,bay,bursts,core,price,req); ships.Add(s); return s; }
+            ShipDefinition S(string id, string name, int typeId, ShipClass c, int slots, int lowSlots, bool strips, float mining, float cargo, float fuel, float shield, float shieldRechargeSeconds, float armor, float structure, float speed, int bandwidth, int bay, int bursts, bool core, double price, params SkillRequirement[] req)
+            { var s = new ShipDefinition(id,name,typeId,c,slots,lowSlots,strips,mining,cargo,fuel,shield,shieldRechargeSeconds,armor,structure,speed,bandwidth,bay,bursts,core,price,req); ships.Add(s); return s; }
 
-            var venture = S("venture", "Venture", 32880, ShipClass.MiningFrigate, 2, 1, false, 5000, 50, 0, 225, 175, 200, 335, 10, 10, 0, false, 337_100, R("mining-frigate",1));
+            var venture = S("venture", "Venture", 32880, ShipClass.MiningFrigate, 2, 1, false, 5000, 50, 0, 225, 625, 175, 200, 335, 10, 10, 0, false, 337_100, R("mining-frigate",1));
             venture.RoleYieldMultiplier=2f; venture.BonusSkillId="mining-frigate"; venture.YieldBonusPerLevel=.05f;
             venture.GasRoleYieldMultiplier=2f;venture.GasCycleReductionPerLevel=.05f;
-            var ventureCi = S("venture-consortium", "Venture Consortium Issue", 89648, ShipClass.MiningFrigate, 2, 1, false, 6250, 150, 0, 450, 350, 400, 350, 10, 40, 0, false, 28_000_000, R("mining-frigate",3));
+            var ventureCi = S("venture-consortium", "Venture Consortium Issue", 89648, ShipClass.MiningFrigate, 2, 1, false, 6250, 150, 0, 450, 625, 350, 400, 350, 10, 40, 0, false, 28_000_000, R("mining-frigate",3));
             ventureCi.RoleYieldMultiplier=2f; ventureCi.RoleCriticalChanceMultiplier=1.5f; ventureCi.BonusSkillId="mining-frigate"; ventureCi.YieldBonusPerLevel=.05f;
             ventureCi.GasRoleYieldMultiplier=2f;ventureCi.GasCycleReductionPerLevel=.05f;
-            var prospect = S("prospect", "Prospect", 33697, ShipClass.MiningFrigate, 2, 4, false, 12500, 150, 0, 800, 600, 600, 380, 0, 0, 0, false, 30_000_000, R("mining-frigate",5), R("expedition-frigates",1));
+            var prospect = S("prospect", "Prospect", 33697, ShipClass.MiningFrigate, 2, 4, false, 12500, 150, 0, 800, 625, 600, 600, 380, 0, 0, 0, false, 30_000_000, R("mining-frigate",5), R("expedition-frigates",1));
             prospect.RoleYieldMultiplier=2f; prospect.SupportsIceMiningLasers=true; prospect.BonusSkillId="mining-frigate"; prospect.YieldBonusPerLevel=.05f; prospect.SecondaryBonusSkillId="expedition-frigates"; prospect.SecondaryYieldBonusPerLevel=.05f;
             prospect.GasRoleYieldMultiplier=2f;prospect.GasCycleReductionPerLevel=.05f;
-            var endurance = S("endurance", "Endurance", 37135, ShipClass.MiningFrigate, 1, 3, false, 19000, 200, 0, 1100, 400, 500, 420, 15, 30, 0, false, 35_000_000, R("mining-frigate",5), R("expedition-frigates",1));
+            var endurance = S("endurance", "Endurance", 37135, ShipClass.MiningFrigate, 1, 3, false, 19000, 200, 0, 1100, 625, 400, 500, 420, 15, 30, 0, false, 35_000_000, R("mining-frigate",5), R("expedition-frigates",1));
             endurance.RoleYieldMultiplier=4f; endurance.SupportsIceMiningLasers=true; endurance.IceRoleCycleMultiplier=.5f; endurance.BonusSkillId="mining-frigate"; endurance.YieldBonusPerLevel=.05f; endurance.IceCycleReductionPerLevel=.05f; endurance.SecondaryBonusSkillId="expedition-frigates"; endurance.SecondaryIceCycleReductionPerLevel=.05f;
-            var pioneer = S("pioneer", "Pioneer", 89240, ShipClass.MiningDestroyer, 3, 2, false, 8000, 250, 0, 1000, 500, 1500, 200, 20, 40, 0, false, 8_000_000, R("mining-destroyer",1));
+            var pioneer = S("pioneer", "Pioneer", 89240, ShipClass.MiningDestroyer, 3, 2, false, 8000, 250, 0, 1000, 625, 500, 1500, 200, 20, 40, 0, false, 8_000_000, R("mining-destroyer",1));
             pioneer.RoleYieldMultiplier=1.5f; pioneer.BonusSkillId="mining-destroyer"; pioneer.YieldBonusPerLevel=.10f; pioneer.RangeBonusPerLevel=.20f;
             pioneer.GasRoleCycleMultiplier=.75f;pioneer.GasCycleReductionPerLevel=.05f;
-            var pioneerCi = S("pioneer-consortium", "Pioneer Consortium Issue", 89647, ShipClass.MiningDestroyer, 3, 2, false, 10000, 250, 0, 1500, 750, 2250, 210, 20, 80, 0, false, 75_000_000, R("mining-destroyer",2));
+            var pioneerCi = S("pioneer-consortium", "Pioneer Consortium Issue", 89647, ShipClass.MiningDestroyer, 3, 2, false, 10000, 250, 0, 1500, 625, 750, 2250, 210, 20, 80, 0, false, 75_000_000, R("mining-destroyer",2));
             pioneerCi.RoleYieldMultiplier=1.5f; pioneerCi.RoleCriticalChanceMultiplier=1.5f; pioneerCi.BonusSkillId="mining-destroyer"; pioneerCi.YieldBonusPerLevel=.10f; pioneerCi.RangeBonusPerLevel=.20f;
             pioneerCi.GasRoleCycleMultiplier=.75f;pioneerCi.GasCycleReductionPerLevel=.05f;
-            var perseverance = S("perseverance", "Perseverance", 91174, ShipClass.MiningDestroyer, 3, 2, false, 21000, 250, 0, 1500, 750, 2250, 210, 20, 60, 0, false, 342_000_000, R("mining-destroyer",2), R("ice-harvesting",1));
+            var perseverance = S("perseverance", "Perseverance", 91174, ShipClass.MiningDestroyer, 3, 2, false, 21000, 250, 0, 1500, 625, 750, 2250, 210, 20, 60, 0, false, 342_000_000, R("mining-destroyer",2), R("ice-harvesting",1));
             perseverance.IceOnly=true; perseverance.SupportsIceMiningLasers=true; perseverance.RoleCriticalChanceMultiplier=2f; perseverance.BonusSkillId="mining-destroyer"; perseverance.CriticalChanceBonusPerLevel=.10f; perseverance.CriticalBonusYieldPerLevel=.05f; perseverance.RangeBonusPerLevel=.20f;
-            var outrider = S("outrider", "Outrider", 89649, ShipClass.MiningDestroyer, 3, 3, false, 20000, 300, 0, 1000, 500, 1500, 300, 25, 100, 1, false, 180_000_000, R("mining-destroyer",5),R("command-destroyers",1));
+            var outrider = S("outrider", "Outrider", 89649, ShipClass.MiningDestroyer, 3, 3, false, 20000, 300, 0, 1000, 625, 500, 1500, 300, 25, 100, 1, false, 180_000_000, R("mining-destroyer",5),R("command-destroyers",1));
             outrider.BonusSkillId="mining-destroyer"; outrider.YieldBonusPerLevel=.15f;
             outrider.SecondaryBonusSkillId="command-destroyers"; outrider.CommandBurstStrengthBonusPerLevel=.02f; outrider.CommandBurstRangeBonusPerLevel=.05f;
-            var retriever = S("retriever", "Retriever", 17478, ShipClass.MiningBarge, 2, 3, true, 27500, 450, 0, 4000, 3000, 4000, 125, 50, 50, 0, false, 76_000_000, R("mining-barge",1), R("astrogeology",3));
-            var procurer = S("procurer", "Procurer", 17480, ShipClass.MiningBarge, 2, 3, true, 16000, 350, 0, 6000, 5000, 6000, 100, 50, 100, 0, false, 62_000_000, R("mining-barge",1), R("astrogeology",3));
-            var covetor = S("covetor", "Covetor", 17476, ShipClass.MiningBarge, 2, 3, true, 9000, 350, 0, 3000, 2000, 3000, 150, 50, 50, 0, false, 69_000_000, R("mining-barge",1), R("astrogeology",3));
+            var retriever = S("retriever", "Retriever", 17478, ShipClass.MiningBarge, 2, 3, true, 27500, 450, 0, 4000, 1500, 3000, 4000, 125, 50, 50, 0, false, 76_000_000, R("mining-barge",1), R("astrogeology",3));
+            var procurer = S("procurer", "Procurer", 17480, ShipClass.MiningBarge, 2, 3, true, 16000, 350, 0, 6000, 2500, 5000, 6000, 100, 50, 100, 0, false, 62_000_000, R("mining-barge",1), R("astrogeology",3));
+            var covetor = S("covetor", "Covetor", 17476, ShipClass.MiningBarge, 2, 3, true, 9000, 350, 0, 3000, 1000, 2000, 3000, 150, 50, 50, 0, false, 69_000_000, R("mining-barge",1), R("astrogeology",3));
             foreach(var s in new[]{retriever,procurer,covetor}) { s.BonusSkillId="mining-barge"; s.YieldBonusPerLevel=.03f; }
             retriever.MiningHoldBonusPerLevel=.05f; retriever.IceRoleCycleMultiplier=.875f; retriever.IceCycleReductionPerLevel=.02f; retriever.GasRoleCycleMultiplier=.875f; retriever.GasCycleReductionPerLevel=.02f;
             procurer.IceCycleReductionPerLevel=.02f; procurer.GasCycleReductionPerLevel=.02f;
             covetor.IceRoleCycleMultiplier=.70f; covetor.IceCycleReductionPerLevel=.03f; covetor.GasRoleCycleMultiplier=.70f; covetor.GasCycleReductionPerLevel=.03f; covetor.RangeBonusPerLevel=.06f;
-            var mackinaw = S("mackinaw", "Mackinaw", 22548, ShipClass.Exhumer, 2, 3, true, 31500, 450, 0, 5500, 5000, 5500, 130, 50, 50, 0, false, 385_000_000, R("exhumers",1), R("mining-barge",5));
-            var skiff = S("skiff", "Skiff", 22546, ShipClass.Exhumer, 2, 3, true, 18500, 350, 0, 6500, 6000, 6500, 110, 50, 100, 0, false, 375_000_000, R("exhumers",1), R("mining-barge",5));
-            var hulk = S("hulk", "Hulk", 22544, ShipClass.Exhumer, 2, 3, true, 11500, 350, 0, 4500, 3000, 4500, 160, 50, 50, 0, false, 400_000_000, R("exhumers",1), R("mining-barge",5));
+            var mackinaw = S("mackinaw", "Mackinaw", 22548, ShipClass.Exhumer, 2, 3, true, 31500, 450, 0, 5500, 1500, 5000, 5500, 130, 50, 50, 0, false, 385_000_000, R("exhumers",1), R("mining-barge",5));
+            var skiff = S("skiff", "Skiff", 22546, ShipClass.Exhumer, 2, 3, true, 18500, 350, 0, 6500, 2500, 6000, 6500, 110, 50, 100, 0, false, 375_000_000, R("exhumers",1), R("mining-barge",5));
+            var hulk = S("hulk", "Hulk", 22544, ShipClass.Exhumer, 2, 3, true, 11500, 350, 0, 4500, 1000, 3000, 4500, 160, 50, 50, 0, false, 400_000_000, R("exhumers",1), R("mining-barge",5));
             foreach(var s in new[]{mackinaw,skiff,hulk}) { s.RoleCycleMultiplier=.85f; s.BonusSkillId="mining-barge"; s.YieldBonusPerLevel=.03f; s.SecondaryBonusSkillId="exhumers"; s.SecondaryYieldBonusPerLevel=.06f; s.SecondaryCycleReductionPerLevel=.03f; }
             mackinaw.MiningHoldBonusPerLevel=.05f; mackinaw.SecondaryMiningHoldBonusPerLevel=.025f; mackinaw.IceRoleCycleMultiplier=.875f; mackinaw.IceCycleReductionPerLevel=.04f; mackinaw.GasRoleCycleMultiplier=.875f; mackinaw.GasCycleReductionPerLevel=.03f; mackinaw.SecondaryGasCycleReductionPerLevel=.03f;
             skiff.IceCycleReductionPerLevel=.04f; skiff.SecondaryGasCycleReductionPerLevel=.03f;
             hulk.IceRoleCycleMultiplier=.70f; hulk.IceCycleReductionPerLevel=.03f; hulk.SecondaryIceCycleReductionPerLevel=.04f; hulk.GasRoleCycleMultiplier=.70f; hulk.GasCycleReductionPerLevel=.03f; hulk.SecondaryGasCycleReductionPerLevel=.03f; hulk.RangeBonusPerLevel=.06f;
-            var porpoise = S("porpoise", "Porpoise", 42244, ShipClass.IndustrialCommand, 0, 2, false, 50000, 500, 4800, 6000, 3000, 8000, 100, 50, 125, 2, true, 125_000_000, R("industrial-command-ships",1));
+            var porpoise = S("porpoise", "Porpoise", 42244, ShipClass.IndustrialCommand, 0, 2, false, 50000, 500, 4800, 6000, 1800, 3000, 8000, 100, 50, 125, 2, true, 125_000_000, R("industrial-command-ships",1));
             porpoise.BonusSkillId="industrial-command-ships"; porpoise.YieldBonusPerLevel=.10f;
             porpoise.MiningHoldBonusPerLevel=.05f;
             porpoise.CommandBurstStrengthBonusPerLevel=.02f; porpoise.CommandBurstRangeBonusPerLevel=.05f;
-            var orca = S("orca", "Orca", 28606, ShipClass.IndustrialCommand, 0, 2, false, 150000, 30000, 6400, 30000, 7000, 45000, 60, 50, 200, 3, true, 2_550_000_000, R("industrial-command-ships",1));
+            var orca = S("orca", "Orca", 28606, ShipClass.IndustrialCommand, 0, 2, false, 150000, 30000, 6400, 30000, 6000, 7000, 45000, 60, 50, 200, 3, true, 2_550_000_000, R("industrial-command-ships",1));
             orca.BonusSkillId="industrial-command-ships"; orca.YieldBonusPerLevel=.10f;
             orca.MiningHoldBonusPerLevel=.05f;
             orca.CommandBurstStrengthBonusPerLevel=.03f; orca.CommandBurstRangeBonusPerLevel=.05f;
             // The hull retains four physical command slots. Ready-made fits use
             // only the three project profiles; the fourth slot stays empty.
-            var rorqual = S("rorqual", "Rorqual", 28352, ShipClass.CapitalIndustrial, 0, 4, false, 300000, 40000, 10000, 90000, 60000, 300000, 60, 125, 8800, 4, true, 6_900_000_000, R("capital-industrial-ships",1), R("capital-ships",2));
+            var rorqual = S("rorqual", "Rorqual", 28352, ShipClass.CapitalIndustrial, 0, 4, false, 300000, 40000, 10000, 90000, 14400, 60000, 300000, 60, 125, 8800, 4, true, 6_900_000_000, R("capital-industrial-ships",1), R("capital-ships",2));
             rorqual.BonusSkillId="capital-industrial-ships"; rorqual.YieldBonusPerLevel=.10f;
             rorqual.CommandBurstStrengthBonusPerLevel=.05f; rorqual.CommandBurstRangeBonusPerLevel=.05f; rorqual.RoleCommandBurstRangeMultiplier=1.5f;
             var mids=new Dictionary<string,int>{{"venture",3},{"venture-consortium",4},{"prospect",3},{"endurance",4},{"pioneer",3},{"pioneer-consortium",4},{"perseverance",4},{"outrider",5},{"retriever",2},{"procurer",3},{"covetor",2},{"mackinaw",4},{"skiff",5},{"hulk",4},{"porpoise",4},{"orca",5},{"rorqual",7}};

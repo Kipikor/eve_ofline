@@ -62,6 +62,7 @@ public static class EveOfflineBuild
         SmokeIndustrialCores();
         SmokeFleetCompression();
         SmokeNpcDurabilityAndDestruction();
+        SmokePassiveShieldRecharge();
         SmokeRealLocations();
         SmokeOreGrades();
         SmokePersistentMiningSites();
@@ -93,7 +94,7 @@ public static class EveOfflineBuild
 
         Debug.Log(
             "EVE_OFFLINE_SMOKE_OK roster/deployment; persistent mining; 5+10+5 return warp; " +
-            "automatic unload/retarget by m3; Large/Small injectors; live ESI shield prerequisites; validated queue reordering; copied worker skill plans; Jita fallbacks and warehouse ore valuation; queued industrial cores; core-gated lossless fleet compression; NPC ETA/destruction; official ore grades; 73-system/677-belt highsec catalog with lazy static state; real persistent belts/anomalies with downtime and offline catch-up; locked prepared packages + guarded legacy/v14 migration; atomic mass package assignment with hangar reuse and exact purchases; package EHP and shared combat-drone DPS estimates; ordered three-effect global bursts; exact ice compatibility and six-hour Clear Icicle lifecycle; gas extractors, skills, barge/exhumer cycles, bursts, unload and persistence; ordinary-ore Mercoxit with shared miners, drones, Complex profile and compression; atomic local-warp rejection; persisted manual/local travel; security-floor global auto-route with lossless cross-system travel, downtime restart and booster restart; event-driven offline mining; offline mine/unload/route across 11:00, no autosell/double award, full queue and overdue anomaly time beyond the 30-day fleet cap, NPC-free versus hostile risk, simulated-time anomaly respawn, and stable cached world deadlines");
+            "automatic unload/retarget by m3; Large/Small injectors; live ESI shield prerequisites; validated queue reordering and exact Pilot02 worker-state synchronization; Jita fallbacks and warehouse ore valuation; queued industrial cores; core-gated lossless fleet compression; persisted combat-drone flight/NPC destruction and passive shield recharge; official ore grades; 73-system/677-belt highsec catalog with lazy static state; real persistent belts/anomalies with downtime and offline catch-up; locked prepared packages + guarded legacy/v14 migration; atomic worker mass assignment plus separate Pilot01 hangar reuse/purchase; package EHP and shared combat-drone DPS estimates; ordered three-effect global bursts; exact ice compatibility and six-hour Clear Icicle lifecycle; gas extractors, skills, barge/exhumer cycles, bursts, unload and persistence; ordinary-ore Mercoxit with shared miners, drones, Complex profile and compression; atomic local-warp rejection; persisted manual/local travel; security-floor global auto-route with lossless cross-system travel, downtime restart and booster restart; event-driven offline mining; offline mine/unload/route across 11:00, no autosell/double award, full queue and overdue anomaly time beyond the 30-day fleet cap, NPC-free versus hostile risk, simulated-time anomaly respawn, and stable cached world deadlines");
     }
 
     static void SmokeStartingRosterAndDeploymentSelection()
@@ -732,10 +733,115 @@ public static class EveOfflineBuild
         RequireNearly(subsetSave.Isk, subsetWalletBefore, .001d, "copy without books must not touch the shared wallet");
         Require(TrainingQueueSignature(subsetTarget) == "mining:2|mining:3|mining:4", "copy without books must replace the old queue with only its prerequisite-valid, owned-book subset");
         Require(SkillService.GetState(subsetTarget, "science") == null, "copy without books must not silently purchase or create a missing Science book");
+
+        var exactSave = SaveService.NewGame();
+        var exactLeader = exactSave.Characters[0];
+        var exactSource = exactSave.Characters[1];
+        exactSave.Isk = 123_456_789.125d;
+        exactSource.Skills = new List<CharacterSkillSave>
+        {
+            new CharacterSkillSave { SkillId = "mining", BookOwned = true, SkillPoints = 12_345.125d },
+            new CharacterSkillSave { SkillId = "science", BookOwned = false, SkillPoints = 678.5d },
+            new CharacterSkillSave { SkillId = "drones", BookOwned = true, SkillPoints = 98_765.75d }
+        };
+        exactSource.UnallocatedSkillPoints = 43_210.625d;
+        exactSource.TrainingQueue = new List<SkillQueueEntrySave>
+        {
+            new SkillQueueEntrySave { SkillId = "science", TargetLevel = 4 },
+            new SkillQueueEntrySave { SkillId = "mining", TargetLevel = 5 }
+        };
+        exactSource.TrainingSkillId = "science";
+        exactSource.TrainingTargetLevel = 4;
+        for (var index = 2; index < exactSave.Characters.Count; index++)
+        {
+            var target = exactSave.Characters[index];
+            target.Skills = new List<CharacterSkillSave>
+            {
+                new CharacterSkillSave { SkillId = "mining", BookOwned = true, SkillPoints = 9_000_000d + index },
+                new CharacterSkillSave { SkillId = "drones", BookOwned = true, SkillPoints = 8_000_000d + index },
+                new CharacterSkillSave { SkillId = "spaceship-command", BookOwned = true, SkillPoints = 7_000_000d + index }
+            };
+            target.UnallocatedSkillPoints = 1_000_000d + index;
+            target.TrainingQueue = new List<SkillQueueEntrySave>
+            {
+                new SkillQueueEntrySave { SkillId = "drones", TargetLevel = 5 }
+            };
+            target.TrainingSkillId = "drones";
+            target.TrainingTargetLevel = 5;
+            target.DeployOnLaunch = index % 2 == 0;
+        }
+
+        var exactLeaderBefore = JsonUtility.ToJson(exactLeader);
+        var exactSourceBefore = JsonUtility.ToJson(exactSource);
+        var exactWalletBefore = exactSave.Isk;
+        var identitiesBefore = exactSave.Characters.Select(pilot => $"{pilot.Id}\u001f{pilot.Name}").ToArray();
+        var assignedShipsBefore = exactSave.Characters.Select(pilot => pilot.AssignedShipUid).ToArray();
+        var deployFlagsBefore = exactSave.Characters.Select(pilot => pilot.DeployOnLaunch).ToArray();
+        var exactPreviewSaveBefore = JsonUtility.ToJson(exactSave);
+        var exactPreview = SkillPlanService.PreviewSyncWorkerSkillStateFromPilot02(exactSave);
+        Require(JsonUtility.ToJson(exactSave) == exactPreviewSaveBefore,
+            "exact worker skill-state preview must be completely mutation-free");
+        Require(exactPreview.Success && exactPreview.SourcePilotId == exactSource.Id &&
+                exactPreview.TargetCount == exactSave.Characters.Count - 2 && exactPreview.TargetsChanged == exactSave.Characters.Count - 2,
+            "exact worker skill-state preview must use Pilot 02 and report every deliberately different Pilot 03-10 target");
+
+        Require(SkillPlanService.TrySyncWorkerSkillStateFromPilot02(exactSave, out var exactApplied) && exactApplied.Success &&
+                exactApplied.TargetCount == exactSave.Characters.Count - 2 && exactApplied.TargetsChanged == exactSave.Characters.Count - 2,
+            "exact worker skill-state synchronization must replace every Pilot 03-10 target");
+        var sourceSkillState = ExactWorkerSkillStateJson(exactSource);
+        foreach (var target in exactSave.Characters.Skip(2))
+        {
+            Require(ExactWorkerSkillStateJson(target) == sourceSkillState,
+                "every synchronized worker must exactly match Pilot 02 skills, books, SP, free SP, queue and active mirror");
+            Require(!ReferenceEquals(target.Skills, exactSource.Skills) && !ReferenceEquals(target.TrainingQueue, exactSource.TrainingQueue),
+                "each synchronized worker must own independent skill and queue lists");
+            for (var index = 0; index < exactSource.Skills.Count; index++)
+                Require(!ReferenceEquals(target.Skills[index], exactSource.Skills[index]),
+                    "each synchronized worker skill entry must be a deep copy");
+            for (var index = 0; index < exactSource.TrainingQueue.Count; index++)
+                Require(!ReferenceEquals(target.TrainingQueue[index], exactSource.TrainingQueue[index]),
+                    "each synchronized worker queue entry must be a deep copy");
+        }
+        Require(JsonUtility.ToJson(exactLeader) == exactLeaderBefore && JsonUtility.ToJson(exactSource) == exactSourceBefore,
+            "exact worker synchronization must leave Pilot 01 and the Pilot 02 template byte-for-byte unchanged");
+        Require(exactSave.Isk == exactWalletBefore &&
+                exactSave.Characters.Select(pilot => $"{pilot.Id}\u001f{pilot.Name}").SequenceEqual(identitiesBefore) &&
+                exactSave.Characters.Select(pilot => pilot.AssignedShipUid).SequenceEqual(assignedShipsBefore) &&
+                exactSave.Characters.Select(pilot => pilot.DeployOnLaunch).SequenceEqual(deployFlagsBefore),
+            "exact worker synchronization must preserve wallet, identities, assigned ships and deployment flags exactly");
+
+        var repeatedStateBefore = JsonUtility.ToJson(exactSave);
+        Require(SkillPlanService.TrySyncWorkerSkillStateFromPilot02(exactSave, out var repeatedSync) && repeatedSync.Success && repeatedSync.TargetsChanged == 0,
+            "repeating an exact worker synchronization must report TargetsChanged=0");
+        Require(JsonUtility.ToJson(exactSave) == repeatedStateBefore,
+            "repeating an already exact worker synchronization must preserve serialized state");
+
+        var mutatedRecipient = exactSave.Characters[2];
+        var untouchedRecipient = exactSave.Characters[3];
+        var sourceBeforeRecipientMutation = ExactWorkerSkillStateJson(exactSource);
+        var untouchedBeforeRecipientMutation = ExactWorkerSkillStateJson(untouchedRecipient);
+        mutatedRecipient.Skills[0].SkillPoints += 777d;
+        mutatedRecipient.Skills[0].BookOwned = !mutatedRecipient.Skills[0].BookOwned;
+        mutatedRecipient.Skills.Add(new CharacterSkillSave { SkillId = "astrogeology", BookOwned = true, SkillPoints = 999d });
+        mutatedRecipient.UnallocatedSkillPoints += 333d;
+        mutatedRecipient.TrainingQueue[0].TargetLevel = 1;
+        mutatedRecipient.TrainingQueue.Add(new SkillQueueEntrySave { SkillId = "drones", TargetLevel = 5 });
+        Require(ExactWorkerSkillStateJson(exactSource) == sourceBeforeRecipientMutation &&
+                ExactWorkerSkillStateJson(untouchedRecipient) == untouchedBeforeRecipientMutation,
+            "mutating one synchronized recipient afterward must not alias Pilot 02 or any other recipient");
     }
 
     static string TrainingQueueSignature(CharacterSave pilot) => string.Join("|",
         SkillService.GetTrainingQueue(pilot).Select(entry => $"{entry.SkillId}:{entry.TargetLevel}"));
+
+    static string ExactWorkerSkillStateJson(CharacterSave pilot) => JsonUtility.ToJson(new CharacterSave
+    {
+        Skills = pilot.Skills,
+        UnallocatedSkillPoints = pilot.UnallocatedSkillPoints,
+        TrainingQueue = pilot.TrainingQueue,
+        TrainingSkillId = pilot.TrainingSkillId,
+        TrainingTargetLevel = pilot.TrainingTargetLevel
+    });
 
     static void SmokeJitaFallbackPrices()
     {
@@ -1045,6 +1151,12 @@ public static class EveOfflineBuild
         OperationService.Tick(save, .01f);
         Require(save.Operation.Enemies.Count == location.MaxNpcCount, "maximum-threat nullsec belt must spawn its configured NPC wave");
         Require(!OperationService.TryGetNextNpcRaidEta(save, out _), "NPC countdown must be hidden while the belt is already at its NPC cap");
+        var unarmedTarget = save.Operation.Enemies[0];
+        var unarmedTargetHp = unarmedTarget.ShieldHp + unarmedTarget.ArmorHp + unarmedTarget.StructureHp;
+        OperationService.Tick(save, 1f);
+        Require(save.Operation.Enemies.Contains(unarmedTarget), "an NPC must survive while no ship has usable combat drones");
+        RequireNearly(unarmedTarget.ShieldHp + unarmedTarget.ArmorHp + unarmedTarget.StructureHp, unarmedTargetHp, .001d,
+            "an unarmed fleet must not deal implicit damage to NPCs");
 
         var safeSave = NewSinglePilotOperation("uitra-belt-1");
         Require(!OperationService.TryGetNextNpcRaidEta(safeSave, out _), "threat-zero belts must report that no NPC raid is expected");
@@ -1060,8 +1172,39 @@ public static class EveOfflineBuild
         var bandwidthTarget = new EnemySave { Id = "bandwidth-smoke", Name = "Bandwidth target", X = member.X, Y = member.Y, Z = member.Z, ShieldHp = 1_000_000, ArmorHp = 1_000_000, StructureHp = 1_000_000, Dps = 0, TargetShipUid = ship.Uid };
         save.Operation.Enemies.Add(bandwidthTarget);
         OperationService.Tick(save, 1f);
-        RequireNearly(bandwidthTarget.ShieldHp, 1_000_000d - 24d, .001d, "combat drones must be clamped by Venture bandwidth as well as Drones V");
-        save.Operation.Enemies.Clear();
+        Require(member.CombatDroneTargetEnemyId == bandwidthTarget.Id, "combat-drone squad must persist its assigned NPC target");
+        RequireNearly(member.CombatDroneTravelSecondsTotal, OperationService.CombatDroneLaunchSeconds, .001d,
+            "a same-position target must require the exact combat-drone launch delay");
+        RequireNearly(member.CombatDroneTravelSecondsLeft, OperationService.CombatDroneLaunchSeconds - 1f, .001d,
+            "the first combat tick must advance only the persisted launch timer");
+        RequireNearly(bandwidthTarget.ShieldHp, 1_000_000d, .001d, "combat drones must deal no damage during launch");
+
+        save = JsonUtility.FromJson<GameSave>(JsonUtility.ToJson(save));
+        member = save.Operation.Fleet.Single(candidate => candidate.ShipUid == ship.Uid);
+        ship = save.Ships.Single(candidate => candidate.Uid == member.ShipUid);
+        pilot = save.Characters.Single(candidate => candidate.Id == member.PilotId);
+        bandwidthTarget = save.Operation.Enemies.Single(candidate => candidate.Id == "bandwidth-smoke");
+        Require(member.CombatDroneTargetEnemyId == bandwidthTarget.Id, "JSON round-trip must preserve the combat squad target");
+        RequireNearly(member.CombatDroneTravelSecondsTotal, OperationService.CombatDroneLaunchSeconds, .001d,
+            "JSON round-trip must preserve total combat-drone travel time");
+        RequireNearly(member.CombatDroneTravelSecondsLeft, OperationService.CombatDroneLaunchSeconds - 1f, .001d,
+            "JSON round-trip must preserve remaining combat-drone travel time");
+
+        OperationService.Tick(save, 1f);
+        RequireNearly(member.CombatDroneTravelSecondsLeft, 0d, .001d, "the exact two-second launch boundary must complete without overshoot");
+        RequireNearly(bandwidthTarget.ShieldHp, 1_000_000d, .001d, "the exact launch boundary must not apply premature DPS");
+        OperationService.Tick(save, 1f);
+        RequireNearly(bandwidthTarget.ShieldHp, 1_000_000d - 24d, .001d,
+            "engaged combat drones must be clamped by Venture bandwidth as well as Drones V");
+
+        bandwidthTarget.ShieldHp = 0;
+        bandwidthTarget.ArmorHp = 0;
+        bandwidthTarget.StructureHp = 1;
+        OperationService.Tick(save, 1f);
+        Require(save.Operation.Enemies.All(candidate => candidate.Id != bandwidthTarget.Id), "lethal combat-drone damage must remove the NPC");
+        Require(string.IsNullOrWhiteSpace(member.CombatDroneTargetEnemyId) && member.CombatDroneTravelSecondsLeft == 0 && member.CombatDroneTravelSecondsTotal == 0,
+            "destroying the assigned NPC must clear the persisted combat squad state");
+
         ship.CombatDroneCount = 0;
         var shieldBefore = ship.ShieldHp;
         var armorBefore = ship.ArmorHp;
@@ -1092,6 +1235,81 @@ public static class EveOfflineBuild
         Require(!save.Ships.Exists(candidate => candidate.Uid == ship.Uid), "lethal NPC damage must remove the destroyed ship");
         Require(string.IsNullOrWhiteSpace(pilot.AssignedShipUid), "destroyed ship's pilot clone must return without an assigned hull");
         Require(!save.Operation.Fleet.Exists(candidate => candidate.ShipUid == ship.Uid), "destroyed ship must leave the active fleet");
+    }
+
+    static void SmokePassiveShieldRecharge()
+    {
+        var save = SaveService.NewGame();
+        var pilot = save.Characters[0];
+        var ship = save.Ships.Single(candidate => candidate.Uid == pilot.AssignedShipUid);
+        var hull = Catalog.GetShip(ship.HullId);
+        var tank = Catalog.GetTankPreset("venture-shield-i");
+        Require(hull?.ShieldRechargeSeconds > 0 && tank != null, "shield recharge smoke requires canonical Venture recharge and tank data");
+
+        ship.TankPresetId = tank.Id;
+        SetSkillLevel(pilot, "shield-management", 5);
+        SetSkillLevel(pilot, "shield-operation", 0);
+        var expectedSkilledMaximum = (hull.ShieldHp + tank.ShieldHpBonus) * 1.25f;
+        RequireNearly(PreparedPackageService.MaxShieldHp(ship, pilot), expectedSkilledMaximum, .001d,
+            "passive recharge must use the assigned pilot's tank-adjusted skilled maximum");
+        var armorBefore = ship.ArmorHp;
+        var structureBefore = ship.StructureHp;
+
+        ship.ShieldHp = 0;
+        ShieldRechargeService.Tick(save, 1f);
+        Require(ship.ShieldHp > 0 && ship.ShieldHp < expectedSkilledMaximum, "a living station ship must recharge from zero without jumping to full");
+        RequireNearly(ship.ArmorHp, armorBefore, .000001d, "passive shield recharge must not change armor");
+        RequireNearly(ship.StructureHp, structureBefore, .000001d, "passive shield recharge must not change structure");
+
+        ship.Location = ShipLocation.Transit;
+        ship.ShieldHp = 0;
+        ShieldRechargeService.Tick(save, 1f);
+        Require(ship.ShieldHp > 0, "passive shield recharge must continue while a ship is in transit");
+        ship.ShieldHp = expectedSkilledMaximum + 500f;
+        ShieldRechargeService.Tick(save, 1f);
+        RequireNearly(ship.ShieldHp, expectedSkilledMaximum, .001d, "passive shield recharge must clamp overfilled shields to the skilled maximum");
+
+        ship.Location = ShipLocation.Station;
+        ship.ShieldHp = expectedSkilledMaximum * .2f;
+        var longStep = JsonUtility.FromJson<GameSave>(JsonUtility.ToJson(save));
+        var splitSteps = JsonUtility.FromJson<GameSave>(JsonUtility.ToJson(save));
+        ShieldRechargeService.Tick(longStep, 240f);
+        for (var step = 0; step < 24; step++) ShieldRechargeService.Tick(splitSteps, 10f);
+        var longStepShip = longStep.Ships.Single(candidate => candidate.Uid == ship.Uid);
+        var splitStepShip = splitSteps.Ships.Single(candidate => candidate.Uid == ship.Uid);
+        RequireNearly(longStepShip.ShieldHp, splitStepShip.ShieldHp, .01d,
+            "passive shield recharge must be partition-stable for one long step versus split steps");
+
+        var unskilled = JsonUtility.FromJson<GameSave>(JsonUtility.ToJson(save));
+        var skilled = JsonUtility.FromJson<GameSave>(JsonUtility.ToJson(save));
+        SetSkillLevel(unskilled.Characters.Single(candidate => candidate.Id == pilot.Id), "shield-operation", 0);
+        SetSkillLevel(skilled.Characters.Single(candidate => candidate.Id == pilot.Id), "shield-operation", 5);
+        ShieldRechargeService.Tick(unskilled, 60f);
+        ShieldRechargeService.Tick(skilled, 60f);
+        var unskilledShield = unskilled.Ships.Single(candidate => candidate.Uid == ship.Uid).ShieldHp;
+        var skilledShield = skilled.Ships.Single(candidate => candidate.Uid == ship.Uid).ShieldHp;
+        Require(skilledShield > unskilledShield, "Shield Operation V must recharge more shield than level 0 over the same interval");
+
+        var detached = JsonUtility.FromJson<GameSave>(JsonUtility.ToJson(save));
+        detached.Characters.Single(candidate => candidate.Id == pilot.Id).AssignedShipUid = string.Empty;
+        var detachedShip = detached.Ships.Single(candidate => candidate.Uid == ship.Uid);
+        detachedShip.ShieldHp = expectedSkilledMaximum;
+        ShieldRechargeService.Tick(detached, 1f);
+        RequireNearly(detachedShip.ShieldHp, hull.ShieldHp + tank.ShieldHpBonus, .001d,
+            "an unassigned ship must recharge and cap against the same tank without pilot shield bonuses");
+
+        var offlineStart = new DateTimeOffset(2099, 8, 13, 12, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+        var offline = SaveService.NewGame();
+        var offlinePilot = offline.Characters[0];
+        var offlineShip = offline.Ships.Single(candidate => candidate.Uid == offlinePilot.AssignedShipUid);
+        offlineShip.ShieldHp = 0;
+        offline.LastSaveUnix = offlineStart;
+        var offlineReport = OfflineSimulationService.CatchUp(offline, offlineStart + 60);
+        Require(!offlineReport.Failed && offlineShip.ShieldHp > 0, "offline idle time at station must advance passive shield recharge");
+        RequireNearly(offlineShip.ArmorHp, Catalog.GetShip(offlineShip.HullId).ArmorHp, .000001d,
+            "offline shield recharge must leave armor unchanged");
+        RequireNearly(offlineShip.StructureHp, Catalog.GetShip(offlineShip.HullId).StructureHp, .000001d,
+            "offline shield recharge must leave structure unchanged");
     }
 
     static void SmokeRealLocations()
@@ -2165,6 +2383,114 @@ public static class EveOfflineBuild
                 save.Characters.Select(pilot => pilot.AssignedShipUid).Where(uid => !string.IsNullOrWhiteSpace(uid)).Distinct(StringComparer.OrdinalIgnoreCase).Count() ==
                 save.Characters.Count(pilot => !string.IsNullOrWhiteSpace(pilot.AssignedShipUid)),
             "replaced station ships must remain in the common hangar and final pilot assignments must stay unique");
+
+        SmokeIndependentLeaderPackageAssignment(package);
+    }
+
+    static void SmokeIndependentLeaderPackageAssignment(PreparedMiningPackage package)
+    {
+        var reuseSave = SaveService.NewGame();
+        var reuseLeader = reuseSave.Characters[0];
+        GrantAllSkills(reuseLeader);
+        var reuseWorkersBefore = reuseSave.Characters.Skip(1).Select(pilot => JsonUtility.ToJson(pilot)).ToArray();
+        var reuseWalletBefore = reuseSave.Isk;
+        var reuseShipCountBefore = reuseSave.Ships.Count;
+        var reuseSerialBefore = reuseSave.NextShipSerial;
+        var displacedLeaderShipUid = reuseLeader.AssignedShipUid;
+        var freeExactShip = SaveService.CreateShip("smoke-leader-free-exact-hulk", package.HullId);
+        PreparedPackageService.ApplyLockedFit(freeExactShip, package);
+        freeExactShip.Location = ShipLocation.Station;
+        reuseSave.Ships.Add(freeExactShip);
+
+        var reusePreviewStateBefore = JsonUtility.ToJson(reuseSave);
+        var reusePreview = PreparedPackageService.PreviewAssignIndependentLeader(reuseSave, package.Id);
+        Require(JsonUtility.ToJson(reuseSave) == reusePreviewStateBefore,
+            "independent-leader package preview must be completely mutation-free");
+        Require(reusePreview.Success && reusePreview.Affordable && reusePreview.Pilots.Count == 1 &&
+                reusePreview.Pilots[0].PilotId == reuseLeader.Id && reusePreview.EligibleCount == 1 &&
+                reusePreview.ReusedCount == 1 && reusePreview.PurchasedCount == 0 && reusePreview.PurchaseCostIsk == 0d,
+            "independent-leader preview must contain exactly Pilot 01 and reserve the free exact station fit");
+        var reusePilotPreview = reusePreview.Pilots[0];
+        Require(reusePilotPreview.Status == PreparedPackagePilotAssignmentStatus.Ready && reusePilotPreview.CanAssign &&
+                reusePilotPreview.WillUseHangarShip && !reusePilotPreview.WillBuyShip && reusePilotPreview.PlannedShipUid == freeExactShip.Uid,
+            "independent leader must reuse the deterministic exact package ship rather than buy another one");
+        Require(PreparedPackageService.TryAssignIndependentLeader(reuseSave, package.Id, out var reuseApplied) && reuseApplied.Success &&
+                reuseApplied.AssignedCount == 1 && reuseApplied.ReusedCount == 1 && reuseApplied.PurchasedCount == 0,
+            "independent leader must be assignable to a preflighted exact station fit");
+        Require(reuseLeader.AssignedShipUid == freeExactShip.Uid && reuseLeader.DeployOnLaunch &&
+                freeExactShip.PackageId == package.Id && freeExactShip.Location == ShipLocation.Station,
+            "independent leader must finish assigned to the reused exact fit at station");
+        Require(reuseSave.Ships.Count == reuseShipCountBefore + 1 && reuseSave.NextShipSerial == reuseSerialBefore &&
+                reuseSave.Ships.Any(ship => ship.Uid == displacedLeaderShipUid) && reuseSave.Isk == reuseWalletBefore,
+            "reusing a leader package must not purchase a ship, advance the serial or debit the wallet");
+        Require(reuseSave.Characters.Skip(1).Select(pilot => JsonUtility.ToJson(pilot)).SequenceEqual(reuseWorkersBefore),
+            "independent-leader reuse must leave every worker byte-for-byte unchanged");
+
+        var purchaseSave = SaveService.NewGame();
+        var purchaseLeader = purchaseSave.Characters[0];
+        GrantAllSkills(purchaseLeader);
+        var packagePrice = PreparedPackageService.PackagePrice(purchaseSave, package);
+        Require(packagePrice > 0d, "independent-leader purchase fixture requires a paid package");
+        purchaseSave.Isk = packagePrice + 54_321.25d;
+        var purchaseWalletBefore = purchaseSave.Isk;
+        var purchaseWorkersBefore = purchaseSave.Characters.Skip(1).Select(pilot => JsonUtility.ToJson(pilot)).ToArray();
+        var purchaseShipCountBefore = purchaseSave.Ships.Count;
+        var purchaseSerialBefore = purchaseSave.NextShipSerial;
+        var purchasePreviewStateBefore = JsonUtility.ToJson(purchaseSave);
+        var purchasePreview = PreparedPackageService.PreviewAssignIndependentLeader(purchaseSave, package.Id);
+        Require(JsonUtility.ToJson(purchaseSave) == purchasePreviewStateBefore,
+            "independent-leader purchase preview must be mutation-free");
+        Require(purchasePreview.Success && purchasePreview.Affordable && purchasePreview.Pilots.Count == 1 &&
+                purchasePreview.Pilots[0].PilotId == purchaseLeader.Id && purchasePreview.Pilots[0].WillBuyShip &&
+                !purchasePreview.Pilots[0].WillUseHangarShip && purchasePreview.PurchasedCount == 1 &&
+                purchasePreview.PurchaseCostIsk == packagePrice,
+            "independent-leader purchase preview must contain exactly Pilot 01 and quote one exact package price");
+        var plannedPurchasedUid = purchasePreview.Pilots[0].PlannedShipUid;
+        Require(PreparedPackageService.TryAssignIndependentLeader(purchaseSave, package.Id, out var purchaseApplied) && purchaseApplied.Success &&
+                purchaseApplied.AssignedCount == 1 && purchaseApplied.PurchasedCount == 1 && purchaseApplied.PurchaseCostIsk == packagePrice,
+            "funded independent-leader assignment must buy exactly one preflighted package");
+        Require(purchaseLeader.AssignedShipUid == plannedPurchasedUid &&
+                purchaseSave.Ships.Single(ship => ship.Uid == plannedPurchasedUid).PackageId == package.Id &&
+                purchaseSave.Ships.Count == purchaseShipCountBefore + 1 && purchaseSave.NextShipSerial == purchaseSerialBefore + 1,
+            "independent-leader purchase must materialize and assign exactly the ship reserved by preview");
+        Require(purchaseSave.Isk == purchaseWalletBefore - packagePrice,
+            "independent-leader purchase must debit the exact quoted package price once");
+        Require(purchaseSave.Characters.Skip(1).Select(pilot => JsonUtility.ToJson(pilot)).SequenceEqual(purchaseWorkersBefore),
+            "independent-leader purchase must leave every worker byte-for-byte unchanged");
+
+        var unsafeSave = SaveService.NewGame();
+        var unsafeLeader = unsafeSave.Characters[0];
+        GrantAllSkills(unsafeLeader);
+        var unsafeShip = unsafeSave.Ships.Single(ship => ship.Uid == unsafeLeader.AssignedShipUid);
+        unsafeShip.Location = ShipLocation.Belt;
+        unsafeSave.Operation.Active = true;
+        unsafeSave.Operation.Fleet.Add(new FleetMemberSave { PilotId = unsafeLeader.Id, ShipUid = unsafeShip.Uid });
+        unsafeSave.Isk = packagePrice * 2d;
+        var unsafeStateBefore = JsonUtility.ToJson(unsafeSave);
+        var unsafePreview = PreparedPackageService.PreviewAssignIndependentLeader(unsafeSave, package.Id);
+        Require(JsonUtility.ToJson(unsafeSave) == unsafeStateBefore && !unsafePreview.Success && unsafePreview.Pilots.Count == 1 &&
+                unsafePreview.Pilots[0].PilotId == unsafeLeader.Id &&
+                unsafePreview.Pilots[0].Status == PreparedPackagePilotAssignmentStatus.UnsafeCurrentShip && !unsafePreview.Pilots[0].CanAssign,
+            "independent-leader preview must expose only Pilot 01 as unsafe while its current ship is active");
+        Require(!PreparedPackageService.TryAssignIndependentLeader(unsafeSave, package.Id, out var unsafeApplied) &&
+                !unsafeApplied.Success && unsafeApplied.AssignedCount == 0 && JsonUtility.ToJson(unsafeSave) == unsafeStateBefore,
+            "unsafe independent-leader assignment must fail atomically without any save mutation");
+
+        var poorLeaderSave = SaveService.NewGame();
+        var poorLeader = poorLeaderSave.Characters[0];
+        GrantAllSkills(poorLeader);
+        var poorPackagePrice = PreparedPackageService.PackagePrice(poorLeaderSave, package);
+        poorLeaderSave.Isk = poorPackagePrice - 1d;
+        var poorStateBefore = JsonUtility.ToJson(poorLeaderSave);
+        var poorPreview = PreparedPackageService.PreviewAssignIndependentLeader(poorLeaderSave, package.Id);
+        Require(JsonUtility.ToJson(poorLeaderSave) == poorStateBefore && poorPreview.Success && !poorPreview.Affordable &&
+                poorPreview.Pilots.Count == 1 && poorPreview.Pilots[0].PilotId == poorLeader.Id && poorPreview.Pilots[0].WillBuyShip &&
+                poorPreview.PurchasedCount == 1 && poorPreview.PurchaseCostIsk == poorPackagePrice,
+            "independent-leader preview must quote one purchase for Pilot 01 even when the wallet is short");
+        Require(!PreparedPackageService.TryAssignIndependentLeader(poorLeaderSave, package.Id, out var poorApplied) &&
+                !poorApplied.Success && !poorApplied.Affordable && poorApplied.AssignedCount == 0 &&
+                JsonUtility.ToJson(poorLeaderSave) == poorStateBefore,
+            "insufficient-ISK independent-leader purchase must fail atomically without any save mutation");
     }
 
     static void SmokePreparedPackageCombatEstimates()
@@ -3153,6 +3479,7 @@ public static class EveOfflineBuild
         safe.Operation.AutoNextBelt = false;
         safeMember.Order = FleetOrder.Idle;
         safeMember.TargetAsteroidId = string.Empty;
+        safeShip.ShieldHp *= .25f;
         var safeShield = safeShip.ShieldHp;
         var safeArmor = safeShip.ArmorHp;
         var safeStructure = safeShip.StructureHp;
@@ -3160,7 +3487,9 @@ public static class EveOfflineBuild
         var safeReport = OfflineSimulationService.CatchUp(safe, offlineStart + elapsed);
         Require(!safeReport.Failed && safeReport.ShipsLost == 0 && safe.Operation.Enemies.Count == 0,
             "NPC-free Kakakela must remain genuinely safe during offline idle time");
-        RequireNearly(safeShip.ShieldHp, safeShield, .000001d, "NPC-free offline time must preserve shield HP");
+        var safePilot = safe.Characters.Single(candidate => candidate.Id == safeMember.PilotId);
+        Require(safeShip.ShieldHp + .001f >= safeShield && safeShip.ShieldHp <= PreparedPackageService.MaxShieldHp(safeShip, safePilot) + .001f,
+            "NPC-free offline time may recharge shield HP but must never reduce or overfill it");
         RequireNearly(safeShip.ArmorHp, safeArmor, .000001d, "NPC-free offline time must preserve armor HP");
         RequireNearly(safeShip.StructureHp, safeStructure, .000001d, "NPC-free offline time must preserve structure HP");
 
